@@ -1,0 +1,79 @@
+﻿@page "/login"
+@layout null
+@inject NavigationManager Navigation
+@inject NotificationService NotificationService
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="BlazorApp_TeleCRM.styles.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <RadzenTheme Theme="material" @rendermode="InteractiveServer" />
+
+    <HeadOutlet />
+</head>
+
+<body>
+
+
+
+
+    <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+        <RadzenCard Style="width: 300px;">
+            <RadzenHeading Size="H1">Login</RadzenHeading>
+
+            <RadzenTemplateForm @ref="form" TItem="LoginModel" Data="@loginModel" Submit="@OnSubmit">
+
+                <RadzenLabel Text="Username" />
+                <RadzenTextBox @bind-Value="loginModel.Username" Name="Username" Style="width:100%;" />
+
+                <RadzenLabel Text="Password" />
+                <RadzenPassword @bind-Value="loginModel.Password" Name="Password" Style="width:100%;" />
+
+                <RadzenButton ButtonType="ButtonType.Submit" Text="Login" Style="margin-top: 20px;" />
+
+            </RadzenTemplateForm>
+        </RadzenCard>
+    </div>
+
+
+
+    <Routes @rendermode="InteractiveServer" />
+    <script src="_framework/blazor.web.js"></script>
+    <script src="_content/Radzen.Blazor/Radzen.Blazor.js?v=@(typeof(Radzen.Colors).Assembly.GetName().Version)"></script>
+
+</body>
+
+</html>
+
+
+@code {
+    private RadzenTemplateForm<LoginModel> form;
+    private LoginModel loginModel = new LoginModel();
+
+    private async Task OnSubmit()
+    {
+        if (loginModel.Username == "admin" && loginModel.Password == "password")
+        {
+            NotificationService.Notify(NotificationSeverity.Success, "Login successful", "Welcome back, admin!");
+            Navigation.NavigateTo("/dashboard");
+        }
+        else
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Login failed", "Invalid username or password.");
+        }
+    }
+
+    public class LoginModel
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+    }
+}
