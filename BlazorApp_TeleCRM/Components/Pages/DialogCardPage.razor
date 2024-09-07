@@ -1,0 +1,203 @@
+﻿@page "/dialogcard/{OrderID}"
+@using System.ComponentModel.DataAnnotations
+@using static BlazorApp_TeleCRM.Components.Pages.Job
+@inject IConfiguration Configuration
+@inject Radzen.DialogService dialogService
+@inject HttpClient Http
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+    <RadzenStack>
+        <RadzenRow>
+            <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                <RadzenRow Gap="0">
+                    <RadzenColumn>
+                        <RadzenText TextStyle="TextStyle.Subtitle1">ข้อมูลลูกค้า</RadzenText>
+                    </RadzenColumn>
+                    <RadzenColumn>
+                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-color-primary">ผลตอบรับ</RadzenText>
+                        <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="สั่งสินค้า" />
+                    </RadzenColumn>
+                </RadzenRow>
+
+
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                    <RadzenStack Gap="0">
+                        <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ชื่อลูกค้า</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@order.Customer_FullName</b></RadzenText>
+
+                        <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">เบอร์ติดต่อลูกค้า</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1" class="rz-color-primary"><b>@order.Customer_Phone</b></RadzenText>
+
+                        <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ที่อยู่</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Caption"><b>@order.Customer_Address</b></RadzenText>
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenColumn>
+            <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                <RadzenText TextStyle="TextStyle.Subtitle1">ผู้ติดต่อ</RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                    <RadzenImage Path="/user/staff1.jpg" Style="width: 5rem;" AlternateText="@order.Contact_By" />
+                    <RadzenStack Gap="0" class="rz-text-truncate">
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-2 rz-my-0" Style="color: var(--rz-text-tertiary-color);">พนักงาน</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@order.Contact_By</b></RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-4 rz-mb-0" Style="color: var(--rz-text-tertiary-color);">วันที่ติดต่อ</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@order.Contact_Date</b></RadzenText>
+
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-4 rz-mb-0" Style="color: var(--rz-text-tertiary-color);">เบอร์ที่ใช้โทร</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>-</b></RadzenText>
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenColumn>
+
+        </RadzenRow>
+
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+            <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-m-0">ประวัติการติดต่อ</RadzenText>
+        </RadzenStack>
+        <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
+                        FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        @bind-Value=@selectedCustomer
+                        Data="@forecasts" ColumnWidth="150px" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
+                        PagerPosition="PagerPosition.Bottom"
+                        AllowAlternatingRows="false">
+            <Columns>
+                <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_By" Width="150px" Title="ผู้ติดต่อ" />
+                <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_Date" Width="150px" Title="วันที่ติดต่อลูกค้า" />
+                <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_By" Width="150px" Title="ผู้ติดต่อครั้งก่อน" />
+                <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_Date" Width="150px" Title="วันที่ติดต่อครั้งก่อน" />
+                <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_Action" Width="120px" Title="ผลตอบรับครั้งก่อน" />
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenStack>
+
+    <RadzenStack class="rz-12">
+        <RadzenTemplateForm @ref="form" TItem="UpdateJob" Data="@Model" Submit="@OnSubmit" InvalidSubmit="@OnInvalidSubmit">
+            <RadzenFieldset Text="Update การโทร">
+                <RadzenStack>
+
+                    <!-- Username Field -->
+                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                        <RadzenColumn Size="12" SizeMD="4">
+                            <RadzenLabel Text="สถานะการโทร" Component="Status" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="8">
+                            <RadzenDropDown @bind-Value="@Model.status" Data=@StatusData Style="width: 100%; max-width: 150px;" Name="Status" />
+                        </RadzenColumn>
+                    </RadzenRow>
+
+                    <!-- Password Field -->
+                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                        <RadzenColumn Size="12" SizeMD="4">
+                            <RadzenLabel Text="หมายเหตุ" Component="Remark" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="8">
+                            <RadzenTextArea Placeholder="" Name="Remark" @bind-Value="@Model.remark" class="w-100" />
+                        </RadzenColumn>
+                    </RadzenRow>
+
+                    <!-- Submit Button -->
+                    <RadzenRow AlignItems="AlignItems.Start">
+                        <RadzenColumn Size="12">
+                            <RadzenButton ButtonType="ButtonType.Submit" Text="บันทึก" Style="margin-top: 5px;" />
+                        </RadzenColumn>
+                    </RadzenRow>
+
+                </RadzenStack>
+            </RadzenFieldset>
+        </RadzenTemplateForm>
+
+    </RadzenStack>
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="1.5rem">
+        <RadzenButton Click="@((args) => dialogService.Close(true))" Variant="Variant.Flat" Text="Close" Style="width: 120px;margin-bottom:20px" />
+    </RadzenStack>
+</RadzenStack>
+@code {
+    [Parameter] public int OrderID { get; set; }
+    Order order;
+    private IEnumerable<WeatherForecast> forecasts;
+    IList<WeatherForecast> selectedCustomer;
+
+    private RadzenTemplateForm<UpdateJob> form;
+    private UpdateJob Model = new UpdateJob();
+    IEnumerable<string> StatusData;
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        Order o = new Order();
+        o.JobID = 1;
+
+        o.Customer_FullName = "คุณสมศรี มั่งมี";
+        o.Customer_Phone = "056-0351-334";
+        o.Customer_Address = "587-589/7-9 ถ. รามอินทรา แขวงคันนายาว เขตคันนายาว กรุงเทพมหานคร 10230";
+
+
+
+        o.Contact_By = "สรายุทธ";
+        o.Contact_Date = DateTime.Now;
+
+        order = o;
+
+        var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+        // Use the BaseApiUrl to call the API
+        var _forecasts = await Http.GetFromJsonAsync<IEnumerable<WeatherForecast>>($"{baseApiUrl}/api/weatherforecast");
+
+        forecasts = _forecasts.Take(5).ToList();
+        selectedCustomer = new List<WeatherForecast>() { forecasts.FirstOrDefault() };
+
+        StatusData = new List<string>
+{
+    "ตอบรับ",         // Accepted
+    "ติดต่อไม่ได้",   // Unable to Contact
+    "ปฎิเสธ",         // Rejected
+    "สั่งสินค้า"      // Ordered Products
+};
+
+    }
+
+    private async Task OnSubmit()
+    {
+
+    }
+
+    private void OnInvalidSubmit()
+    {
+
+    }
+
+
+    public class UpdateJob
+    {
+        [Required(ErrorMessage = "เลือกสถานะ")]
+        public string status { get; set; }
+
+        public string remark { get; set; }
+    }
+
+
+    private class Order
+    {
+        public int? JobID { get; set; }
+        public DateTime? Date { get; set; }
+        public int? TemperatureC { get; set; }
+        public string Summary { get; set; }
+        public string Customer_FullName { get; set; }
+        public string Customer_Phone { get; set; }
+        public string Customer_Address { get; set; }
+        public string Customer_Action { get; set; }
+        public string Contact_By { get; set; }
+        public DateTime? Contact_Date { get; set; }
+        public string Last_Contact_By { get; set; }
+        public DateTime? Last_Contact_Date { get; set; }
+        public string Last_Contact_Action { get; set; }
+        public string Remark { get; set; }
+    }
+
+
+
+
+}

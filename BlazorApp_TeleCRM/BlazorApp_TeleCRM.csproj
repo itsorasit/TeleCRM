@@ -10,4 +10,9 @@
     <PackageReference Include="Radzen.Blazor" Version="5.1.8" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Components\Pages\api\" />
+    <Folder Include="wwwroot\user\" />
+  </ItemGroup>
+
 </Project>

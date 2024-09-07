@@ -1,0 +1,139 @@
+﻿@page "/job"
+@inject IConfiguration Configuration
+@inject HttpClient Http
+@inject DialogService DialogService
+
+<PageTitle>My Job</PageTitle>
+
+<div class="rz-6">
+    <RadzenBreadCrumb>
+        <RadzenBreadCrumbItem Path="/mydashboard" Text="My Dashboard" />
+        <RadzenBreadCrumbItem Path="/job" Text="My Job" />
+        <RadzenBreadCrumbItem Icon="assignment" Text="งาน" />
+    </RadzenBreadCrumb>
+    <RadzenText TextStyle="TextStyle.DisplayH5">งานของคุณ</RadzenText>
+</div>
+
+
+<div class="rz-col-12">
+    <div class="rz-card rz-variant-flat rz-background-color-info-lighter">
+        <b>ค้นหา</b>
+        <RadzenRow  Gap="1rem">
+            <RadzenColumn>
+                <RadzenLabel Text="งานวันที่ " Component="RadzenDatePickerBindValue" />
+                <RadzenDatePicker @bind-Value=@value Name="RadzenDatePickerBindValue" ShowCalendarWeek />
+            </RadzenColumn>
+            <RadzenColumn >
+                <RadzenLabel Text="ถึงวันที่ " Component="RadzenDatePickerBindValue" />
+                <RadzenDatePicker @bind-Value=@value Name="RadzenDatePickerBindValue" ShowCalendarWeek />
+            </RadzenColumn>
+            <RadzenColumn >
+                <RadzenButton style="width: 100px" Icon="find_in_page" Variant="Variant.Flat" Text="ค้นหา" />
+                <RadzenButton style="width: 100px" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Light" Text="ล้าง" />
+            </RadzenColumn>
+        </RadzenRow>
+
+    </div>
+</div>
+
+
+<RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap"  class="rz-p-1" Gap="2rem">
+    <RadzenButton ButtonStyle="ButtonStyle.Primary">
+        งานลูกค้าใหม่
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="15" class="rz-ms-2" />
+    </RadzenButton>
+
+    <RadzenButton ButtonStyle="ButtonStyle.Secondary">
+        งานติดตามลูกค้าเก่า
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="15" class="rz-ms-2" />
+    </RadzenButton>
+
+    <RadzenButton ButtonStyle="ButtonStyle.Base">
+        งานติดตามลูกค้าร้องเรียน
+        <RadzenBadge Variant="Variant.Outlined"  Text="15" class="rz-ms-2" />
+    </RadzenButton>
+
+    <RadzenButton ButtonStyle="ButtonStyle.Info">
+        งานส่งซ่อม
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="15" class="rz-ms-2" />
+    </RadzenButton>
+
+    <RadzenButton ButtonStyle="ButtonStyle.Warning">
+        งานเปลี่ยนคืน
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="15" class="rz-ms-2" />
+    </RadzenButton>
+
+</RadzenStack>
+
+
+<RadzenDataGrid TItem="WeatherForecast" Data="@forecasts" PagerPosition="PagerPosition.Bottom"
+                FilterMode="FilterMode.SimpleWithMenu" PageSize="10" 
+                SelectionMode="DataGridSelectionMode.Single"
+                @bind-Value=@selectedCustomer
+AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
+AllowSorting="true" ColumnWidth="300px">
+    <Columns>
+        <RadzenDataGridColumn Width="120px" Frozen="true" Property="JobID" Title="Job Details">
+            <Template Context="data">
+                <RadzenButton ButtonStyle="ButtonStyle.Info" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="info" class="rz-m-1" Click=@(() => OpenOrder(data.JobID)) Text="@data.JobID.ToString()" />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="WeatherForecast" Frozen="true" Property="@nameof(WeatherForecast.Customer_Action)" Width="120px" Title="ตอบรับ" />
+        <RadzenDataGridColumn TItem="WeatherForecast" Frozen="true" Property="@nameof(WeatherForecast.Customer_FullName)" Width="180px" Title="ชื่อลูกค้า" />
+        <RadzenDataGridColumn TItem="WeatherForecast" Frozen="true" Property="@nameof(WeatherForecast.Customer_Phone)" Width="150px" Title="เบอร์ลูกค้า" />
+        <RadzenDataGridColumn TItem="WeatherForecast" Frozen="true" Property="@nameof(WeatherForecast.Customer_Address)" Title="ที่อยู่" />
+        <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_By" Width="150px" Title="ผู้ติดต่อ" />
+        <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_Date" Width="150px" Title="วันที่ติดต่อลูกค้า" />
+        <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_By" Width="150px" Title="ผู้ติดต่อครั้งก่อน" />
+        <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_Date" Width="150px" Title="วันที่ติดต่อครั้งก่อน" />
+        <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_Action" Width="120px" Title="ผลตอบรับครั้งก่อน" />
+
+
+        <RadzenDataGridColumn TItem="WeatherForecast" Property="Date" Title="วันที่มอบหมายงาน" />
+        <RadzenDataGridColumn TItem="WeatherForecast" Property="Remark" Title="หมายเหตุ" />
+    </Columns>
+</RadzenDataGrid>
+
+
+ @code {
+    DateTime? value = DateTime.Now;
+    private IEnumerable<WeatherForecast> forecasts;
+    IList<WeatherForecast> selectedCustomer;
+
+    async Task OpenOrder(int orderId)
+    {
+        await DialogService.OpenAsync<DialogCardPage>($"Job Details {orderId}",
+              new Dictionary<string, object>() { { "OrderID", orderId } },
+              new DialogOptions() { Width = "800px", Height = "620px" });
+    }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+        // Use the BaseApiUrl to call the API
+        forecasts = await Http.GetFromJsonAsync<IEnumerable<WeatherForecast>>($"{baseApiUrl}/api/weatherforecast");
+    
+        selectedCustomer = new List<WeatherForecast>() { forecasts.FirstOrDefault() };
+    }
+
+    public class WeatherForecast
+    {
+        public int JobID { get; set; }
+        public DateTime Date { get; set; }
+        public int TemperatureC { get; set; }
+        public string Summary { get; set; }
+        public string Customer_FullName { get; set; }
+        public string Customer_Phone { get; set; }
+        public string Customer_Address { get; set; }
+        public string Customer_Action { get; set; }
+        public string Contact_By { get; set; }
+        public DateTime? Contact_Date { get; set; }
+        public string Last_Contact_By { get; set; }
+        public DateTime? Last_Contact_Date { get; set; }
+        public string Last_Contact_Action { get; set; }
+        public string Remark { get; set; }
+    }
+}

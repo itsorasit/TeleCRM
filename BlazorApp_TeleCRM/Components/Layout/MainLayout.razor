@@ -1,41 +1,111 @@
-﻿@inherits LayoutComponentBase
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@inherits LayoutComponentBase
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+
 
 <RadzenComponents @rendermode="InteractiveServer" />
 
+@* <p>Current Page: @GetCurrentPage()</p> *@
+
+
 <RadzenLayout>
     <RadzenHeader>
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
-            <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
-            <RadzenLabel Text="NAKA" />
-        </RadzenStack>
+
+        <RadzenRow JustifyContent="JustifyContent.Normal">
+            <RadzenColumn Size="5">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
+                    <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
+                    <RadzenLabel Text="NAKA" />
+                </RadzenStack>
+            </RadzenColumn>
+            <RadzenColumn Size="7">
+                <RadzenStack Orientation="Orientation.Horizontal" Style="margin-top:0px" JustifyContent="JustifyContent.Right" AlignItems="AlignItems.End" Wrap="FlexWrap.NoWrap">
+                    <div class="rz-stack rz-display-flex rz-flex-row rz-align-items-center rz-justify-content-flex-end" style=";flex-wrap:nowrap;" id="caOCbnzzwE" _bl_7149="">
+                            <div class="rz-display-none rz-display-sm-inline-flex align-items-center">
+                            <a href="#" title="Star Radzen Blazor Components on GitHub" target="_blank" id="sPUi4p-8DE" class="rz-link rz-text-nowrap rz-mx-2 rz-mx-lg-4"><span class="rz-link-text" _bl_7200="">สรายุทธ สรสิทธิ์</span></a>
+                            </div><!--!-->
+                        <RadzenAppearanceToggle />
+                            <!--!--><button aria-label="Toggle" tabindex="0" class="rz-sidebar-toggle rz-m-0" id="tiP8IdWLSU" _bl_7162=""><i class="rzi rz-display-flex rz-align-items-center">settings</i></button>
+                        </div>
+
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
     </RadzenHeader>
-    <RadzenSidebar Responsive="false" Style="width: max-content" Expanded="@sidebarExpanded">
+
+    <RadzenSidebar Responsive="false" Style="width: 300px" Expanded="@sidebarExpanded">
         <RadzenPanelMenu DisplayStyle="@(sidebarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="true">
-            <RadzenPanelMenuItem Text="Overview" Icon="home" />
-            <RadzenPanelMenuItem Text="Dashboard" Icon="dashboard" />
-            <RadzenPanelMenuItem Text="UI Fundamentals" Icon="auto_awesome">
-                <RadzenPanelMenuItem Text="Themes" Icon="color_lens" />
-                <RadzenPanelMenuItem Text="Colors" Icon="invert_colors" />
+            <RadzenPanelMenuItem Text="Overview Team" Icon="home" Click="@GoToHome" Selected="@IsMenuItemSelected("/home")" />
+            <RadzenPanelMenuItem Text="My Dashboard" Icon="dashboard" />
+            <RadzenPanelMenuItem Text="My Job" Icon="assignment" Click="@GoToJob" Selected="@IsMenuItemSelected("/job")" />
+            <RadzenPanelMenuItem Text="Job - Admin" Icon="auto_awesome">
+                <RadzenPanelMenuItem Text="Upload งาน" Icon="color_lens" />
+                <RadzenPanelMenuItem Text="xxxxx" Icon="invert_colors" />
             </RadzenPanelMenuItem>
+
+            <!-- Login menu item -->
+            <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.End">
+                <RadzenPanelMenuItem Text="เข้าสู่ระบบ" Icon="open_in_new" Click="@GoToLogin" />
+            </RadzenStack>
+
+            <!-- Logout menu item -->
+            <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.End">
+                <RadzenPanelMenuItem Text="ออกจากระบบ" Icon="exit_to_app" />
+            </RadzenStack>
         </RadzenPanelMenu>
     </RadzenSidebar>
+
     <RadzenBody>
         <div class="rz-p-4">
             @Body
         </div>
     </RadzenBody>
+
     <RadzenFooter>
-        Footer
+        <span class="rz-badge rz-badge-success rz-variant-flat rz-shade-light rz-badge-pill" id="Vg5BDICKbU" _bl_7520="">
+            Version 1.0.0
+        </span>
+
     </RadzenFooter>
 </RadzenLayout>
-<div id="blazor-error-ui">
+
+@* <div id="blazor-error-ui">
     An unhandled error has occurred.
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
-</div>
+</div> *@
 
 @code {
-    // ตัวแปรควบคุมการขยายของ Sidebar
+    // Control sidebar expansion
     bool sidebarExpanded = true;
+    
+    private string GetCurrentPage()
+    {
+        // Remove the base URI to get the relative path (current page)
+        return Navigation.Uri.Replace(Navigation.BaseUri, "/");
+    }
+    
+    private bool IsMenuItemSelected(string route)
+    {
+      
+        return Navigation.Uri.Contains(route);
+    }
 
+
+    private void GoToHome()
+    {
+        Navigation.NavigateTo("/home", forceLoad: true);
+    }
+
+    private void GoToLogin()
+    {
+        Navigation.NavigateTo("/login");
+    }
+
+    private void GoToJob()
+    {
+        Navigation.NavigateTo("/job", forceLoad: true);
+    }
 }

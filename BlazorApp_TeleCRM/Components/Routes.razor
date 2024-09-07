@@ -1,6 +1,41 @@
-﻿<Router AppAssembly="typeof(Program).Assembly">
+﻿@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+
+<Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
-        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
+    <NotFound>
+        <LayoutView Layout="@typeof(Layout.MainLayout)">
+            <p>Sorry, there's nothing at this address.</p>
+        </LayoutView>
+    </NotFound>
 </Router>
+
+@code {
+    private bool isCheckingLogin = true;
+    private bool hasRendered = false; // Flag to prevent duplicate calls
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !hasRendered)
+        {
+            hasRendered = true; // Set flag to prevent subsequent calls
+
+            // Check if the user is logged in by retrieving the flag from local storage
+            var isLoggedIn = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "isLoggedIn");
+
+            // If the user is not logged in, redirect to the login page
+            if (isLoggedIn != "true")
+            {
+             //   Navigation.NavigateTo("/login", forceLoad: true);
+            }
+            else
+            {
+                isCheckingLogin = false;
+                StateHasChanged(); // Force a re-render to update the UI
+            }
+        }
+    }
+}
