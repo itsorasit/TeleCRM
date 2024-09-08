@@ -28,7 +28,7 @@
                 <RadzenDatePicker @bind-Value=@value Name="RadzenDatePickerBindValue" ShowCalendarWeek />
             </RadzenColumn>
             <RadzenColumn >
-                <RadzenButton style="width: 100px" Icon="find_in_page" Variant="Variant.Flat" Text="ค้นหา" />
+                <RadzenButton style="width: 100px" Icon="search" Variant="Variant.Flat" Text="ค้นหา" />
                 <RadzenButton style="width: 100px" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Light" Text="ล้าง" />
             </RadzenColumn>
         </RadzenRow>
@@ -104,7 +104,7 @@ AllowSorting="true" ColumnWidth="300px">
     {
         await DialogService.OpenAsync<DialogCardPage>($"Job Details {orderId}",
               new Dictionary<string, object>() { { "OrderID", orderId } },
-              new DialogOptions() { Width = "800px", Height = "620px" });
+              new DialogOptions() { Width = "80%", Height = "620px" });
     }
 
 

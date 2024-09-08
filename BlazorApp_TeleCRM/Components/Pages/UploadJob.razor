@@ -1,0 +1,88 @@
+﻿@page "/uploadjob"
+@using static BlazorApp_TeleCRM.Controller.UploadJobFileController
+@inject IConfiguration Configuration
+@inject HttpClient Http
+@inject DialogService DialogService
+
+<PageTitle>Upload Job</PageTitle>
+
+<div class="rz-6">
+    <RadzenBreadCrumb>
+        <RadzenBreadCrumbItem Icon="work" Text="Job - Admin" />
+        <RadzenBreadCrumbItem Path="/uploadjob" Icon="upload" Text="Upload Job" />
+    </RadzenBreadCrumb>
+    <RadzenText TextStyle="TextStyle.DisplayH5">Upload Job</RadzenText>
+</div>
+
+
+<div class="rz-col-12">
+    <div class="rz-card rz-variant-flat rz-background-color-info-lighter">
+        <b>ค้นหา</b>
+        <RadzenRow Gap="1rem">
+            <RadzenColumn>
+                <RadzenLabel Text="อัพโหลดวันที่ " Component="RadzenDatePickerBindValue" />
+                <RadzenDatePicker @bind-Value=@value Name="RadzenDatePickerBindValue" ShowCalendarWeek />
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenLabel Text="ถึงวันที่ " Component="RadzenDatePickerBindValue" />
+                <RadzenDatePicker @bind-Value=@value Name="RadzenDatePickerBindValue" ShowCalendarWeek />
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenButton style="width: 100px" Icon="search" Variant="Variant.Flat" Text="ค้นหา" />
+                <RadzenButton style="width: 100px" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Light" Text="ล้าง" />
+            </RadzenColumn>
+            <RadzenColumn st>
+                <RadzenButton style="width: 120px" Icon="upload" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Success" Text="อัพโหลด" Click=@OpenUpload />
+            </RadzenColumn>
+        </RadzenRow>
+
+    </div>
+</div>
+
+<RadzenDataGrid TItem="UploadJobFile" Data="@forecasts" PagerPosition="PagerPosition.Bottom"
+                FilterMode="FilterMode.SimpleWithMenu" PageSize="10"
+                SelectionMode="DataGridSelectionMode.Single"
+                @bind-Value=@selectedCustomer
+                AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
+                AllowSorting="true" ColumnWidth="300px">
+    <Columns>
+        <RadzenDataGridColumn TItem="UploadJobFile"  Property="@nameof(UploadJobFile.UploadID)" Width="120px" Title="อัพโหลด ID" />
+        <RadzenDataGridColumn TItem="UploadJobFile"  Property="@nameof(UploadJobFile.Upload_By)" Width="150px" Title="ผู้อัพโหลด" />
+        <RadzenDataGridColumn TItem="UploadJobFile"  Property="@nameof(UploadJobFile.Upload_Date)" Width="150px" Title="อัพโหลดวันที่" />
+        <RadzenDataGridColumn TItem="UploadJobFile"  Property="@nameof(UploadJobFile.FileName1)" Title="ชื่อไฟล์" />
+        <RadzenDataGridColumn TItem="UploadJobFile" Property="CountRowData" Width="150px" Title="จำนวนงาน" />
+        <RadzenDataGridColumn TItem="UploadJobFile" Property="Remark" Title="หมายเหตุ" />
+        <RadzenDataGridColumn Width="120px" Property="UploadID" Title="Download">
+            <Template Context="data">
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="download" class="rz-m-1"  />
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+
+@code {
+    DateTime? value = DateTime.Now;
+    private IEnumerable<UploadJobFile> forecasts;
+    IList<UploadJobFile> selectedCustomer;
+
+    async Task OpenUpload()
+    {
+        await DialogService.OpenAsync<DialogCardPageUploadJob>($"",
+              new Dictionary<string, object>() { { "UploadID", 1 } },
+              new DialogOptions() { Width = "800px", Height = "400px" });
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+        // Use the BaseApiUrl to call the API
+        forecasts = await Http.GetFromJsonAsync<IEnumerable<UploadJobFile>>($"{baseApiUrl}/api/UploadJobFile");
+
+        selectedCustomer = new List<UploadJobFile>() { forecasts.FirstOrDefault() };
+    }
+
+    
+}

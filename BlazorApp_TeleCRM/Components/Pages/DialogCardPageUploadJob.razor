@@ -1,0 +1,53 @@
+﻿@page "/dialogcarduploadjob/{UploadID}"
+@using System.ComponentModel.DataAnnotations
+@using static BlazorApp_TeleCRM.Components.Pages.UploadJob
+@inject IConfiguration Configuration
+@inject Radzen.DialogService dialogService
+@inject HttpClient Http
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+    <RadzenRow >
+        <RadzenText Text="เพิ่ม Upload Job" TextStyle="TextStyle.DisplayH5" />
+        <RadzenColumn Size="12" SizeMD="12">
+            <RadzenCard Variant="Variant.Outlined">
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">อัพโหลดไฟล์งาน</RadzenText>
+                <RadzenUpload  Icon="upload" ChooseText="" Progress=@(args => OnProgress(args, "Upload with icon")) Style="width: 100%" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})">
+                </RadzenUpload>
+
+                <RadzenButton Text="อัพโหลด" Style="margin-top:15px" ButtonStyle="ButtonStyle.Primary" />
+
+            </RadzenCard>
+        </RadzenColumn>
+
+    </RadzenRow>
+
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="1.5rem">
+        <RadzenButton Click="@((args) => dialogService.Close(true))" Variant="Variant.Outlined" Text="ปิด" Style="width: 120px;margin-bottom:20px" />
+    </RadzenStack>
+</RadzenStack>
+@code {
+    [Parameter] public int UploadID { get; set; }
+   
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+   
+
+    }
+
+    void OnProgress(UploadProgressArgs args, string name)
+    {
+       // console.Log($"{args.Progress}% '{name}' / {args.Loaded} of {args.Total} bytes.");
+
+        if (args.Progress == 100)
+        {
+            foreach (var file in args.Files)
+            {
+              //  console.Log($"Uploaded: {file.Name} / {file.Size} bytes");
+            }
+        }
+    }
+
+}

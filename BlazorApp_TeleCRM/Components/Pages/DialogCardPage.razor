@@ -66,6 +66,7 @@
                 <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_By" Width="150px" Title="ผู้ติดต่อครั้งก่อน" />
                 <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_Date" Width="150px" Title="วันที่ติดต่อครั้งก่อน" />
                 <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_Action" Width="120px" Title="ผลตอบรับครั้งก่อน" />
+                <RadzenDataGridColumn TItem="WeatherForecast" Property="Remark" Width="200px" Title="หมายเหตุ" />
             </Columns>
         </RadzenDataGrid>
     </RadzenStack>
@@ -75,7 +76,6 @@
             <RadzenFieldset Text="Update การโทร">
                 <RadzenStack>
 
-                    <!-- Username Field -->
                     <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
                         <RadzenColumn Size="12" SizeMD="4">
                             <RadzenLabel Text="สถานะการโทร" Component="Status" />
@@ -85,7 +85,17 @@
                         </RadzenColumn>
                     </RadzenRow>
 
-                    <!-- Password Field -->
+                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                        <RadzenColumn Size="12" SizeMD="4">
+                            <RadzenLabel Text="คำสั่งซื้อใหม่" Component="sale_order" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="8">
+                            <RadzenTextBox Placeholder="กรอกเลขที่เปิดคำสั่งซื้อใหม่" Name="sale_order" @bind-Value="@Model.sale_order" class="w-100" />
+                        </RadzenColumn>
+                    </RadzenRow>
+
+
+
                     <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
                         <RadzenColumn Size="12" SizeMD="4">
                             <RadzenLabel Text="หมายเหตุ" Component="Remark" />
@@ -109,7 +119,7 @@
     </RadzenStack>
 
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="1.5rem">
-        <RadzenButton Click="@((args) => dialogService.Close(true))" Variant="Variant.Flat" Text="Close" Style="width: 120px;margin-bottom:20px" />
+        <RadzenButton Click="@((args) => dialogService.Close(true))" Variant="Variant.Outlined" Text="ปิด" Style="width: 120px;margin-bottom:20px" />
     </RadzenStack>
 </RadzenStack>
 @code {
@@ -174,7 +184,7 @@
     {
         [Required(ErrorMessage = "เลือกสถานะ")]
         public string status { get; set; }
-
+        public string sale_order { get; set; }
         public string remark { get; set; }
     }
 

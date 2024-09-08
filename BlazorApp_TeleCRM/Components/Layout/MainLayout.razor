@@ -40,8 +40,8 @@
             <RadzenPanelMenuItem Text="Overview Team" Icon="home" Click="@GoToHome" Selected="@IsMenuItemSelected("/home")" />
             <RadzenPanelMenuItem Text="My Dashboard" Icon="dashboard" />
             <RadzenPanelMenuItem Text="My Job" Icon="assignment" Click="@GoToJob" Selected="@IsMenuItemSelected("/job")" />
-            <RadzenPanelMenuItem Text="Job - Admin" Icon="auto_awesome">
-                <RadzenPanelMenuItem Text="Upload งาน" Icon="color_lens" />
+            <RadzenPanelMenuItem Text="Job - Admin" Icon="work" Expanded="@IsMenuItemSelected("/uploadjob")" >
+                <RadzenPanelMenuItem Text="Upload Job" Icon="upload" Click="@GoToUploadJob" Selected="@IsMenuItemSelected("/uploadjob")" />
                 <RadzenPanelMenuItem Text="xxxxx" Icon="invert_colors" />
             </RadzenPanelMenuItem>
 
@@ -80,16 +80,16 @@
 @code {
     // Control sidebar expansion
     bool sidebarExpanded = true;
-    
+
     private string GetCurrentPage()
     {
         // Remove the base URI to get the relative path (current page)
         return Navigation.Uri.Replace(Navigation.BaseUri, "/");
     }
-    
+
     private bool IsMenuItemSelected(string route)
     {
-      
+
         return Navigation.Uri.Contains(route);
     }
 
@@ -108,4 +108,10 @@
     {
         Navigation.NavigateTo("/job", forceLoad: true);
     }
+
+    private void GoToUploadJob()
+    {
+        Navigation.NavigateTo("/uploadjob", forceLoad: true);
+    }
+
 }
