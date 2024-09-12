@@ -23,7 +23,7 @@ namespace BlazorApp_TeleCRM.Controller
 
         private static readonly string[] CustomerAddress = new[]
         {
-            "99/1 xxxxxxx xxxxx xxxxx 12050", "10 xxxxxxx xxxxx xxxxx 12050", "31/1 xxxxxxx xxxxx xxxxx 12050"
+            "กรุงเทพ", "สระบุรี", "ราชบุรี"
         };
 
         private static readonly string[] CustomerAction = new[]
@@ -40,7 +40,7 @@ namespace BlazorApp_TeleCRM.Controller
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
-            return Enumerable.Range(1, 100).Select(index => new WeatherForecast
+            return Enumerable.Range(1, 10).Select(index => new WeatherForecast
             {
                 JobID = index,
                 Date = DateTime.Now.AddDays(index),

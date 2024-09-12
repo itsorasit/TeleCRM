@@ -9,7 +9,6 @@
     <RadzenBreadCrumb>
         <RadzenBreadCrumbItem Path="/mydashboard" Text="My Dashboard" />
         <RadzenBreadCrumbItem Path="/job" Text="My Job" />
-        <RadzenBreadCrumbItem Icon="assignment" Text="งาน" />
     </RadzenBreadCrumb>
     <RadzenText TextStyle="TextStyle.DisplayH5">งานของคุณ</RadzenText>
 </div>
@@ -39,29 +38,26 @@
 
 <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap"  class="rz-p-1" Gap="2rem">
     <RadzenButton ButtonStyle="ButtonStyle.Primary">
-        งานลูกค้าใหม่
-        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="15" class="rz-ms-2" />
+        Up-Sale
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="20" class="rz-ms-2" />
     </RadzenButton>
 
     <RadzenButton ButtonStyle="ButtonStyle.Secondary">
-        งานติดตามลูกค้าเก่า
-        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="15" class="rz-ms-2" />
+        Re-Order
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="50" class="rz-ms-2" />
     </RadzenButton>
 
     <RadzenButton ButtonStyle="ButtonStyle.Base">
-        งานติดตามลูกค้าร้องเรียน
-        <RadzenBadge Variant="Variant.Outlined"  Text="15" class="rz-ms-2" />
+        ลูกค้าขุด
+        <RadzenBadge Variant="Variant.Outlined"  Text="30" class="rz-ms-2" />
     </RadzenButton>
 
     <RadzenButton ButtonStyle="ButtonStyle.Info">
-        งานส่งซ่อม
-        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="15" class="rz-ms-2" />
+        จัดการแล้ว
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="70" class="rz-ms-2" />
     </RadzenButton>
 
-    <RadzenButton ButtonStyle="ButtonStyle.Warning">
-        งานเปลี่ยนคืน
-        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="15" class="rz-ms-2" />
-    </RadzenButton>
+
 
 </RadzenStack>
 
@@ -81,7 +77,7 @@ AllowSorting="true" ColumnWidth="300px">
         <RadzenDataGridColumn TItem="WeatherForecast" Frozen="true" Property="@nameof(WeatherForecast.Customer_Action)" Width="120px" Title="ตอบรับ" />
         <RadzenDataGridColumn TItem="WeatherForecast" Frozen="true" Property="@nameof(WeatherForecast.Customer_FullName)" Width="180px" Title="ชื่อลูกค้า" />
         <RadzenDataGridColumn TItem="WeatherForecast" Frozen="true" Property="@nameof(WeatherForecast.Customer_Phone)" Width="150px" Title="เบอร์ลูกค้า" />
-        <RadzenDataGridColumn TItem="WeatherForecast" Frozen="true" Property="@nameof(WeatherForecast.Customer_Address)" Title="ที่อยู่" />
+        <RadzenDataGridColumn TItem="WeatherForecast" Frozen="true" Property="@nameof(WeatherForecast.Customer_Address)" Width="120px" Title="จังหวัด" />
         <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_By" Width="150px" Title="ผู้ติดต่อ" />
         <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_Date" Width="150px" Title="วันที่ติดต่อลูกค้า" />
         <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_By" Width="150px" Title="ผู้ติดต่อครั้งก่อน" />

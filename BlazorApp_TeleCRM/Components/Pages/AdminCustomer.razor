@@ -1,0 +1,144 @@
+﻿@page "/admincustomer"
+@using static BlazorApp_TeleCRM.Controller.CustomerAdminController
+@inject IConfiguration Configuration
+@inject HttpClient Http
+@inject DialogService DialogService
+
+<PageTitle>ข้อมูลรายชื่อลูกค้า</PageTitle>
+
+<div class="rz-6">
+    <RadzenBreadCrumb>
+        <RadzenBreadCrumbItem  Text="CRM - Admin" />
+        <RadzenBreadCrumbItem Path="/uploadjob" Text="ข้อมูลลูกค้า" />
+    </RadzenBreadCrumb>
+    <RadzenText TextStyle="TextStyle.DisplayH5">ข้อมูลรายชื่อลูกค้า</RadzenText>
+</div>
+
+
+<div class="rz-12">
+    <div class="rz-card rz-variant-flat rz-background-color-info-lighter">
+        <b>ค้นหา</b>
+        <RadzenRow Gap="1rem" JustifyContent="JustifyContent.Start">
+            <RadzenColumn>
+                <RadzenLabel Text="อัพโหลดวันที่ " Component="RadzenDatePickerBindValue" />
+                <RadzenDatePicker @bind-Value=@value Name="RadzenDatePickerBindValue" ShowCalendarWeek />
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenLabel Text="ถึงวันที่ " Component="RadzenDatePickerBindValue" />
+                <RadzenDatePicker @bind-Value=@value Name="RadzenDatePickerBindValue" ShowCalendarWeek />
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenButton style="width: 100px" Icon="search" Variant="Variant.Flat" Text="ค้นหา" />
+                <RadzenButton style="width: 100px" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Light" Text="ล้าง" />
+            </RadzenColumn>
+            <RadzenColumn>
+  @*               <RadzenButton style="width: 200px" Icon="upload" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Success" Text="อัพโหลดรายชื่อลูกค้า" Click=@OpenUpload /> *@
+            </RadzenColumn>
+        </RadzenRow>
+        <br>
+        <RadzenRow Gap="1rem" JustifyContent="JustifyContent.Start">
+            <RadzenColumn>
+                <RadzenLabel Text="กิจกรรม ยังดำเนินการอยู่ " />
+                <RadzenCheckBox @bind-Value=@value1 Name="CheckBox1" />
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenLabel Text="รหัสกิจกรรม/แคมเปญ" />
+                <RadzenTextBox style="width: 150px" Placeholder="" />
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenLabel Text="ชื่อกิจกรรม/แคมเปญ" />
+                <RadzenTextBox style="width: 200px" Placeholder="" />
+            </RadzenColumn>
+            <RadzenColumn>
+            </RadzenColumn>
+            <RadzenColumn>
+            </RadzenColumn>
+        </RadzenRow>
+       
+
+    </div>
+</div>
+
+
+<RadzenCard Variant="Variant.Outlined" class="rz-my-4">
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
+        <RadzenCheckBox @bind-Value=@allowRowSelectOnRowClick Name="CheckBox1" />
+        <RadzenLabel Text="" Component="CheckBox1" />
+        <RadzenButton Text="ล้างตัวเลือก" ButtonStyle="ButtonStyle.Warning" Click="@(args => selectedCustomer = null)" />
+        <RadzenButton Text="สร้างกิจกรรม"  />
+        <RadzenButton style="width: 200px" Icon="upload" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Success" Text="อัพโหลดรายชื่อลูกค้า" Click=@OpenUpload />
+
+    </RadzenStack>
+</RadzenCard>
+
+
+<RadzenDataGrid TItem="CustomerData" Data="@cus_datas" PagerPosition="PagerPosition.Bottom"
+                FilterMode="FilterMode.SimpleWithMenu" PageSize="10"
+                SelectionMode="DataGridSelectionMode.Multiple"
+                @bind-Value=@selectedCustomer
+                AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
+                AllowSorting="true" ColumnWidth="300px">
+    <Columns>
+        <RadzenDataGridColumn Width="60px" Sortable="false" Filterable="false">
+            <HeaderTemplate>
+                <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
+                                Value="@(selectedCustomer == null || selectedCustomer?.Any() != true ? false : !cus_datas.All(i => selectedCustomer.Contains(i)) ? null : cus_datas.Any(i => selectedCustomer.Contains(i)))"
+                                Change="@(args => selectedCustomer = args == true ? cus_datas.ToList() : null)" />
+            </HeaderTemplate>
+            <Template Context="data">
+                <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(selectedCustomer != null && selectedCustomer.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
+                                TValue="bool" Change=@(args => { if(!allowRowSelectOnRowClick) { grid.SelectRow(data); }}) />
+            </Template>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="CustomerData"  Property="@nameof(CustomerData.Customer_ID)" Width="120px" Title="รหัสลูกค้า" />
+        <RadzenDataGridColumn TItem="CustomerData" Property="@nameof(CustomerData.Customer_Channel)" Width="100px" Title="แหล่งข้อมูล" />
+        <RadzenDataGridColumn TItem="CustomerData" Property="@nameof(CustomerData.Customer_FullName)" Width="180px" Title="ชื่อลูกค้า" />
+        <RadzenDataGridColumn TItem="CustomerData" Property="@nameof(CustomerData.Customer_Phone)" Width="180px" Title="เบอร์โทรศัพท์" />
+        <RadzenDataGridColumn TItem="CustomerData" Property="@nameof(CustomerData.Customer_Address)" Width="120px" Title="จังหวัด" />
+        <RadzenDataGridColumn TItem="CustomerData" Property="@nameof(CustomerData.CountActivity)" Width="150px" Title="กิจกรรม" />
+        <RadzenDataGridColumn TItem="CustomerData" Property="@nameof(CustomerData.Activity_Latest)" Width="150px" Title="กิจกรรมล่าสุด" />
+        <RadzenDataGridColumn TItem="CustomerData" Property="Remark1" Title="หมายเหตุ" Width="150px" />
+        <RadzenDataGridColumn TItem="CustomerData"  Property="@nameof(CustomerData.Upload_By)" Width="150px" Title="ผู้อัพโหลด" />
+        <RadzenDataGridColumn TItem="CustomerData"  Property="@nameof(CustomerData.Upload_Date)" Width="150px" Title="อัพโหลดวันที่" />
+      
+@*         <RadzenDataGridColumn Width="120px" Property="UploadID" Title="Download">
+            <Template Context="data">
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="download" class="rz-m-1"  />
+            </Template>
+        </RadzenDataGridColumn> *@
+    </Columns>
+</RadzenDataGrid>
+
+
+@code {
+    bool allowRowSelectOnRowClick = true;
+    DateTime? value = DateTime.Now;
+
+    bool value1 = false;
+
+    private IEnumerable<CustomerData> cus_datas;
+    IList<CustomerData> selectedCustomer;
+    RadzenDataGrid<CustomerData> grid;
+
+
+    async Task OpenUpload()
+    {
+        await DialogService.OpenAsync<DialogCardPageUploadJob>($"",
+              new Dictionary<string, object>() { { "UploadID", 1 } },
+              new DialogOptions() { Width = "800px", Height = "400px" });
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+        // Use the BaseApiUrl to call the API
+        cus_datas = await Http.GetFromJsonAsync<IEnumerable<CustomerData>>($"{baseApiUrl}/api/CustomerAdmin");
+
+        selectedCustomer = new List<CustomerData>() { cus_datas.FirstOrDefault() };
+    }
+
+    
+}

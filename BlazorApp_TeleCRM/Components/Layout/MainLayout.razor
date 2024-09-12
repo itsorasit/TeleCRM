@@ -17,7 +17,7 @@
             <RadzenColumn Size="5">
                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
                     <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
-                    <RadzenLabel Text="NAKA" />
+                    <RadzenLabel Text="ALL SEED" />
                 </RadzenStack>
             </RadzenColumn>
             <RadzenColumn Size="7">
@@ -25,6 +25,7 @@
                     <div class="rz-stack rz-display-flex rz-flex-row rz-align-items-center rz-justify-content-flex-end" style=";flex-wrap:nowrap;" id="caOCbnzzwE" _bl_7149="">
                             <div class="rz-display-none rz-display-sm-inline-flex align-items-center">
                             <a href="#" title="Star Radzen Blazor Components on GitHub" target="_blank" id="sPUi4p-8DE" class="rz-link rz-text-nowrap rz-mx-2 rz-mx-lg-4"><span class="rz-link-text" _bl_7200="">สรายุทธ สรสิทธิ์</span></a>
+                            <a href="#" title="Star Radzen Blazor Components on GitHub" target="_blank" id="sPUi4p-8DE" class="rz-link rz-text-nowrap rz-mx-2 rz-mx-lg-4"><span class="rz-link-text" _bl_7200="">Shop : ALLSEED001 </span></a>
                             </div><!--!-->
                         <RadzenAppearanceToggle />
                             <!--!--><button aria-label="Toggle" tabindex="0" class="rz-sidebar-toggle rz-m-0" id="tiP8IdWLSU" _bl_7162=""><i class="rzi rz-display-flex rz-align-items-center">settings</i></button>
@@ -40,9 +41,12 @@
             <RadzenPanelMenuItem Text="Overview Team" Icon="home" Click="@GoToHome" Selected="@IsMenuItemSelected("/home")" />
             <RadzenPanelMenuItem Text="My Dashboard" Icon="dashboard" />
             <RadzenPanelMenuItem Text="My Job" Icon="assignment" Click="@GoToJob" Selected="@IsMenuItemSelected("/job")" />
-            <RadzenPanelMenuItem Text="Job - Admin" Icon="work" Expanded="@IsMenuItemSelected("/uploadjob")" >
-                <RadzenPanelMenuItem Text="Upload Job" Icon="upload" Click="@GoToUploadJob" Selected="@IsMenuItemSelected("/uploadjob")" />
-                <RadzenPanelMenuItem Text="xxxxx" Icon="invert_colors" />
+            <RadzenPanelMenuItem Text="รายชื่อลูกค้า" Icon="person" Click="@GoToUploadJob" Selected="@IsMenuItemSelected("/admincustomer")" />
+
+            <RadzenPanelMenuItem Text="CRM - Admin" Icon="work" Expanded="@((IsMenuItemSelected("/admincustomer") || IsMenuItemSelected("/adminactivity")))">
+                <RadzenPanelMenuItem Text="1. ข้อมูลลูกค้า" Icon="person" Click="@GoToAdmincustomer" Selected="@IsMenuItemSelected("/admincustomer")" />
+                <RadzenPanelMenuItem Text="2. กิจกรรม" Icon="sprint" Click="@GoToAdminactivity" Selected="@IsMenuItemSelected("/adminactivity")" />
+            @*     <RadzenPanelMenuItem Text="xxxxx" Icon="invert_colors" /> *@
             </RadzenPanelMenuItem>
 
             <!-- Login menu item -->
@@ -113,5 +117,16 @@
     {
         Navigation.NavigateTo("/uploadjob", forceLoad: true);
     }
+
+    private void GoToAdmincustomer()
+    {
+        Navigation.NavigateTo("/admincustomer", forceLoad: true);
+    }
+    
+    private void GoToAdminactivity()
+    {
+        Navigation.NavigateTo("/adminactivity", forceLoad: true);
+    }
+
 
 }

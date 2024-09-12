@@ -15,4 +15,10 @@
     <Folder Include="wwwroot\user\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="Components\Pages\AdminCustomer.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+  </ItemGroup>
+
 </Project>

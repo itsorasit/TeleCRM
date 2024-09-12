@@ -40,7 +40,7 @@ namespace BlazorApp_TeleCRM.Controller
         [HttpGet]
         public IEnumerable<UploadJobFile> Get()
         {
-            return Enumerable.Range(1, 100).Select(index => new UploadJobFile
+            return Enumerable.Range(1, 10).Select(index => new UploadJobFile
             {
                 UploadID = index,
                 Upload_By = Admin[Random.Shared.Next(Admin.Length)],

@@ -1,0 +1,95 @@
+﻿@page "/adminactivity"
+@using static BlazorApp_TeleCRM.Controller.ActivityAdminController
+
+@inject IConfiguration Configuration
+@inject HttpClient Http
+@inject DialogService DialogService
+
+<PageTitle>ข้อมูลกิจกรรม</PageTitle>
+
+<div class="rz-6">
+    <RadzenBreadCrumb>
+        <RadzenBreadCrumbItem Text="CRM - Admin" />
+        <RadzenBreadCrumbItem Path="/adminactivity" Text="กิจกรรม" />
+    </RadzenBreadCrumb>
+    <RadzenText TextStyle="TextStyle.DisplayH5">ข้อมูลกิจกรรม</RadzenText>
+</div>
+
+
+<div class="rz-col-12">
+    <div class="rz-card rz-variant-flat rz-background-color-info-lighter">
+        <b>ค้นหา</b>
+        <RadzenRow Gap="1rem">
+            <RadzenColumn>
+                <RadzenLabel Text="วันที่สร้างกิจกรรม " Component="RadzenDatePickerBindValue" />
+                <RadzenDatePicker @bind-Value=@value Name="RadzenDatePickerBindValue" ShowCalendarWeek />
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenLabel Text="ถึงวันที่ " Component="RadzenDatePickerBindValue" />
+                <RadzenDatePicker @bind-Value=@value Name="RadzenDatePickerBindValue" ShowCalendarWeek />
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenButton style="width: 100px" Icon="search" Variant="Variant.Flat" Text="ค้นหา" />
+                <RadzenButton style="width: 100px" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Light" Text="ล้าง" />
+            </RadzenColumn>
+            <RadzenColumn st>
+         @*        <RadzenButton style="width: 120px" Icon="upload" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Success" Text="อัพโหลดกิจกรรม" Click=@OpenUpload />
+          *@  
+      </RadzenColumn>
+        </RadzenRow>
+
+    </div>
+</div>
+
+<RadzenDataGrid TItem="ActivityData" Data="@activitys" PagerPosition="PagerPosition.Bottom"
+                FilterMode="FilterMode.SimpleWithMenu" PageSize="10"
+                SelectionMode="DataGridSelectionMode.Single"
+                @bind-Value=@selectedActivity
+                AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
+                AllowSorting="true" ColumnWidth="300px">
+    <Columns>
+
+        <RadzenDataGridColumn Width="60px" Property="@nameof(ActivityData.Activity_ID)" Title="#">
+            <Template Context="data">
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" />
+            </Template>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="ActivityData"  Property="@nameof(ActivityData.Activity_ID)" Width="100px" Title="กิจกรรม ID" />
+        <RadzenDataGridColumn TItem="ActivityData"  Property="@nameof(ActivityData.Activity_Name)" Width="180px" Title="ชื่อกิจกรรม" />
+        <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.Activity_Type)" Width="150px" Title="ประเภท" />
+        <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.Activity_Status)" Width="150px" Title="Point" />
+        <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.Activity_Progress)" Width="100px" Title="ความคืบหน้า" />
+        <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.Activity_Assign)" Width="180px" Title="มอบหมายให้" />
+        <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.CountActivity_Succeed)" Width="100px" Title="สำเร็จ" />
+        <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.CountActivity_ALL)" Width="100px" Title="ทั้งหมด" />
+        <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.Activity_Duedate)" Width="180px" Title="วันครบกำหนด" />
+    </Columns>
+</RadzenDataGrid>
+
+
+@code {
+    DateTime? value = DateTime.Now;
+    private IEnumerable<ActivityData> activitys;
+    IList<ActivityData> selectedActivity;
+
+    async Task OpenUpload()
+    {
+        await DialogService.OpenAsync<DialogCardPageUploadJob>($"",
+              new Dictionary<string, object>() { { "UploadID", 1 } },
+              new DialogOptions() { Width = "800px", Height = "400px" });
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+        // Use the BaseApiUrl to call the API
+        activitys = await Http.GetFromJsonAsync<IEnumerable<ActivityData>>($"{baseApiUrl}/api/ActivityAdmin");
+
+        selectedActivity = new List<ActivityData>() { activitys.FirstOrDefault() };
+    }
+
+    
+}
