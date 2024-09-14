@@ -40,7 +40,7 @@ namespace BlazorApp_TeleCRM.Controller
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
-            return Enumerable.Range(1, 10).Select(index => new WeatherForecast
+            return Enumerable.Range(1, 1000).Select(index => new WeatherForecast
             {
                 JobID = index,
                 Date = DateTime.Now.AddDays(index),

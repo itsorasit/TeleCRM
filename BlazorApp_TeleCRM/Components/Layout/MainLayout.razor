@@ -3,16 +3,14 @@
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
+@inject DialogService DialogService
+@inject IJSRuntime JS
 
 
 <RadzenComponents @rendermode="InteractiveServer" />
 
-@* <p>Current Page: @GetCurrentPage()</p> *@
-
-
 <RadzenLayout>
     <RadzenHeader>
-
         <RadzenRow JustifyContent="JustifyContent.Normal">
             <RadzenColumn Size="5">
                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
@@ -23,14 +21,13 @@
             <RadzenColumn Size="7">
                 <RadzenStack Orientation="Orientation.Horizontal" Style="margin-top:0px" JustifyContent="JustifyContent.Right" AlignItems="AlignItems.End" Wrap="FlexWrap.NoWrap">
                     <div class="rz-stack rz-display-flex rz-flex-row rz-align-items-center rz-justify-content-flex-end" style=";flex-wrap:nowrap;" id="caOCbnzzwE" _bl_7149="">
-                            <div class="rz-display-none rz-display-sm-inline-flex align-items-center">
+                        <div class="rz-display-none rz-display-sm-inline-flex align-items-center">
                             <a href="#" title="Star Radzen Blazor Components on GitHub" target="_blank" id="sPUi4p-8DE" class="rz-link rz-text-nowrap rz-mx-2 rz-mx-lg-4"><span class="rz-link-text" _bl_7200="">สรายุทธ สรสิทธิ์</span></a>
                             <a href="#" title="Star Radzen Blazor Components on GitHub" target="_blank" id="sPUi4p-8DE" class="rz-link rz-text-nowrap rz-mx-2 rz-mx-lg-4"><span class="rz-link-text" _bl_7200="">Shop : ALLSEED001 </span></a>
-                            </div><!--!-->
+                        </div><!--!-->
                         <RadzenAppearanceToggle />
-                            <!--!--><button aria-label="Toggle" tabindex="0" class="rz-sidebar-toggle rz-m-0" id="tiP8IdWLSU" _bl_7162=""><i class="rzi rz-display-flex rz-align-items-center">settings</i></button>
-                        </div>
-
+                        <button aria-label="Toggle" tabindex="0" class="rz-sidebar-toggle rz-m-0" id="tiP8IdWLSU" _bl_7162=""><i class="rzi rz-display-flex rz-align-items-center">settings</i></button>
+                    </div>
                 </RadzenStack>
             </RadzenColumn>
         </RadzenRow>
@@ -46,15 +43,12 @@
             <RadzenPanelMenuItem Text="CRM - Admin" Icon="work" Expanded="@((IsMenuItemSelected("/admincustomer") || IsMenuItemSelected("/adminactivity")))">
                 <RadzenPanelMenuItem Text="1. ข้อมูลลูกค้า" Icon="person" Click="@GoToAdmincustomer" Selected="@IsMenuItemSelected("/admincustomer")" />
                 <RadzenPanelMenuItem Text="2. กิจกรรม" Icon="sprint" Click="@GoToAdminactivity" Selected="@IsMenuItemSelected("/adminactivity")" />
-            @*     <RadzenPanelMenuItem Text="xxxxx" Icon="invert_colors" /> *@
             </RadzenPanelMenuItem>
 
-            <!-- Login menu item -->
             <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.End">
                 <RadzenPanelMenuItem Text="เข้าสู่ระบบ" Icon="open_in_new" Click="@GoToLogin" />
             </RadzenStack>
 
-            <!-- Logout menu item -->
             <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.End">
                 <RadzenPanelMenuItem Text="ออกจากระบบ" Icon="exit_to_app" />
             </RadzenStack>
@@ -71,19 +65,33 @@
         <span class="rz-badge rz-badge-success rz-variant-flat rz-shade-light rz-badge-pill" id="Vg5BDICKbU" _bl_7520="">
             Version 1.0.0
         </span>
-
     </RadzenFooter>
 </RadzenLayout>
-
-@* <div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
-</div> *@
 
 @code {
     // Control sidebar expansion
     bool sidebarExpanded = true;
+
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += HandleLocationChanged;
+    }
+
+    private readonly Dictionary<string, string> PageTitles = new()
+    {
+    { "/admincustomer", "ข้อมูลรายชื่อลูกค้า" },
+    { "/adminactivity", "ข้อมูลกิจกรรม" },
+    { "/home", "Home" }
+    };
+
+    private void HandleLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        // Find the matching URL in the dictionary and set the title
+        var matchedTitle = PageTitles.FirstOrDefault(x => e.Location.Contains(x.Key)).Value;
+
+        // If no match found, use a default title
+        SetPageTitle(matchedTitle ?? "Default Title");
+    }
 
     private string GetCurrentPage()
     {
@@ -93,40 +101,68 @@
 
     private bool IsMenuItemSelected(string route)
     {
-
         return Navigation.Uri.Contains(route);
     }
 
-
-    private void GoToHome()
+    private async Task GoToHome()
     {
-        Navigation.NavigateTo("/home", forceLoad: true);
+        ShowBusyDialog();
+        Navigation.NavigateTo("/home", forceLoad: false);
     }
 
-    private void GoToLogin()
+    private async Task GoToLogin()
     {
+         ShowBusyDialog();
         Navigation.NavigateTo("/login");
     }
 
-    private void GoToJob()
+    private async Task GoToJob()
     {
-        Navigation.NavigateTo("/job", forceLoad: true);
+        ShowBusyDialog();
+        Navigation.NavigateTo("/job", forceLoad: false);
+        DialogService.Close();
     }
 
-    private void GoToUploadJob()
+    private async Task GoToUploadJob()
     {
-        Navigation.NavigateTo("/uploadjob", forceLoad: true);
+        ShowBusyDialog();
+        Navigation.NavigateTo("/uploadjob", forceLoad: false);
+        DialogService.Close();
     }
 
-    private void GoToAdmincustomer()
+    private async Task GoToAdmincustomer()
     {
-        Navigation.NavigateTo("/admincustomer", forceLoad: true);
-    }
-    
-    private void GoToAdminactivity()
-    {
-        Navigation.NavigateTo("/adminactivity", forceLoad: true);
+         ShowBusyDialog();
+        Navigation.NavigateTo("/admincustomer", forceLoad: false);
+        DialogService.Close();
     }
 
+    private async Task GoToAdminactivity()
+    {
+        ShowBusyDialog();
+        Navigation.NavigateTo("/adminactivity", forceLoad: false);
+        DialogService.Close();
+    }
 
+    private async Task ShowBusyDialog()
+    {
+      
+        await DialogService.OpenAsync("", ds =>
+    @<RadzenStack AlignItems="AlignItems.Center" Gap="2rem" class="rz-p-12">
+        <RadzenImage Path="images/community.svg" Style="width: 200px;" AlternateText="community" />
+        <RadzenText TextStyle="TextStyle.H6">Loading, please wait...</RadzenText>
+    </RadzenStack>,
+        new DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;width:auto", CloseDialogOnEsc = false });
+
+        // Simulate a delay for the loading
+        await Task.Delay(6000);
+
+        // Close the dialog after delay
+        DialogService.Close();
+    }
+
+    private async Task SetPageTitle(string title)
+    {
+        await JS.InvokeVoidAsync("SetDocumentTitle", title);
+    }
 }

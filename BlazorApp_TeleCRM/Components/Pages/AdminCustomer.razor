@@ -15,59 +15,60 @@
 </div>
 
 
-<div class="rz-12">
-    <div class="rz-card rz-variant-flat rz-background-color-info-lighter">
-        <b>ค้นหา</b>
-        <RadzenRow Gap="1rem" JustifyContent="JustifyContent.Start">
-            <RadzenColumn>
-                <RadzenLabel Text="อัพโหลดวันที่ " Component="RadzenDatePickerBindValue" />
-                <RadzenDatePicker @bind-Value=@value Name="RadzenDatePickerBindValue" ShowCalendarWeek />
+<div class="rz-col-12 ">
+    <RadzenCard Variant="Variant.Outlined" Style="background-color:#CBE2F5; padding: 1rem;">
+        <strong>ค้นหา</strong>
+        
+        <!-- First Row: Date Pickers and Buttons -->
+        <RadzenRow Gap="1rem"  JustifyContent="JustifyContent.Start" Class="rz-mt-2">
+            <RadzenColumn Size="3">
+                <RadzenLabel Text="อัพโหลดวันที่" Component="UploadDatePicker" />
+                <RadzenDatePicker @bind-Value="UploadDateFrom" Name="UploadDatePicker" ShowCalendarWeek="true" Style="width: 100%;" />
             </RadzenColumn>
-            <RadzenColumn>
-                <RadzenLabel Text="ถึงวันที่ " Component="RadzenDatePickerBindValue" />
-                <RadzenDatePicker @bind-Value=@value Name="RadzenDatePickerBindValue" ShowCalendarWeek />
+            <RadzenColumn Size="3">
+                <RadzenLabel Text="ถึงวันที่" Component="UploadDateToPicker" />
+                <RadzenDatePicker @bind-Value="UploadDateTo" Name="UploadDateToPicker" ShowCalendarWeek="true" Style="width: 100%;" />
             </RadzenColumn>
-            <RadzenColumn>
-                <RadzenButton style="width: 100px" Icon="search" Variant="Variant.Flat" Text="ค้นหา" />
-                <RadzenButton style="width: 100px" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Light" Text="ล้าง" />
-            </RadzenColumn>
-            <RadzenColumn>
-  @*               <RadzenButton style="width: 200px" Icon="upload" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Success" Text="อัพโหลดรายชื่อลูกค้า" Click=@OpenUpload /> *@
-            </RadzenColumn>
-        </RadzenRow>
-        <br>
-        <RadzenRow Gap="1rem" JustifyContent="JustifyContent.Start">
-            <RadzenColumn>
-                <RadzenLabel Text="กิจกรรม ยังดำเนินการอยู่ " />
-                <RadzenCheckBox @bind-Value=@value1 Name="CheckBox1" />
-            </RadzenColumn>
-            <RadzenColumn>
-                <RadzenLabel Text="รหัสกิจกรรม/แคมเปญ" />
-                <RadzenTextBox style="width: 150px" Placeholder="" />
-            </RadzenColumn>
-            <RadzenColumn>
-                <RadzenLabel Text="ชื่อกิจกรรม/แคมเปญ" />
-                <RadzenTextBox style="width: 200px" Placeholder="" />
-            </RadzenColumn>
-            <RadzenColumn>
-            </RadzenColumn>
-            <RadzenColumn>
+            <RadzenColumn Size="3">
+                <br />
+                <RadzenButton Text="ค้นหา" Icon="search" Variant="Variant.Flat" Style="width: 100px; margin-right: 0.5rem;" Click="@OnSearch" />
+                <RadzenButton Text="ล้าง" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Secondary" Style="width: 100px;" Click="@OnClear" />
             </RadzenColumn>
         </RadzenRow>
-       
-
-    </div>
+        
+       <br />
+        
+        <!-- Second Row: Additional Filters -->
+        <RadzenRow Gap="1rem" JustifyContent="JustifyContent.Start" Class="rz-mt-2">
+            <RadzenColumn Size="2">
+                <RadzenLabel Text="กิจกรรมยังดำเนินการอยู่" Component="ActivityStatusCheckbox" />
+                <RadzenCheckBox @bind-Value="IsActivityOngoing" Name="ActivityStatusCheckbox" />
+            </RadzenColumn>
+            <RadzenColumn Size="2">
+                <RadzenLabel Text="รหัสกิจกรรม/แคมเปญ" Component="ActivityCodeTextBox" />
+                <RadzenTextBox @bind-Value="ActivityCode" Name="ActivityCodeTextBox" Placeholder="กรุณากรอกรหัส" Style="width: 250px;" />
+            </RadzenColumn>
+            <RadzenColumn Size="2">
+                <RadzenLabel Text="ชื่อกิจกรรม/แคมเปญ" Component="ActivityNameTextBox" />
+                <RadzenTextBox @bind-Value="ActivityName" Name="ActivityNameTextBox" Placeholder="กรุณากรอกชื่อ" Style="width: 250px;" />
+            </RadzenColumn>
+            <!-- Additional Columns (if needed) -->
+            <!-- You can remove empty columns or add more filters as required -->
+        </RadzenRow>
+    </RadzenCard>
 </div>
 
-
 <RadzenCard Variant="Variant.Outlined" class="rz-my-4">
-    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap">
-        <RadzenCheckBox @bind-Value=@allowRowSelectOnRowClick Name="CheckBox1" />
-        <RadzenLabel Text="" Component="CheckBox1" />
-        <RadzenButton Text="ล้างตัวเลือก" ButtonStyle="ButtonStyle.Warning" Click="@(args => selectedCustomer = null)" />
-        <RadzenButton Text="สร้างกิจกรรม"  />
-        <RadzenButton style="width: 200px" Icon="upload" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Success" Text="อัพโหลดรายชื่อลูกค้า" Click=@OpenUpload />
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.SpaceBetween">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
+            <RadzenCheckBox @bind-Value=@allowRowSelectOnRowClick Name="CheckBox1" />
+            <RadzenLabel Text="" Component="CheckBox1" />
+            <RadzenButton Text="ล้างตัวเลือก" ButtonStyle="ButtonStyle.Warning" Click="@(args => selectedCustomer = null)" />
+            <RadzenButton Text="สร้างกิจกรรม" Click="@OpenSideDialog" />
+        </RadzenStack>
 
+        <!-- Upload button aligned to the right -->
+        <RadzenButton style="width: 200px" Icon="upload" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Success" Text="อัพโหลดรายชื่อลูกค้า" Click=@OpenUpload />
     </RadzenStack>
 </RadzenCard>
 
@@ -121,14 +122,41 @@
     IList<CustomerData> selectedCustomer;
     RadzenDataGrid<CustomerData> grid;
 
+    private DateTime? UploadDateFrom { get; set; }
+    private DateTime? UploadDateTo { get; set; }
+    private bool IsActivityOngoing { get; set; }
+    private string ActivityCode { get; set; }
+    private string ActivityName { get; set; }
+
+    // Event handlers for buttons
+    private void OnSearch()
+    {
+        // Implement your search logic here
+    }
+
+    private void OnClear()
+    {
+        // Reset all filters
+        UploadDateFrom = null;
+        UploadDateTo = null;
+        IsActivityOngoing = false;
+        ActivityCode = string.Empty;
+        ActivityName = string.Empty;
+    }
+
+
 
     async Task OpenUpload()
     {
-        await DialogService.OpenAsync<DialogCardPageUploadJob>($"",
+        await DialogService.OpenAsync<DialogCardPageUploadCustomer>($"อัพโหลดรายชื่อลูกค้า",
               new Dictionary<string, object>() { { "UploadID", 1 } },
-              new DialogOptions() { Width = "800px", Height = "400px" });
+              new DialogOptions() { Width = "800px", Height = "600px" });
     }
 
+    async Task OpenSideDialog()
+    {
+        await DialogService.OpenSideAsync<DialogCardPageCustomerCreateActivity>("สร้างกิจกรรม", options: new SideDialogOptions { CloseDialogOnOverlayClick = false, Position = DialogPosition.Right, ShowMask = false, Width = "850px" });
+    }
 
     protected override async Task OnInitializedAsync()
     {
