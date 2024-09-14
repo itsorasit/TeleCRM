@@ -1,26 +1,71 @@
 ﻿@page "/DialogCardPageCustomerCreateActivity/{UploadID}"
 @using System.ComponentModel.DataAnnotations
+@using BlazorApp_TeleCRM.Service
 @using static BlazorApp_TeleCRM.Components.Pages.UploadJob
 @inject IConfiguration Configuration
 @inject Radzen.DialogService dialogService
 @inject HttpClient Http
 
-<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
-    
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+
     <RadzenCard Variant="Variant.Outlined">
         <RadzenRow Gap="1rem">
-            <RadzenColumn Size="12" SizeMD="12">
+            <RadzenColumn Size="6" SizeMD="6">
                 <RadzenText TextStyle="TextStyle.Caption">รหัสกิจกรรม</RadzenText>
                 <RadzenTextBox Style="width: 100%" AutoComplete="false" @bind-Value=@ID />
             </RadzenColumn>
+            <RadzenColumn Size="6" SizeMD="6">
+                <RadzenText TextStyle="TextStyle.Caption">Point</RadzenText>
+                <RadzenDropDown @bind-Value=@channel Style="width: 100%" Data=@datachannel Name="DropDownBindValue" />
+            </RadzenColumn>
             <RadzenColumn Size="12" SizeMD="12">
                 <RadzenText TextStyle="TextStyle.Caption">ชื่อกิจกรรม</RadzenText>
-                <RadzenTextBox Style="width: 100%" AutoComplete="false"  />
+                <RadzenTextBox Style="width: 100%" AutoComplete="false" />
             </RadzenColumn>
             <RadzenColumn Size="12" SizeMD="12">
-                <RadzenButton Text="อัพโหลด" Style="margin-top:15px" ButtonStyle="ButtonStyle.Primary" />
+                <RadzenText TextStyle="TextStyle.Caption">รายละเอียด</RadzenText>
+                <RadzenTextBox Style="width: 100%" AutoComplete="false" />
             </RadzenColumn>
 
+            <RadzenColumn Size="6" SizeMD="6">
+                <RadzenText TextStyle="TextStyle.Caption">วันที่เริ่มจ่ายงาน</RadzenText>
+                <RadzenDatePicker @bind-Value=@datevalue Name="RadzenDatePickerBindValue" ShowCalendarWeek />
+            </RadzenColumn>
+            <RadzenColumn Size="6" SizeMD="6">
+                <RadzenText TextStyle="TextStyle.Caption">วันที่ครบกำหนด</RadzenText>
+                <RadzenDatePicker @bind-Value=@datevalue Name="RadzenDatePickerBindValue" ShowCalendarWeek />
+            </RadzenColumn>
+            <RadzenColumn Size="6" SizeMD="6">
+                <RadzenText TextStyle="TextStyle.Caption">แจ้งใกล้ครบกำหนด</RadzenText>
+                <RadzenDatePicker @bind-Value=@datevalue Name="RadzenDatePickerBindValue" ShowCalendarWeek />
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="12">
+                <RadzenText TextStyle="TextStyle.Caption">มอบหมายให้กับพนักงาน</RadzenText>
+                <RadzenDropDown @bind-Value=@staff Style="width: 100%" Data=@datastaff Name="DropDownBindValue" />
+
+            </RadzenColumn>
+
+
+            <RadzenColumn Size="4" SizeMD="4">
+                <RadzenText TextStyle="TextStyle.Caption">จำนวนลูกค้าที่เลือกทั้งหมด</RadzenText>
+                <RadzenTextBox @bind-Value=@countcustomer Style="width: 100%" AutoComplete="false" />
+            </RadzenColumn>
+            <RadzenColumn Size="6" SizeMD="6">
+                <RadzenStack Orientation="Orientation.Vertical" Gap="0.5rem" AlignItems="AlignItems.End" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.Right">
+
+                    <RadzenText TextStyle="TextStyle.Caption">ฝากงานให้นายหน้า</RadzenText>
+                    <RadzenCheckBox @bind-Value=@allowRowSelectOnRowClick Name="CheckBox1" />
+                </RadzenStack>
+            </RadzenColumn>
+
+
+            <RadzenColumn Size="12" SizeMD="12">
+                <RadzenButton Text="บันทึก" Style="margin-top:15px" ButtonStyle="ButtonStyle.Primary" />
+             @*    <RadzenButton Text="ดึงข้อมูล" Icon="autorenew" Style="margin-top:15px" ButtonStyle="ButtonStyle.Light" Click="@OnFetchData" />
+ *@
+
+            </RadzenColumn>
             <RadzenColumn Size="12" SizeMD="12">
                 <RadzenCard Variant="Variant.Outlined" style="background-color:#CBE2F5; height:150px">
                     <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
@@ -31,26 +76,55 @@
                     </RadzenStack>
                 </RadzenCard>
             </RadzenColumn>
+
+            <RadzenColumn Size="12" SizeMD="12">
+                <div>
+                    หมายเหตุ <br />
+                    <ul>
+                        <li>กรณที่เลือกสร้างแบบกิจกรรมระบบสร้างไอดี 1:1</li>
+                        <li> สร้างแบบแคมเปญระบบสร้างไอดีแบบกลุ่ม</li>
+                    </ul>
+                </div>
+
+            </RadzenColumn>
+
+
         </RadzenRow>
     </RadzenCard>
-    
 
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="1.5rem">
-        <RadzenButton Click="@((args) => dialogService.Close(true))" Variant="Variant.Outlined" 
-            Text="ปิด" Style="width: 120px;margin-bottom:20px" />
-    </RadzenStack>
+
+    @*   <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="1.5rem">
+    <RadzenButton Click="@((args) => dialogService.Close(true))" Variant="Variant.Outlined"
+    Text="ปิด" Style="width: 120px;margin-bottom:20px" />
+    </RadzenStack> *@
 </RadzenStack>
 @code {
-    [Parameter] public int UploadID { get; set; }
+    [Parameter] public string UploadID { get; set; }
+    [Parameter] public List<string> customercode { get; set; }
+
+    [Inject]
+    public SharedStateService SharedState { get; set; }
 
     string ID = "Auto";
-    string channel = "เลือกแหล่งข้อมูล";
+    string channel = "เลือกPoint";
+    string staff = "เลือกพนักงาน";
+    string countcustomer = "0";
+
+    bool allowRowSelectOnRowClick = false;
+
     IEnumerable<string> datachannel;
+    IEnumerable<string> datastaff;
+    DateTime? datevalue;
 
 
     private static readonly string[] data_channels = new[]
       {
-            "เลือกแหล่งข้อมูล", "MyOrder", "GoSell"
+            "เลือกPoint", "Up-Sale", "Re-Sale","ลูกค้าขุด"
+      };
+
+    private static readonly string[] data_staff = new[]
+       {
+            "เลือกพนักงาน", "พนักงาน A", "พนักงาน B","พนักงาน C"
       };
 
     protected override async Task OnInitializedAsync()
@@ -58,19 +132,49 @@
         await base.OnInitializedAsync();
 
         datachannel = data_channels;
-   
+        datastaff = data_staff;
+
+        //  countcustomer = customercode.Count().ToString();
+        countcustomer = SharedState.SelectedCustomerIDs.Count().ToString();
+    }
+
+    private async Task OnFetchData()
+    {
+        // ตัวอย่าง: เรียกค่าพารามิเตอร์ใหม่ หรือดึงข้อมูลใหม่
+        Console.WriteLine($"UploadID: {UploadID}");
+        Console.WriteLine($"Customer Codes: {string.Join(", ", customercode)}");
+
+        countcustomer = SharedState.SelectedCustomerIDs.Count().ToString();
+        StateHasChanged();
+
+        // คุณสามารถดึงข้อมูลใหม่จาก API หรือทำงานเพิ่มเติมที่นี่ได้
+        // เช่น await LoadDataAsync(); เป็นต้น
+    }
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // // จะถูกเรียกทุกครั้งที่พารามิเตอร์ถูกส่งเข้ามาหรือเปลี่ยนแปลง
+        // Console.WriteLine($"UploadID: {UploadID}");
+        // Console.WriteLine($"Customer Codes: {string.Join(", ", customercode)}");
+
+        // // ถ้าต้องการให้ re-render หน้าจอใหม่
+        //  countcustomer = customercode.Count().ToString();
+        countcustomer = SharedState.SelectedCustomerIDs.Count().ToString();
+        await base.OnParametersSetAsync();
 
     }
 
+
     void OnProgress(UploadProgressArgs args, string name)
     {
-       // console.Log($"{args.Progress}% '{name}' / {args.Loaded} of {args.Total} bytes.");
+        // console.Log($"{args.Progress}% '{name}' / {args.Loaded} of {args.Total} bytes.");
 
         if (args.Progress == 100)
         {
             foreach (var file in args.Files)
             {
-              //  console.Log($"Uploaded: {file.Name} / {file.Size} bytes");
+                //  console.Log($"Uploaded: {file.Name} / {file.Size} bytes");
             }
         }
     }

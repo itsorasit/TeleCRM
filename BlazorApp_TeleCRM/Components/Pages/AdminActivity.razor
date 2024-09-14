@@ -32,9 +32,7 @@
                 <RadzenButton style="width: 100px" Icon="search" Variant="Variant.Flat" Text="ค้นหา" />
                 <RadzenButton style="width: 100px" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Light" Text="ล้าง" />
             </RadzenColumn>
-            <RadzenColumn st>
-         @*        <RadzenButton style="width: 120px" Icon="upload" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Success" Text="อัพโหลดกิจกรรม" Click=@OpenUpload />
-          *@  
+            <RadzenColumn > 
       </RadzenColumn>
         </RadzenRow>
 
@@ -49,9 +47,9 @@
                 AllowSorting="true" ColumnWidth="300px">
     <Columns>
 
-        <RadzenDataGridColumn Width="60px" Property="@nameof(ActivityData.Activity_ID)" Title="#">
+        <RadzenDataGridColumn Width="60px" Filterable="false" Property="@nameof(ActivityData.Activity_ID)" Title="">
             <Template Context="data">
-                <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" />
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Click="@(args => OpenSideDialog(data.Activity_ID,data.Activity_Type))" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" />
             </Template>
         </RadzenDataGridColumn>
 
@@ -69,6 +67,7 @@
 
 
 @code {
+    bool isDialogOpen = false;
     DateTime? value = DateTime.Now;
     private IEnumerable<ActivityData> activitys;
     IList<ActivityData> selectedActivity;
@@ -80,7 +79,6 @@
               new DialogOptions() { Width = "800px", Height = "400px" });
     }
 
-
     protected override async Task OnInitializedAsync()
     {
         var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
@@ -91,5 +89,57 @@
         selectedActivity = new List<ActivityData>() { activitys.FirstOrDefault() };
     }
 
-    
+    async Task OpenSideDialog(int ActID,string type)
+    {
+
+        if (type == "กิจกรรม")
+        {
+            if (isDialogOpen)
+            {
+                DialogService.Close();
+                // await Task.Delay(200);
+            }
+            StateHasChanged();
+            await DialogService.OpenSideAsync<DialogCardPageCustomerActivity>(
+                "กิจกรรม",
+                new Dictionary<string, object>
+                                    {
+            { "UploadID", ActID.ToString() }
+                                    },
+                new SideDialogOptions
+                    {
+                        CloseDialogOnOverlayClick = true,
+                        Position = DialogPosition.Right,
+                        ShowMask = false,
+                        Width = "850px"
+                    });
+
+            isDialogOpen = true;
+        }
+        else
+        {
+            if (isDialogOpen)
+            {
+                DialogService.Close();
+                // await Task.Delay(200);
+            }
+            StateHasChanged();
+            await DialogService.OpenSideAsync<DialogCardPageCustomerCampaign>(
+                "แคมเปญ",
+                new Dictionary<string, object>
+                                        {
+            { "UploadID", ActID.ToString() }
+                                        },
+                new SideDialogOptions
+                    {
+                        CloseDialogOnOverlayClick = true,
+                        Position = DialogPosition.Right,
+                        ShowMask = false,
+                        Width = "850px"
+                    });
+
+            isDialogOpen = true;
+        }
+
+    }
 }

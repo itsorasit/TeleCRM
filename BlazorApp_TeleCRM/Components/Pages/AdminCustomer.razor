@@ -1,8 +1,11 @@
 ﻿@page "/admincustomer"
+@using BlazorApp_TeleCRM.Service
 @using static BlazorApp_TeleCRM.Controller.CustomerAdminController
 @inject IConfiguration Configuration
 @inject HttpClient Http
 @inject DialogService DialogService
+@inject SharedStateService SharedState
+
 
 <PageTitle>ข้อมูลรายชื่อลูกค้า</PageTitle>
 
@@ -18,8 +21,6 @@
 <div class="rz-col-12 ">
     <RadzenCard Variant="Variant.Outlined" Style="background-color:#CBE2F5; padding: 1rem;">
         <strong>ค้นหา</strong>
-        
-        <!-- First Row: Date Pickers and Buttons -->
         <RadzenRow Gap="1rem"  JustifyContent="JustifyContent.Start" Class="rz-mt-2">
             <RadzenColumn Size="3">
                 <RadzenLabel Text="อัพโหลดวันที่" Component="UploadDatePicker" />
@@ -32,13 +33,12 @@
             <RadzenColumn Size="3">
                 <br />
                 <RadzenButton Text="ค้นหา" Icon="search" Variant="Variant.Flat" Style="width: 100px; margin-right: 0.5rem;" Click="@OnSearch" />
-                <RadzenButton Text="ล้าง" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Secondary" Style="width: 100px;" Click="@OnClear" />
+                <RadzenButton Text="ล้าง" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Light" Style="width: 100px;" Click="@OnClear" />
             </RadzenColumn>
         </RadzenRow>
         
        <br />
         
-        <!-- Second Row: Additional Filters -->
         <RadzenRow Gap="1rem" JustifyContent="JustifyContent.Start" Class="rz-mt-2">
             <RadzenColumn Size="2">
                 <RadzenLabel Text="กิจกรรมยังดำเนินการอยู่" Component="ActivityStatusCheckbox" />
@@ -52,8 +52,6 @@
                 <RadzenLabel Text="ชื่อกิจกรรม/แคมเปญ" Component="ActivityNameTextBox" />
                 <RadzenTextBox @bind-Value="ActivityName" Name="ActivityNameTextBox" Placeholder="กรุณากรอกชื่อ" Style="width: 250px;" />
             </RadzenColumn>
-            <!-- Additional Columns (if needed) -->
-            <!-- You can remove empty columns or add more filters as required -->
         </RadzenRow>
     </RadzenCard>
 </div>
@@ -65,7 +63,10 @@
             <RadzenLabel Text="" Component="CheckBox1" />
             <RadzenButton Text="ล้างตัวเลือก" ButtonStyle="ButtonStyle.Warning" Click="@(args => selectedCustomer = null)" />
             <RadzenButton Text="สร้างกิจกรรม" Click="@OpenSideDialog" />
-        </RadzenStack>
+            <RadzenButton Text="สร้างแคมเปญ" Click="@OpenSideDialog2" />
+         @*    <RadzenButton Text="อัพเดทข้อมูล" Click="@Update" />
+ *@       
+            </RadzenStack>
 
         <!-- Upload button aligned to the right -->
         <RadzenButton style="width: 200px" Icon="upload" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Success" Text="อัพโหลดรายชื่อลูกค้า" Click=@OpenUpload />
@@ -92,6 +93,13 @@
             </Template>
         </RadzenDataGridColumn>
 
+
+        <RadzenDataGridColumn Width="60px" Filterable="false" Property="@nameof(CustomerData.Customer_ID)" >
+            <Template Context="data">
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" />
+            </Template>
+        </RadzenDataGridColumn>
+
         <RadzenDataGridColumn TItem="CustomerData"  Property="@nameof(CustomerData.Customer_ID)" Width="120px" Title="รหัสลูกค้า" />
         <RadzenDataGridColumn TItem="CustomerData" Property="@nameof(CustomerData.Customer_Channel)" Width="100px" Title="แหล่งข้อมูล" />
         <RadzenDataGridColumn TItem="CustomerData" Property="@nameof(CustomerData.Customer_FullName)" Width="180px" Title="ชื่อลูกค้า" />
@@ -112,7 +120,9 @@
 </RadzenDataGrid>
 
 
+
 @code {
+    bool isDialogOpen = false;
     bool allowRowSelectOnRowClick = true;
     DateTime? value = DateTime.Now;
 
@@ -121,6 +131,8 @@
     private IEnumerable<CustomerData> cus_datas;
     IList<CustomerData> selectedCustomer;
     RadzenDataGrid<CustomerData> grid;
+
+    private List<string> SelectedCustomerIDs = new List<string>();
 
     private DateTime? UploadDateFrom { get; set; }
     private DateTime? UploadDateTo { get; set; }
@@ -146,17 +158,124 @@
 
 
 
+    async Task Update()
+    {
+        SelectedCustomerIDs.Clear();
+        if (selectedCustomer != null)
+        {
+            foreach (var customer in selectedCustomer)
+            {
+                SelectedCustomerIDs.Add(customer.Customer_ID.ToString());
+            }
+        }
+
+        SharedState.SelectedCustomerIDs = SelectedCustomerIDs;
+
+        StateHasChanged();  // บังคับให้ UI อัปเดตใหม่
+    }
+
     async Task OpenUpload()
     {
         await DialogService.OpenAsync<DialogCardPageUploadCustomer>($"อัพโหลดรายชื่อลูกค้า",
               new Dictionary<string, object>() { { "UploadID", 1 } },
-              new DialogOptions() { Width = "800px", Height = "600px" });
+            new DialogOptions()
+                {
+                    Width = "800px",
+                    Height = "600px",
+                    CloseDialogOnOverlayClick = false,  // Disable closing on clicking outside
+                    CloseDialogOnEsc = false,           // Disable closing by pressing ESC
+                    ShowClose = false                   // Remove the "X" close button
+                });
     }
 
     async Task OpenSideDialog()
     {
-        await DialogService.OpenSideAsync<DialogCardPageCustomerCreateActivity>("สร้างกิจกรรม", options: new SideDialogOptions { CloseDialogOnOverlayClick = false, Position = DialogPosition.Right, ShowMask = false, Width = "850px" });
+        // ตรวจสอบว่ามี Dialog เปิดอยู่หรือไม่ ถ้าเปิดอยู่ ให้ปิดก่อน
+        if (isDialogOpen)
+        {
+            DialogService.Close();  // ปิด Dialog
+            await Task.Delay(200);  // หน่วงเวลาเพื่อให้ Dialog ถูกปิดสมบูรณ์
+        }
+
+        // ล้างค่า SelectedCustomerIDs แล้วเพิ่มค่าลูกค้าใหม่
+        SelectedCustomerIDs.Clear();
+        if (selectedCustomer!=null)
+        {
+            foreach (var customer in selectedCustomer)
+            {
+                SelectedCustomerIDs.Add(customer.Customer_ID.ToString());
+            }
+        }
+
+        SharedState.SelectedCustomerIDs = SelectedCustomerIDs;
+
+        StateHasChanged();  // บังคับให้ UI อัปเดตใหม่
+
+        // เปิด Dialog ใหม่
+        await DialogService.OpenSideAsync<DialogCardPageCustomerCreateActivity>(
+            "สร้างกิจกรรม",
+            new Dictionary<string, object>
+                {
+            { "UploadID", "Activity" },
+            { "customercode", SelectedCustomerIDs }
+                },
+            new SideDialogOptions
+                {
+                    CloseDialogOnOverlayClick = true,
+                    Position = DialogPosition.Right,
+                    ShowMask = false,
+                    Width = "850px"
+                });
+
+        // ตั้งค่าว่ามี Dialog เปิดอยู่
+        isDialogOpen = true;
+
+
     }
+
+    async Task OpenSideDialog2()
+    {
+        // ตรวจสอบว่ามี Dialog เปิดอยู่หรือไม่ ถ้าเปิดอยู่ ให้ปิดก่อน
+        if (isDialogOpen)
+        {
+            DialogService.Close();  // ปิด Dialog
+            await Task.Delay(200);  // หน่วงเวลาเพื่อให้ Dialog ถูกปิดสมบูรณ์
+        }
+
+        // ล้างค่า SelectedCustomerIDs แล้วเพิ่มค่าลูกค้าใหม่
+        SelectedCustomerIDs.Clear();
+        if (selectedCustomer != null)
+        {
+            foreach (var customer in selectedCustomer)
+            {
+                SelectedCustomerIDs.Add(customer.Customer_ID.ToString());
+            }
+        }
+
+        StateHasChanged();  // บังคับให้ UI อัปเดตใหม่
+
+        // เปิด Dialog ใหม่สำหรับสร้างแคมเปญ
+        await DialogService.OpenSideAsync<DialogCardPageCustomerCreateActivity>(
+            "สร้างแคมเปญ",
+            new Dictionary<string, object>
+                {
+            { "UploadID", "Campaign" },
+            { "customercode", SelectedCustomerIDs }
+                },
+            new SideDialogOptions
+                {
+                    CloseDialogOnOverlayClick = true,
+                    Position = DialogPosition.Right,
+                    ShowMask = false,
+                    Width = "850px"
+                });
+
+        // ตั้งค่าว่ามี Dialog เปิดอยู่
+        isDialogOpen = true;
+
+
+    }
+
 
     protected override async Task OnInitializedAsync()
     {

@@ -18,6 +18,7 @@ builder.Services.AddScoped<Radzen.ContextMenuService>();
 builder.Services.AddScoped<Radzen.TooltipService>();
 builder.Services.AddScoped<Radzen.SideDialogOptions>();
 //builder.Services.AddScoped<ThemeServiceCustom>();
+builder.Services.AddScoped<SharedStateService>();
 builder.Services.AddHttpClient();
 
 

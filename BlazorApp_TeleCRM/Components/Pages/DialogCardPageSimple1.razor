@@ -1,0 +1,10 @@
+﻿@page "/DialogCardPageSimple1/{UploadID}"
+@using System.ComponentModel.DataAnnotations
+@inject DialogService DialogService
+
+
+<RadzenButton Click="@(() => DialogService.Close())" Text="Close Dialog" />
+
+@code {
+
+}

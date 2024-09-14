@@ -1,0 +1,321 @@
+﻿@page "/DialogCardPageCustomerCampaign/{UploadID}"
+@using System.ComponentModel.DataAnnotations
+@using BlazorApp_TeleCRM.Service
+@using static BlazorApp_TeleCRM.Controller.WeatherForecastController
+@using static BlazorApp_TeleCRM.Components.Pages.UploadJob
+@inject IConfiguration Configuration
+@inject Radzen.DialogService dialogService
+@inject HttpClient Http
+
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+
+    <RadzenCard Variant="Variant.Outlined">
+
+        <RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnChange>
+            <Tabs>
+                <RadzenTabsItem Text="ข้อมูลแคมเปญ">
+                    <RadzenRow Gap="1rem">
+                        <RadzenColumn Size="12">
+                            <RadzenText TextStyle="TextStyle.Caption">ความคืบหน้า</RadzenText>
+                            <RadzenButton Text="สำเร็จ (20)" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" class="rz-ripple" />
+                            <RadzenButton Text="ติดตาม (20)" ButtonStyle="ButtonStyle.Warning" Variant="Variant.Flat" class="rz-ripple" />
+                            <RadzenButton Text="รอดำเนินการ (30)" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" class="rz-ripple" />
+                            <RadzenButton Text="เกินกำหนด (20)" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" class="rz-ripple" />
+                            @*    <RadzenTextBox Style="width: 100%;font-size:large;background-color:lightblue"  ReadOnly="true"  AutoComplete="false" Value="สำเร็จ" /> *@
+                        </RadzenColumn>
+                        <RadzenColumn Size="12">
+                            <RadzenText TextStyle="TextStyle.Caption">จำนวนผู้เข้าแคมเปญ</RadzenText>
+                            <RadzenButton Text="100" ButtonStyle="ButtonStyle.Base" Variant="Variant.Outlined" class="rz-ripple" />
+                        </RadzenColumn>
+
+
+                        <RadzenColumn Size="6" SizeMD="6">
+                            <RadzenText TextStyle="TextStyle.Caption">รหัสแคมเปญ</RadzenText>
+                            <RadzenTextBox Style="width: 100%" AutoComplete="false" @bind-Value=@ID />
+                        </RadzenColumn>
+                        <RadzenColumn Size="6" SizeMD="6">
+                            <RadzenText TextStyle="TextStyle.Caption">Point</RadzenText>
+                            <RadzenDropDown @bind-Value=@channel Style="width: 100%" Data=@datachannel Name="DropDownBindValue" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="12">
+                            <RadzenText TextStyle="TextStyle.Caption">ชื่อแคมเปญ</RadzenText>
+                            <RadzenTextBox Style="width: 100%" AutoComplete="false" Value="Activity C" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="12">
+                            <RadzenText TextStyle="TextStyle.Caption">รายละเอียด</RadzenText>
+                            <RadzenTextBox Style="width: 100%" AutoComplete="false" Value="ทดสอบ" />
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="6" SizeMD="6">
+                            <RadzenText TextStyle="TextStyle.Caption">วันที่เริ่มจ่ายงาน</RadzenText>
+                            <RadzenDatePicker @bind-Value=@datevalue Name="RadzenDatePickerBindValue" ShowCalendarWeek />
+                        </RadzenColumn>
+                        <RadzenColumn Size="6" SizeMD="6">
+                            <RadzenText TextStyle="TextStyle.Caption">วันที่ครบกำหนด</RadzenText>
+                            <RadzenDatePicker @bind-Value=@datevalue Name="RadzenDatePickerBindValue" ShowCalendarWeek />
+                        </RadzenColumn>
+                        <RadzenColumn Size="6" SizeMD="6">
+                            <RadzenText TextStyle="TextStyle.Caption">แจ้งใกล้ครบกำหนด</RadzenText>
+                            <RadzenDatePicker @bind-Value=@datevalue Name="RadzenDatePickerBindValue" ShowCalendarWeek />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="12">
+                            <RadzenText TextStyle="TextStyle.Caption">มอบหมายให้กับพนักงาน</RadzenText>
+                            <RadzenDropDown @bind-Value=@staff Style="width: 100%" Data=@datastaff Name="DropDownBindValue" />
+
+                        </RadzenColumn>
+
+
+                        <RadzenColumn Size="4" SizeMD="4">
+                            <RadzenText TextStyle="TextStyle.Caption">จำนวนลูกค้าที่เลือกทั้งหมด</RadzenText>
+                            <RadzenTextBox @bind-Value=@countcustomer Style="width: 100%" AutoComplete="false" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="6" SizeMD="6">
+                            <RadzenStack Orientation="Orientation.Vertical" Gap="0.5rem" AlignItems="AlignItems.End" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.Right">
+
+                                <RadzenText TextStyle="TextStyle.Caption">ฝากงานให้นายหน้า</RadzenText>
+                                <RadzenCheckBox @bind-Value=@allowRowSelectOnRowClick Name="CheckBox1" />
+                            </RadzenStack>
+                        </RadzenColumn>
+
+
+                        <RadzenColumn Size="12" SizeMD="12">
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.SpaceBetween">
+                                <RadzenButton Text="บันทึก" Style="margin-top:15px" ButtonStyle="ButtonStyle.Primary" />
+                                <RadzenButton Text="ยกเลิก" Style="margin-top:15px" ButtonStyle="ButtonStyle.Secondary" />
+                            </RadzenStack>
+                        </RadzenColumn>
+
+                        @* <RadzenColumn Size="12" SizeMD="12">
+                        <RadzenCard Variant="Variant.Outlined" style="background-color:#CBE2F5; height:150px">
+                        <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                        <RadzenProgressBarCircular ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+                        <Template>Wait</Template>
+                        </RadzenProgressBarCircular>
+                        <RadzenText TextStyle="TextStyle.Caption">ระบบกำลังทำงาน</RadzenText>
+                        </RadzenStack>
+                        </RadzenCard>
+                        </RadzenColumn> *@
+
+                        <RadzenColumn Size="12" SizeMD="12">
+                            <div>
+                                หมายเหตุ <br />
+                                <ul>
+                                    <li>กรณที่เลือกสร้างแบบกิจกรรมระบบสร้างไอดี 1:1</li>
+                                    <li> สร้างแบบแคมเปญระบบสร้างไอดีแบบกลุ่ม</li>
+                                </ul>
+                            </div>
+
+                        </RadzenColumn>
+
+
+                    </RadzenRow>
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="ผู้ร่วมกิจกรรม">
+
+                    <RadzenRow>
+                        @*
+                        <RadzenColumn Size="12">
+                        <RadzenText TextStyle="TextStyle.Body2">รายชื่อลูกค้า</RadzenText>
+                        <RadzenCard Variant="Variant.Flat"  >
+                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start">
+                        <RadzenImage Path="/user/customer-service.png" Style="width: 100px; height: 100px; border-radius: 50%;" />
+                        <RadzenStack Gap="0">
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">ชื่อลูกค้า-นามสกุล</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1"><b>"สมหวัง สุขใจ"</b></RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">ที่อยู่</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1"><b>"99 xxxxxxx xxxxxx xxxxxx xxxxx 00000"</b></RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">เบอร์ติดต่อ</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1"><b><a href="tel:+66850931002"><RadzenIcon Icon="smartphone" />085-0931-002</a></b></RadzenText>
+                        <img width="150px" style="margin-top:20px" src="data:image/png;base64,@qrCodeImage" alt="QR Code" />
+                        </RadzenStack>
+                        </RadzenStack>
+                        </RadzenCard>
+                        </RadzenColumn>
+                        *@
+
+                        <RadzenColumn Size="12">
+                            <RadzenText TextStyle="TextStyle.Body2">รายชื่อลูกค้า</RadzenText>
+
+                            <RadzenDataGrid TItem="WeatherForecast" Data="@customers" PagerPosition="PagerPosition.Bottom"
+                                            FilterMode="FilterMode.SimpleWithMenu" PageSize="10"
+                                            SelectionMode="DataGridSelectionMode.Single"
+                                            @bind-Value=@selectedCustomer
+                                            AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
+                                            AllowSorting="true" Density="Density.Compact" AllowAlternatingRows="false">
+                                <Columns>
+                                    <RadzenDataGridColumn Width="50px" >
+                                        <Template Context="data">
+                                            <RadzenButton ButtonStyle="ButtonStyle.Light" Click="@(args => OpenOrder(data.JobID))" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" />
+                                        </Template>
+                                    </RadzenDataGridColumn> 
+                                    <RadzenDataGridColumn TItem="WeatherForecast"  Property="@nameof(WeatherForecast.Customer_Action)" Width="120px" Title="ตอบรับ" />
+                                    <RadzenDataGridColumn TItem="WeatherForecast"  Property="@nameof(WeatherForecast.Customer_FullName)" Width="180px" Title="ชื่อลูกค้า" />
+                                    <RadzenDataGridColumn TItem="WeatherForecast" Property="@nameof(WeatherForecast.Customer_Phone)" Width="150px" Title="เบอร์ลูกค้า" />
+  
+                                </Columns>
+                            </RadzenDataGrid>
+
+
+
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12">
+                            <RadzenText TextStyle="TextStyle.Body2">ประวัติการติดตาม</RadzenText>
+                            <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
+                                            FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                            @bind-Value=@selecteContact
+                                            Data="@contacts" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
+                                            PagerPosition="PagerPosition.Bottom"
+                                            AllowAlternatingRows="false">
+                                <Columns>
+                                    <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_By" Width="150px" Title="ผู้ติดต่อ" />
+                                    <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_Date" Width="150px" Title="วันที่ติดต่อลูกค้า" />
+                                    <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_Action" Width="120px" Title="ผลตอบรับครั้งก่อน" />
+                                </Columns>
+                            </RadzenDataGrid>
+                        </RadzenColumn>
+                    </RadzenRow>
+
+                </RadzenTabsItem>
+            </Tabs>
+        </RadzenTabs>
+
+
+
+
+
+    </RadzenCard>
+
+
+
+</RadzenStack>
+@code {
+    [Parameter] public string UploadID { get; set; }
+
+
+    int selectedIndex = 0;
+    string ID = "C0000000001";
+    string channel = "Up-Sale";
+    string staff = "พนักงาน A";
+    string countcustomer = "100";
+
+    bool allowRowSelectOnRowClick = false;
+
+    IEnumerable<string> datachannel;
+    IEnumerable<string> datastaff;
+    DateTime? datevalue;
+
+
+    //
+    private IEnumerable<WeatherForecast> contacts;
+    IList<WeatherForecast> selecteContact;
+    private string qrCodeImage;
+    //
+
+    //
+    private IEnumerable<WeatherForecast> customers;
+    IList<WeatherForecast> selectedCustomer;
+    //
+
+    private static readonly string[] data_channels = new[]
+      {
+            "เลือกPoint", "Up-Sale", "Re-Sale","ลูกค้าขุด"
+      };
+
+    private static readonly string[] data_staff = new[]
+       {
+            "เลือกพนักงาน", "พนักงาน A", "พนักงาน B","พนักงาน C"
+      };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        datachannel = data_channels;
+        datastaff = data_staff;
+
+        string phoneNumber = "tel:+66850931002";
+
+        // สร้าง QR Code
+        using (var qrGenerator = new QRCoder.QRCodeGenerator())
+        {
+            var qrCodeData = qrGenerator.CreateQrCode(phoneNumber, QRCoder.QRCodeGenerator.ECCLevel.Q);
+            var qrCode = new QRCoder.PngByteQRCode(qrCodeData);
+            var qrCodeBytes = qrCode.GetGraphic(20);
+
+            // แปลงเป็น base64 เพื่อแสดงเป็นรูปภาพใน img tag
+            qrCodeImage = Convert.ToBase64String(qrCodeBytes);
+        }
+    }
+
+
+    void OnChange(int index)
+    {
+
+    }
+
+
+    public async Task OpenOrder(int i)
+    {
+        dialogService.Close();
+
+        await dialogService.OpenAsync<DialogCardPageCustomerInfo>($"ข้อมูลลูกค้า",
+    new Dictionary<string, object>() { { "OrderID", 1 } },
+    new DialogOptions()
+        {
+            Resizable = true,
+            Draggable = true,
+            Left = "200px",
+            Width = "700px",
+            Height = "90%"
+        });
+    }
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        // // จะถูกเรียกทุกครั้งที่พารามิเตอร์ถูกส่งเข้ามาหรือเปลี่ยนแปลง
+        // Console.WriteLine($"UploadID: {UploadID}");
+        // Console.WriteLine($"Customer Codes: {string.Join(", ", customercode)}");
+
+        // // ถ้าต้องการให้ re-render หน้าจอใหม่
+        //  countcustomer = customercode.Count().ToString();
+
+        ID = "C0000000001";
+        channel = "Up-Sale";
+        staff = "พนักงาน A";
+        countcustomer = "100";
+        datevalue = DateTime.Now.Date;
+
+        var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+        // Use the BaseApiUrl to call the API
+        var _contacts = await Http.GetFromJsonAsync<IEnumerable<WeatherForecast>>($"{baseApiUrl}/api/weatherforecast");
+
+        contacts = _contacts.Take(5).ToList();
+        selecteContact = new List<WeatherForecast>() { contacts.FirstOrDefault() };
+
+
+        var _customer = await Http.GetFromJsonAsync<IEnumerable<WeatherForecast>>($"{baseApiUrl}/api/weatherforecast");
+        customers = _customer.Take(100).ToList();
+        selectedCustomer = new List<WeatherForecast>() { customers.FirstOrDefault() };
+
+    }
+
+
+    void OnProgress(UploadProgressArgs args, string name)
+    {
+        // console.Log($"{args.Progress}% '{name}' / {args.Loaded} of {args.Total} bytes.");
+
+        if (args.Progress == 100)
+        {
+            foreach (var file in args.Files)
+            {
+                //  console.Log($"Uploaded: {file.Name} / {file.Size} bytes");
+            }
+        }
+    }
+
+}

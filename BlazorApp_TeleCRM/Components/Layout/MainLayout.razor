@@ -35,14 +35,14 @@
 
     <RadzenSidebar Responsive="false" Style="width: 300px" Expanded="@sidebarExpanded">
         <RadzenPanelMenu DisplayStyle="@(sidebarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="true">
-            <RadzenPanelMenuItem Text="Overview Team" Icon="home" Click="@GoToHome" Selected="@IsMenuItemSelected("/home")" />
+            <RadzenPanelMenuItem Text="Overview Team" Icon="home" Click="@(() => GoToPage("/home"))" Selected="@IsMenuItemSelected("/home")" />
             <RadzenPanelMenuItem Text="My Dashboard" Icon="dashboard" />
-            <RadzenPanelMenuItem Text="My Job" Icon="assignment" Click="@GoToJob" Selected="@IsMenuItemSelected("/job")" />
-            <RadzenPanelMenuItem Text="รายชื่อลูกค้า" Icon="person" Click="@GoToUploadJob" Selected="@IsMenuItemSelected("/admincustomer")" />
+            <RadzenPanelMenuItem Text="My Job" Icon="assignment" Click="@(() => GoToPage("/job"))" Selected="@IsMenuItemSelected("/job")" />
+            <RadzenPanelMenuItem Text="รายชื่อลูกค้า" Icon="person" Click="@(() => GoToPage("/admincustomer"))" Selected="@IsMenuItemSelected("/admincustomer")" />
 
             <RadzenPanelMenuItem Text="CRM - Admin" Icon="work" Expanded="@((IsMenuItemSelected("/admincustomer") || IsMenuItemSelected("/adminactivity")))">
-                <RadzenPanelMenuItem Text="1. ข้อมูลลูกค้า" Icon="person" Click="@GoToAdmincustomer" Selected="@IsMenuItemSelected("/admincustomer")" />
-                <RadzenPanelMenuItem Text="2. กิจกรรม" Icon="sprint" Click="@GoToAdminactivity" Selected="@IsMenuItemSelected("/adminactivity")" />
+                <RadzenPanelMenuItem Text="1. ข้อมูลลูกค้า" Icon="person" Click="@(() => GoToPage("/admincustomer"))" Selected="@IsMenuItemSelected("/admincustomer")" />
+                <RadzenPanelMenuItem Text="2. กิจกรรม" Icon="sprint" Click="@(() => GoToPage("/adminactivity"))" Selected="@IsMenuItemSelected("/adminactivity")" />
             </RadzenPanelMenuItem>
 
             <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.End">
@@ -62,7 +62,7 @@
     </RadzenBody>
 
     <RadzenFooter>
-        <span class="rz-badge rz-badge-success rz-variant-flat rz-shade-light rz-badge-pill" id="Vg5BDICKbU" _bl_7520="">
+        <span class="rz-badge rz-badge-success rz-variant-flat rz-shade-light rz-badge-pill">
             Version 1.0.0
         </span>
     </RadzenFooter>
@@ -86,63 +86,49 @@
 
     private void HandleLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
-        // Find the matching URL in the dictionary and set the title
         var matchedTitle = PageTitles.FirstOrDefault(x => e.Location.Contains(x.Key)).Value;
-
-        // If no match found, use a default title
         SetPageTitle(matchedTitle ?? "Default Title");
+        StateHasChanged();
     }
 
     private string GetCurrentPage()
     {
-        // Remove the base URI to get the relative path (current page)
-        return Navigation.Uri.Replace(Navigation.BaseUri, "/");
+        return new Uri(Navigation.Uri).AbsolutePath.TrimEnd('/');
     }
 
     private bool IsMenuItemSelected(string route)
     {
-        return Navigation.Uri.Contains(route);
+        // Compare the current URI with the given route and log the result
+        var currentPage = GetCurrentPage();
+        var isSelected = string.Equals(currentPage, route.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
+
+        // Log the selection check for debugging
+        Console.WriteLine($"IsMenuItemSelected: Route = {route}, Selected = {isSelected}");
+
+        return isSelected;
     }
 
-    private async Task GoToHome()
+    // private void GoToHome() => Navigation.NavigateTo("/home", forceLoad: false, StateHasChanged(););
+    // private void GoToJob() => Navigation.NavigateTo("/job", forceLoad: false);
+    // private void GoToCustomers() => Navigation.NavigateTo("/admincustomer", forceLoad: false);
+    // private void GoToAdminCustomer() => Navigation.NavigateTo("/admincustomer", forceLoad: false);
+    // private void GoToAdminActivity() => Navigation.NavigateTo("/adminactivity", forceLoad: false);
+     private void GoToLogin() => Navigation.NavigateTo("/adminactivity", forceLoad: false);
+
+    private void GoToPage(string route)
     {
-        ShowBusyDialog();
-        Navigation.NavigateTo("/home", forceLoad: false);
+        Navigation.NavigateTo(route, forceLoad: false);
+        StateHasChanged();
     }
 
-    private async Task GoToLogin()
+
+    
+
+    public void Dispose()
     {
-         ShowBusyDialog();
-        Navigation.NavigateTo("/login");
+        Navigation.LocationChanged -= HandleLocationChanged;
     }
 
-    private async Task GoToJob()
-    {
-        ShowBusyDialog();
-        Navigation.NavigateTo("/job", forceLoad: false);
-        DialogService.Close();
-    }
-
-    private async Task GoToUploadJob()
-    {
-        ShowBusyDialog();
-        Navigation.NavigateTo("/uploadjob", forceLoad: false);
-        DialogService.Close();
-    }
-
-    private async Task GoToAdmincustomer()
-    {
-         ShowBusyDialog();
-        Navigation.NavigateTo("/admincustomer", forceLoad: false);
-        DialogService.Close();
-    }
-
-    private async Task GoToAdminactivity()
-    {
-        ShowBusyDialog();
-        Navigation.NavigateTo("/adminactivity", forceLoad: false);
-        DialogService.Close();
-    }
 
     private async Task ShowBusyDialog()
     {
