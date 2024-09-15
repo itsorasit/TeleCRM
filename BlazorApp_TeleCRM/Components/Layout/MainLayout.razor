@@ -33,7 +33,7 @@
         </RadzenRow>
     </RadzenHeader>
 
-    <RadzenSidebar Responsive="false" Style="width: 300px" Expanded="@sidebarExpanded">
+    <RadzenSidebar Responsive="false" Style="width: 220px" Expanded="@sidebarExpanded">
         <RadzenPanelMenu DisplayStyle="@(sidebarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="true">
             <RadzenPanelMenuItem Text="Overview Team" Icon="home" Click="@(() => GoToPage("/home"))" Selected="@IsMenuItemSelected("/home")" />
             <RadzenPanelMenuItem Text="My Dashboard" Icon="dashboard" />
