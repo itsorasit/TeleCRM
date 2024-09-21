@@ -69,15 +69,15 @@
 AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
 AllowSorting="true" ColumnWidth="300px">
     <Columns>
-        <RadzenDataGridColumn Width="120px" Frozen="true" Property="JobID" Title="Job Details">
+        <RadzenDataGridColumn Width="100px" Filterable="false" Property="JobID" Title="">
             <Template Context="data">
-                <RadzenButton ButtonStyle="ButtonStyle.Info" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="info" class="rz-m-1" Click=@(() => OpenOrder(data.JobID)) Text="@data.JobID.ToString()" />
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" Click=@(() => OpenOrder(data.JobID))  />
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="WeatherForecast" Frozen="true" Property="@nameof(WeatherForecast.Customer_Action)" Width="120px" Title="ตอบรับ" />
-        <RadzenDataGridColumn TItem="WeatherForecast" Frozen="true" Property="@nameof(WeatherForecast.Customer_FullName)" Width="180px" Title="ชื่อลูกค้า" />
-        <RadzenDataGridColumn TItem="WeatherForecast" Frozen="true" Property="@nameof(WeatherForecast.Customer_Phone)" Width="150px" Title="เบอร์ลูกค้า" />
-        <RadzenDataGridColumn TItem="WeatherForecast" Frozen="true" Property="@nameof(WeatherForecast.Customer_Address)" Width="120px" Title="จังหวัด" />
+        <RadzenDataGridColumn TItem="WeatherForecast" Property="@nameof(WeatherForecast.Customer_Action)" Width="120px" Title="ตอบรับ" />
+        <RadzenDataGridColumn TItem="WeatherForecast" Property="@nameof(WeatherForecast.Customer_FullName)" Width="180px" Title="ชื่อลูกค้า" />
+        <RadzenDataGridColumn TItem="WeatherForecast" Property="@nameof(WeatherForecast.Customer_Phone)" Width="150px" Title="เบอร์ลูกค้า" />
+        <RadzenDataGridColumn TItem="WeatherForecast" Property="@nameof(WeatherForecast.Customer_Address)" Width="120px" Title="จังหวัด" />
         <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_By" Width="150px" Title="ผู้ติดต่อ" />
         <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_Date" Width="150px" Title="วันที่ติดต่อลูกค้า" />
         <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_By" Width="150px" Title="ผู้ติดต่อครั้งก่อน" />
@@ -96,11 +96,20 @@ AllowSorting="true" ColumnWidth="300px">
     private IEnumerable<WeatherForecast> forecasts;
     IList<WeatherForecast> selectedCustomer;
 
+    // async Task OpenOrder(int orderId)
+    // {
+    //     await DialogService.OpenAsync<DialogCardPage>($"Job Details {orderId}",
+    //           new Dictionary<string, object>() { { "OrderID", orderId } },
+    //           new DialogOptions() { Width = "80%", Height = "620px" });
+    // }
+
     async Task OpenOrder(int orderId)
     {
-        await DialogService.OpenAsync<DialogCardPage>($"Job Details {orderId}",
+
+      await DialogService.OpenAsync<DialogCardPage>($"Job Details {orderId}",
               new Dictionary<string, object>() { { "OrderID", orderId } },
               new DialogOptions() { Width = "80%", Height = "620px" });
+
     }
 
 
