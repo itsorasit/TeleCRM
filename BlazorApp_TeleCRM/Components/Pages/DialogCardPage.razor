@@ -5,133 +5,336 @@
 @inject Radzen.DialogService dialogService
 @inject HttpClient Http
 
-<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
-    <RadzenStack>
-        <RadzenRow>
-            <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
-                <RadzenRow Gap="0">
-                    <RadzenColumn>
-                        <RadzenText TextStyle="TextStyle.Subtitle1">ข้อมูลลูกค้า</RadzenText>
-                    </RadzenColumn>
-                    <RadzenColumn>
-                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-color-primary">ผลตอบรับ</RadzenText>
-                        <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="สั่งสินค้า" />
-                    </RadzenColumn>
-                </RadzenRow>
 
 
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                    <RadzenStack Gap="0">
-                        <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ชื่อลูกค้า</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@order.Customer_FullName</b></RadzenText>
+<RadzenStack Gap="1rem" Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+    <RadzenCard Variant="Variant.Outlined">
+        <RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnChange>
+            <Tabs>
+                <RadzenTabsItem Text="ข้อมูลลูกค้า & กิจกรรม">
+                    <RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+                        <RadzenStack>
+                            <RadzenRow>
+                                <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                                    <RadzenRow Gap="0">
+                                        <RadzenColumn>
+                                            <RadzenText TextStyle="TextStyle.Subtitle1">ข้อมูลลูกค้า</RadzenText>
+                                        </RadzenColumn>
+                                        <RadzenColumn>
+                                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-color-primary">ผลตอบรับ</RadzenText>
+                                            <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="สั่งสินค้า" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
 
-                        <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">เบอร์ติดต่อลูกค้า</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body1" class="rz-color-primary"><b>@order.Customer_Phone</b></RadzenText>
 
-                        <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ที่อยู่</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Caption"><b>@order.Customer_Address</b></RadzenText>
+                                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+
+                                        <RadzenStack Gap="0">
+                                            <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">เบอร์ติดต่อลูกค้า</RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Body1"><b><a href="tel:+66850931002"><RadzenIcon Icon="smartphone" style="font-size:12px" />085-0931-002</a></b></RadzenText>
+                                            <img width="150px" style="margin-top:20px" src="data:image/png;base64,@qrCodeImage" alt="QR Code" />
+                                        </RadzenStack>
+                                        <RadzenStack Gap="0">
+                                            <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ชื่อลูกค้า</RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@order.Customer_FullName</b></RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ที่อยู่</RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Caption"><b>@order.Customer_Address</b></RadzenText>
+                                        </RadzenStack>
+                                    </RadzenStack>
+
+
+                                </RadzenColumn>
+                                <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                                    <RadzenText TextStyle="TextStyle.Subtitle1">ผู้ติดต่อ</RadzenText>
+                                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                                        <RadzenImage Path="/user/staff1.jpg" Style="width: 5rem;" AlternateText="@order.Contact_By" />
+                                        <RadzenStack Gap="0" class="rz-text-truncate">
+                                            <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-2 rz-my-0" Style="color: var(--rz-text-tertiary-color);">พนักงาน</RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@order.Contact_By</b></RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-4 rz-mb-0" Style="color: var(--rz-text-tertiary-color);">วันที่ติดต่อ</RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@order.Contact_Date</b></RadzenText>
+
+                                            <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-4 rz-mb-0" Style="color: var(--rz-text-tertiary-color);">เบอร์ที่ใช้โทร</RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>-</b></RadzenText>
+                                        </RadzenStack>
+                                    </RadzenStack>
+                                </RadzenColumn>
+
+                            </RadzenRow>
+                        </RadzenStack>
                     </RadzenStack>
-                </RadzenStack>
-            </RadzenColumn>
-            <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
-                <RadzenText TextStyle="TextStyle.Subtitle1">ผู้ติดต่อ</RadzenText>
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                    <RadzenImage Path="/user/staff1.jpg" Style="width: 5rem;" AlternateText="@order.Contact_By" />
-                    <RadzenStack Gap="0" class="rz-text-truncate">
-                        <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-2 rz-my-0" Style="color: var(--rz-text-tertiary-color);">พนักงาน</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@order.Contact_By</b></RadzenText>
-                        <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-4 rz-mb-0" Style="color: var(--rz-text-tertiary-color);">วันที่ติดต่อ</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@order.Contact_Date</b></RadzenText>
 
-                        <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-4 rz-mb-0" Style="color: var(--rz-text-tertiary-color);">เบอร์ที่ใช้โทร</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>-</b></RadzenText>
+                    <RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;margin-top:10px">
+                        <RadzenStack>
+                            <RadzenText TextStyle="TextStyle.H5" Style="margin-top:10px"><b>ข้อมูลกิจกรรม</b></RadzenText>
+                            <RadzenRow>
+                                <RadzenColumn Size="12" SizeMD="12" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                                    <RadzenRow Gap="0">
+                                        <RadzenColumn>
+                                            <RadzenText TextStyle="TextStyle.Caption"><b>รหัสกิจกรรม</b></RadzenText>
+                                            <br />
+                                            <RadzenText TextStyle="TextStyle.Caption">A00001 </RadzenText>
+                                        </RadzenColumn>
+                                        <RadzenColumn>
+                                            <RadzenText TextStyle="TextStyle.Caption"><b>ชื่อกิจกรรม</b> </RadzenText>
+                                            <br />
+                                            <RadzenText TextStyle="TextStyle.Caption">เสนอขายสินค้า xxx</RadzenText>
+                                        </RadzenColumn>
+                                        <RadzenColumn>
+                                            <RadzenText TextStyle="TextStyle.Caption"><b>วันที่กิจกรรม</b></RadzenText>
+                                            <br />
+                                            <RadzenText TextStyle="TextStyle.Caption">01/01/2024 : 13:00 - 02/01/2024 : 13:00</RadzenText>
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                       <RadzenRow Gap="0">
+                                        <RadzenColumn>
+                                            <RadzenText TextStyle="TextStyle.Caption"><b>ผู้มอบจ่ายงาน</b></RadzenText>
+                                            <br />
+                                            <RadzenText TextStyle="TextStyle.Caption">Admin A</RadzenText>
+                                        </RadzenColumn>
+                                        <RadzenColumn>
+                                            <RadzenText TextStyle="TextStyle.Caption"><b>หมายเหตุ</b></RadzenText>
+                                            <br />
+                                            <RadzenText TextStyle="TextStyle.Caption">Admin A</RadzenText>
+                                        </RadzenColumn>
+                                       </RadzenRow>
+
+                                    <RadzenRow Gap="0">
+                                        <RadzenColumn>
+                                            <RadzenText TextStyle="TextStyle.Caption"><b>งานโอน</b></RadzenText>
+                                            <br />
+                                            <RadzenText TextStyle="TextStyle.Caption">โอนมาจาก พนักงาน B / ทีม A / -</RadzenText>
+                                        </RadzenColumn>
+                                        <RadzenColumn>
+                                            <RadzenText TextStyle="TextStyle.Caption"><b>ฝากงานให้นายหน้า</b></RadzenText>
+                                            <br />
+                                            <RadzenText TextStyle="TextStyle.Caption">ร้าน ต้นไม้จันทบุรี / -</RadzenText>
+                                        </RadzenColumn>
+                                    </RadzenRow>
+
+
+
+                                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Style="margin-top:10px">
+
+                                        <RadzenStack Gap="0">
+                                            <img width="150px" style="margin-top:20px" src="/products/product001.png" alt="product001.png" />
+                                        </RadzenStack>
+                                        <RadzenStack Gap="0">
+                                            <RadzenText TextStyle="TextStyle.Caption"><b>รหัสสินค้า</b></RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Caption">xxxxx</RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Caption"><b>ชื่อสินค้า</b></RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Caption">xxxxx</RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Caption"><b>ราคาสินค้า</b></RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Caption">100 บาท</RadzenText>
+                                        </RadzenStack>
+                                    </RadzenStack>
+
+
+                                </RadzenColumn>
+                    
+                            </RadzenRow>
+                        </RadzenStack>
                     </RadzenStack>
-                </RadzenStack>
-            </RadzenColumn>
+                
+                
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="บันทึกการโทร" Icon="star" IconColor="@Colors.Success">
 
-        </RadzenRow>
+                    <RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+                        <RadzenTemplateForm @ref="form" TItem="UpdateJob" class="rz-12" Data="@Model" Submit="@OnSubmit" InvalidSubmit="@OnInvalidSubmit">
+                            <RadzenFieldset Text="Update การโทร">
+                                <RadzenStack class="rz-12">
 
-        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
-            <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-m-0">ประวัติการติดต่อ</RadzenText>
-        </RadzenStack>
-        <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
-                        FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                        @bind-Value=@selectedCustomer
-                        Data="@forecasts" ColumnWidth="150px" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
-                        PagerPosition="PagerPosition.Bottom"
-                        AllowAlternatingRows="false">
-            <Columns>
-                <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_By" Width="150px" Title="ผู้ติดต่อ" />
-                <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_Date" Width="150px" Title="วันที่ติดต่อลูกค้า" />
-                <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_By" Width="150px" Title="ผู้ติดต่อครั้งก่อน" />
-                <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_Date" Width="150px" Title="วันที่ติดต่อครั้งก่อน" />
-                <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_Action" Width="120px" Title="ผลตอบรับครั้งก่อน" />
-                <RadzenDataGridColumn TItem="WeatherForecast" Property="Remark" Width="200px" Title="หมายเหตุ" />
-            </Columns>
-        </RadzenDataGrid>
-    </RadzenStack>
+                                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                        <RadzenColumn SizeSM="4">
+                                            <RadzenLabel Text="สถานะการโทร" Component="Status" />
+                                        </RadzenColumn>
+                                        <RadzenColumn SizeSM="4">
+                                            <RadzenDropDown @bind-Value="@Model.statusTel" Data=@StatusTelData Style="width: 100%; max-width: 150px;" Name="Status" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
 
-    <RadzenStack class="rz-12">
-        <RadzenTemplateForm @ref="form" TItem="UpdateJob" Data="@Model" Submit="@OnSubmit" InvalidSubmit="@OnInvalidSubmit">
-            <RadzenFieldset Text="Update การโทร">
-                <RadzenStack>
+                                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                        <RadzenColumn SizeMD="4">
+                                            <RadzenLabel Text="สถานะการสนทนา" Component="Status" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="8">
+                                            <RadzenDropDown @bind-Value="@Model.statusConversation" Data=@StatusConversationData Style="width: 100%; max-width: 150px" Name="Status" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
 
-                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
-                        <RadzenColumn Size="12" SizeMD="4">
-                            <RadzenLabel Text="สถานะการโทร" Component="Status" />
-                        </RadzenColumn>
-                        <RadzenColumn Size="12" SizeMD="8">
-                            <RadzenDropDown @bind-Value="@Model.status" Data=@StatusData Style="width: 100%; max-width: 150px;" Name="Status" />
-                        </RadzenColumn>
-                    </RadzenRow>
+                                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                        <RadzenColumn Size="12" SizeMD="4">
+                                            <RadzenLabel Text="คำสั่งซื้อใหม่" Component="sale_order" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="8">
+                                            <RadzenTextBox Placeholder="กรอกเลขที่เปิดคำสั่งซื้อใหม่" Name="sale_order" @bind-Value="@Model.sale_order" class="w-100" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
 
-                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
-                        <RadzenColumn Size="12" SizeMD="4">
-                            <RadzenLabel Text="คำสั่งซื้อใหม่" Component="sale_order" />
-                        </RadzenColumn>
-                        <RadzenColumn Size="12" SizeMD="8">
-                            <RadzenTextBox Placeholder="กรอกเลขที่เปิดคำสั่งซื้อใหม่" Name="sale_order" @bind-Value="@Model.sale_order" class="w-100" />
-                        </RadzenColumn>
-                    </RadzenRow>
+                                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                        <RadzenColumn Size="12" SizeMD="4">
+                                            <RadzenLabel Text="หมายเหตุ" Component="Remark" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="8">
+                                            <RadzenTextArea Placeholder="" Name="Remark" @bind-Value="@Model.remark" class="w-100" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
+
+                                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                        <RadzenColumn Size="12" SizeMD="4">
+                                            <RadzenLabel Text="คะแนนการมีส่วนร่วม" Component="Participation" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="8">
+                                            <RadzenRating @bind-Value=@Model.statusparticipation />
+                                        </RadzenColumn>
+                                    </RadzenRow>
+
+                                    <!-- Submit Button -->
+                                    <RadzenRow AlignItems="AlignItems.Start">
+                                        <RadzenColumn Size="12">
+                                            <RadzenButton ButtonType="ButtonType.Submit" Text="บันทึก" Style="margin-top: 5px;" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
+
+                                    <hr>
+
+                                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                        <RadzenColumn Size="12" SizeMD="4">
+                                            <RadzenLabel Text="นัดโทรครั้งถัดไป" Component="DatePickerWithTime" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="8">
+                                            <RadzenDatePicker @bind-Value=@appointmentDate ShowTime="true" ShowSeconds="true" HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm" Name="DatePickerWithTime" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                    <RadzenRow AlignItems="AlignItems.Start">
+                                        <RadzenButton ButtonType="ButtonType.Button" Disabled="true" ButtonStyle="ButtonStyle.Warning" Text="นัดหมายครั้งหน้า" Style="margin-top: 5px;" />
+                                        <RadzenText TextStyle="TextStyle.H6" Style="color:crimson">1 กรณีที่ไม่สะดวก หรือ ต้องติดตาม ระบบต้องมีหน้าให้พนักงานสร้าง นัดหมายครั้งหน้าได้ </RadzenText>
+                                    </RadzenRow>
 
 
+                                </RadzenStack>
+                            </RadzenFieldset>
+                        </RadzenTemplateForm>
 
-                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
-                        <RadzenColumn Size="12" SizeMD="4">
-                            <RadzenLabel Text="หมายเหตุ" Component="Remark" />
-                        </RadzenColumn>
-                        <RadzenColumn Size="12" SizeMD="8">
-                            <RadzenTextArea Placeholder="" Name="Remark" @bind-Value="@Model.remark" class="w-100" />
-                        </RadzenColumn>
-                    </RadzenRow>
+                    </RadzenStack>
 
-                    <!-- Submit Button -->
-                    <RadzenRow AlignItems="AlignItems.Start">
-                        <RadzenColumn Size="12">
-                            <RadzenButton ButtonType="ButtonType.Submit" Text="บันทึก" Style="margin-top: 5px;" />
-                        </RadzenColumn>
-                    </RadzenRow>
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="ประวัติการติดต่อ">
+                    <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Start" Gap="1rem" class="rz-12" Style="max-width:800px">
+                        <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
+                                        FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                                        @bind-Value=@selectedCustomer
+                                        Data="@forecasts" ColumnWidth="150px" SelectionMode="DataGridSelectionMode.Single"
+                                        Density="Density.Compact"
+                                        PagerPosition="PagerPosition.Bottom"
+                                        AllowColumnResize="true">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_By" Width="150px" Title="ผู้ติดต่อ" />
+                                <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_Date" Width="150px" Title="วันที่ติดต่อลูกค้า" />
+                                <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_By" Width="150px" Title="ผู้ติดต่อครั้งก่อน" />
+                                <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_Date" Width="150px" Title="วันที่ติดต่อครั้งก่อน" />
+                                <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_Action" Width="120px" Title="ผลตอบรับครั้งก่อน" />
+                                <RadzenDataGridColumn TItem="WeatherForecast" Property="Remark" Width="200px" Title="หมายเหตุ" />
+                            </Columns>
+                        </RadzenDataGrid>
+                    </RadzenStack>
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="ประวัติการซื้อ">
+                    <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Start" Gap="1rem" class="rz-12" Style="max-width:800px">
+                        <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
+                                        FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                                        @bind-Value=@selectedCustomer
+                                        Data="@forecasts" ColumnWidth="150px" SelectionMode="DataGridSelectionMode.Single"
+                                        Density="Density.Compact"
+                                        PagerPosition="PagerPosition.Bottom"
+                                        AllowColumnResize="true">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_By" Width="150px" Title="ผู้ติดต่อ" />
+                                <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_Date" Width="150px" Title="วันที่ติดต่อลูกค้า" />
+                                <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_By" Width="150px" Title="ผู้ติดต่อครั้งก่อน" />
+                                <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_Date" Width="150px" Title="วันที่ติดต่อครั้งก่อน" />
+                                <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_Action" Width="120px" Title="ผลตอบรับครั้งก่อน" />
+                                <RadzenDataGridColumn TItem="WeatherForecast" Property="Remark" Width="200px" Title="หมายเหตุ" />
+                            </Columns>
+                        </RadzenDataGrid>
+                    </RadzenStack>
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="Note">
 
-                </RadzenStack>
-            </RadzenFieldset>
-        </RadzenTemplateForm>
+                    <RadzenStack class="rz-12">
+                        <RadzenTemplateForm @ref="form" TItem="UpdateJob" Data="@Model" Submit="@OnSubmit" InvalidSubmit="@OnInvalidSubmit">
+                            <RadzenFieldset Text="กรอกข้อมูล">
+                                <RadzenStack>
+                                    <RadzenRow AlignItems="AlignItems.Start" class="rz-8">
+                                        <RadzenColumn Size="2" SizeMD="2">
+                                            <RadzenLabel Text="หมายเหตุ" Component="Remark" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="6" SizeMD="6">
+                                            <RadzenTextArea Placeholder="" Name="Remark" @bind-Value="@Model.remark" class="w-100" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                    <!-- Submit Button -->
+                                    <RadzenRow AlignItems="AlignItems.Start">
+                                        <RadzenColumn Size="12">
+                                            <RadzenButton ButtonType="ButtonType.Submit" Text="บันทึก" Style="margin-top: 5px;" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
 
-    </RadzenStack>
+                                </RadzenStack>
+                            </RadzenFieldset>
+                        </RadzenTemplateForm>
 
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="1.5rem">
-        <RadzenButton Click="@((args) => dialogService.Close(true))" Variant="Variant.Outlined" Text="ปิด" Style="width: 120px;margin-bottom:20px" />
-    </RadzenStack>
+                    </RadzenStack>
+
+                    <RadzenStack Style="margin-top:20px;max-width:800px">
+
+                        <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
+                                        FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                        @bind-Value=@selectedCustomer
+                                        Data="@forecasts" ColumnWidth="150px" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
+                                        PagerPosition="PagerPosition.Bottom"
+                                        AllowAlternatingRows="false">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_By" Width="150px" Title="ผู้ติดต่อ" />
+                                <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_Date" Width="150px" Title="วันที่ติดต่อลูกค้า" />
+                                <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_By" Width="150px" Title="ผู้ติดต่อครั้งก่อน" />
+                                <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_Date" Width="150px" Title="วันที่ติดต่อครั้งก่อน" />
+                                <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_Action" Width="120px" Title="ผลตอบรับครั้งก่อน" />
+                                <RadzenDataGridColumn TItem="WeatherForecast" Property="Remark" Width="200px" Title="หมายเหตุ" />
+                            </Columns>
+                        </RadzenDataGrid>
+
+                   
+                    </RadzenStack>
+
+                </RadzenTabsItem>
+            </Tabs>
+        </RadzenTabs>
+    </RadzenCard>
 </RadzenStack>
+@* <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="1.5rem">
+    <RadzenButton Click="@((args) => dialogService.Close(true))" Variant="Variant.Outlined" Text="ปิด" Style="width: 120px;margin-bottom:20px" />
+</RadzenStack>
+ *@
+
 @code {
     [Parameter] public int OrderID { get; set; }
     Order order;
+
+    DateTime? appointmentDate = DateTime.Now.AddDays(3);
+    
+
+    int selectedIndex = 0;
+    private string qrCodeImage;
+
     private IEnumerable<WeatherForecast> forecasts;
     IList<WeatherForecast> selectedCustomer;
 
     private RadzenTemplateForm<UpdateJob> form;
     private UpdateJob Model = new UpdateJob();
-    IEnumerable<string> StatusData;
-
+    IEnumerable<string> StatusTelData;
+    IEnumerable<string> StatusConversationData;
 
 
     protected override async Task OnInitializedAsync()
@@ -159,15 +362,46 @@
         forecasts = _forecasts.Take(5).ToList();
         selectedCustomer = new List<WeatherForecast>() { forecasts.FirstOrDefault() };
 
-        StatusData = new List<string>
+        StatusTelData = new List<string>
 {
-    "ตอบรับ",         // Accepted
-    "ติดต่อไม่ได้",   // Unable to Contact
-    "ปฎิเสธ",         // Rejected
-    "สั่งสินค้า"      // Ordered Products
+    "รับสาย",         // Accepted
+    "ไม่รับสาย",   // Unable to Contact
+    "ติดต่อไม่ได้"         // Rejected
+       // Ordered Products
 };
 
+        StatusConversationData = new List<string>
+{
+    "คุยจบ",
+    "ไม่สะดวก",
+    "ติดตาม",
+    "ขายได้",
+       // Ordered Products
+};
+
+
+        string phoneNumber = "tel:+66850931002";
+
+        // สร้าง QR Code
+        using (var qrGenerator = new QRCoder.QRCodeGenerator())
+        {
+            var qrCodeData = qrGenerator.CreateQrCode(phoneNumber, QRCoder.QRCodeGenerator.ECCLevel.Q);
+            var qrCode = new QRCoder.PngByteQRCode(qrCodeData);
+            var qrCodeBytes = qrCode.GetGraphic(20);
+
+            // แปลงเป็น base64 เพื่อแสดงเป็นรูปภาพใน img tag
+            qrCodeImage = Convert.ToBase64String(qrCodeBytes);
+        }
+
+
+
     }
+
+    void OnChange(int index)
+    {
+
+    }
+
 
     private async Task OnSubmit()
     {
@@ -183,7 +417,9 @@
     public class UpdateJob
     {
         [Required(ErrorMessage = "เลือกสถานะ")]
-        public string status { get; set; }
+        public string statusTel { get; set; }
+        public string statusConversation { get; set; }
+        public int statusparticipation { get; set; }
         public string sale_order { get; set; }
         public string remark { get; set; }
     }

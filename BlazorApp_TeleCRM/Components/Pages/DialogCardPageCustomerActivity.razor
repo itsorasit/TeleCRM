@@ -58,7 +58,8 @@
                         </RadzenColumn>
                         <RadzenColumn Size="12" SizeMD="12">
                             <RadzenText TextStyle="TextStyle.Caption">มอบหมายให้กับพนักงาน</RadzenText>
-                            <RadzenDropDown @bind-Value=@staff Style="width: 100%" Data=@datastaff Name="DropDownBindValue" />
+                            <RadzenDropDown @bind-Value=@staff Style="width: 100%" Data=@datastaff Name="DropDownBindValue" Multiple=true AllowClear=true />
+
 
                         </RadzenColumn>
 
@@ -153,7 +154,7 @@
         
        
    
-    </RadzenCard>
+ </RadzenCard>
 
 
 

@@ -53,6 +53,12 @@
             </Template>
         </RadzenDataGridColumn>
 
+        <RadzenDataGridColumn Width="100px" Filterable="false" Property="Activity_ID" Title="สินค้า">
+            <Template Context="data">
+                <RadzenImage Path="/products/product001.png" Style="width: 60px; height: 60px;" class="rz-border-radius-2" AlternateText="" />
+            </Template>
+        </RadzenDataGridColumn>
+
         <RadzenDataGridColumn TItem="ActivityData"  Property="@nameof(ActivityData.Activity_ID)" Width="100px" Title="กิจกรรม ID" />
         <RadzenDataGridColumn TItem="ActivityData"  Property="@nameof(ActivityData.Activity_Name)" Width="180px" Title="ชื่อกิจกรรม" />
         <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.Activity_Type)" Width="150px" Title="ประเภท" />

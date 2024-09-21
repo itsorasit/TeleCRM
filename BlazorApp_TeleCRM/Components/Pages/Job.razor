@@ -71,10 +71,27 @@ AllowSorting="true" ColumnWidth="300px">
     <Columns>
         <RadzenDataGridColumn Width="100px" Filterable="false" Property="JobID" Title="">
             <Template Context="data">
-                <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" Click=@(() => OpenOrder(data.JobID))  />
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" Click=@(() => OpenSideDialog(data.JobID)) />
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="WeatherForecast" Property="@nameof(WeatherForecast.Customer_Action)" Width="120px" Title="ตอบรับ" />
+        <RadzenDataGridColumn Width="100px" Filterable="false" Property="JobID" Title="สินค้า">
+            <Template Context="data">
+                <RadzenImage Path="/products/product001.png" Style="width: 60px; height: 60px;" class="rz-border-radius-2" AlternateText="" />
+            </Template>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn Width="120px" Property="Customer_Action" Title="สถานะการโทร">
+            <Template Context="data">
+                <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="@data.Customer_Action" />
+            </Template>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn Width="120px" Property="Customer_Action" Title="สถานะการสนทนา">
+            <Template Context="data">
+                <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="@data.Customer_Action" />
+            </Template>
+        </RadzenDataGridColumn>
+
         <RadzenDataGridColumn TItem="WeatherForecast" Property="@nameof(WeatherForecast.Customer_FullName)" Width="180px" Title="ชื่อลูกค้า" />
         <RadzenDataGridColumn TItem="WeatherForecast" Property="@nameof(WeatherForecast.Customer_Phone)" Width="150px" Title="เบอร์ลูกค้า" />
         <RadzenDataGridColumn TItem="WeatherForecast" Property="@nameof(WeatherForecast.Customer_Address)" Width="120px" Title="จังหวัด" />
@@ -92,6 +109,8 @@ AllowSorting="true" ColumnWidth="300px">
 
 
  @code {
+
+    bool isDialogOpen = false;
     DateTime? value = DateTime.Now;
     private IEnumerable<WeatherForecast> forecasts;
     IList<WeatherForecast> selectedCustomer;
@@ -103,12 +122,27 @@ AllowSorting="true" ColumnWidth="300px">
     //           new DialogOptions() { Width = "80%", Height = "620px" });
     // }
 
-    async Task OpenOrder(int orderId)
+    async Task OpenSideDialog(int orderId)
     {
 
-      await DialogService.OpenAsync<DialogCardPage>($"Job Details {orderId}",
-              new Dictionary<string, object>() { { "OrderID", orderId } },
-              new DialogOptions() { Width = "80%", Height = "620px" });
+        if (isDialogOpen)
+        {
+            DialogService.Close();
+            // await Task.Delay(200);
+        }
+        StateHasChanged();
+        await DialogService.OpenSideAsync<DialogCardPage>(
+            "งานกิจกรรมการโทร",
+            new Dictionary<string, object>() { { "OrderID", orderId } },
+            new SideDialogOptions
+                {
+                    CloseDialogOnOverlayClick = true,
+                    Position = DialogPosition.Right,
+                    ShowMask = false,
+                    Width = "900px"
+                });
+
+        isDialogOpen = true;
 
     }
 
