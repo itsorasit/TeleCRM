@@ -1,5 +1,6 @@
 ﻿@page "/DialogCardPageCustomerCampaign/{UploadID}"
 @using System.ComponentModel.DataAnnotations
+@using BlazorApp_TeleCRM.Data
 @using BlazorApp_TeleCRM.Service
 @using static BlazorApp_TeleCRM.Controller.WeatherForecastController
 @using static BlazorApp_TeleCRM.Components.Pages.UploadJob
@@ -178,6 +179,111 @@
                     </RadzenRow>
 
                 </RadzenTabsItem>
+                <RadzenTabsItem Text="ขายสินค้า">
+                    <RadzenRow Gap="1rem">
+
+
+                        <RadzenDataGrid @ref="ordersGrid" AllowAlternatingRows="false" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" EditMode="@editMode"
+                                        Data="@orders" TItem="Products" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset" ColumnWidth="200px">
+                            <HeaderTemplate>
+                                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="เพิ่มสินค้า" Click="@InsertRow" Disabled="@(editMode == DataGridEditMode.Single && ordersToInsert.Count() > 0)" />
+                            </HeaderTemplate>
+                            <Columns>
+
+                                @*  <RadzenDataGridColumn Property="Customer.CompanyName" Title="Customer" Width="280px">
+                                <EditTemplate Context="order">
+                                <RadzenDropDown @bind-Value="order.CustomerID" Data="@customers" TextProperty="@nameof(Customer.CompanyName)" ValueProperty="@nameof(Customer.CustomerID)" Style="width:100%; display: block;"
+                                InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select customer" }})" />
+                                </EditTemplate>
+                                </RadzenDataGridColumn> *@
+                                @*               <RadzenDataGridColumn Property="Employee.LastName" Title="Employee" Width="220px">
+                                <Template Context="order">
+                                <RadzenImage Path="@order.Employee?.Photo" Style="width: 32px; height: 32px;" class="rz-border-radius-4 rz-me-2" AlternateText="@(order.Employee?.FirstName + " " + order.Employee?.LastName)" />
+                                @order.Employee?.FirstName @order.Employee?.LastName
+                                </Template>
+                                <EditTemplate Context="order">
+                                <RadzenDropDown @bind-Value="order.EmployeeID" Data="@employees" ValueProperty="EmployeeID" Style="width:100%; display: block;"
+                                InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select employee" }})">
+                                <Template>
+                                <RadzenImage Path="@context.Photo" Style="width: 20px; height: 20px;" class="rz-border-radius-4 rz-me-2" />
+                                @context.FirstName @context.LastName
+                                </Template>
+                                </RadzenDropDown>
+                                </EditTemplate>
+                                </RadzenDataGridColumn> *@
+                                @*               <RadzenDataGridColumn Property="@nameof(Order.OrderDate)" Title="Order Date" Width="200px">
+                                <Template Context="order">
+                                @String.Format("{0:d}", order.OrderDate)
+                                </Template>
+                                <EditTemplate Context="order">
+                                <RadzenDatePicker @bind-Value="order.OrderDate" Style="width:100%" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select order date" }})" />
+                                </EditTemplate>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn Property="@nameof(Order.Freight)" Title="Freight">
+                                <Template Context="order">
+                                @String.Format(new System.Globalization.CultureInfo("en-US"), "{0:C}", order.Freight)
+                                </Template>
+                                <EditTemplate Context="order">
+                                <RadzenNumeric @bind-Value="order.Freight" Style="width:100%" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select freight" }})" />
+                                </EditTemplate>
+                                </RadzenDataGridColumn> *@
+                                <RadzenDataGridColumn Property="Code" Width="100px" Title="รหัสสินค้า">
+                                    <EditTemplate Context="order">
+                                        <RadzenTextBox @bind-Value="order.Code" Style="width:100px; display: block" Name="ProductCode" aria-label="" />
+                                        <RadzenRequiredValidator Text="รหัสสินค้า" Component="ProductCode" Popup="true" />
+                                    </EditTemplate>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn Property="@nameof(Products.Name)" Width="150px" Title="ชื่อสินค้า">
+                                    <EditTemplate Context="order">
+                                        <RadzenTextBox @bind-Value="order.Name" Style="width:150px; display: block" Name="ProductName" aria-label="" />
+                                        <RadzenRequiredValidator Text="ชื่อสินค้า" Component="ProductName" Popup="true" />
+                                    </EditTemplate>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn Property="@nameof(Products.Price)" Width="100px" Title="ราคาสินค้า">
+                                    <EditTemplate Context="order">
+                                        <RadzenNumeric ShowUpDown="false" @bind-Value="order.Price" Name="ProductPrice" Style="width:100%" Placeholder="ราคาสินค้า" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "ราคา" }})" />
+                                        <RadzenRequiredValidator Text="ราคาสินค้า" Component="ProductPrice" Popup="true" />
+                                    </EditTemplate>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn Property="@nameof(Products.SalePrice)" Width="100px" Title="ราคาขาย">
+                                    <EditTemplate Context="order">
+                                        <RadzenNumeric ShowUpDown="false" @bind-Value="order.SalePrice" Name="ProductSalePrice" Style="width:100%" Placeholder="ราคาขาย" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "ราคา" }})" />
+                                        <RadzenRequiredValidator Text="ราคาขาย" Component="ProductSalePrice" Popup="true" />
+                                    </EditTemplate>
+                                </RadzenDataGridColumn>
+                                @*   <RadzenDataGridColumn Property="@nameof(Order.ShipCountry)" Title="ShipCountry">
+                                <EditTemplate Context="order">
+                                <RadzenTextBox @bind-Value="order.ShipCountry" Style="width:200px; display: block" Name="ShipCountry" aria-label="Enter ship country" />
+                                <RadzenRequiredValidator Text="ShipCountry is required" Component="ShipCountry" Popup="true" />
+                                </EditTemplate>
+                                </RadzenDataGridColumn>
+                                <RadzenDataGridColumn Property="@nameof(Order.ShipCity)" Title="ShipCity">
+                                <EditTemplate Context="order">
+                                <RadzenTextBox @bind-Value="order.ShipCity" Style="width:200px; display: block" Name="ShipCity" aria-label="Enter ship city" />
+                                <RadzenRequiredValidator Text="ShipCity is required" Component="ShipCity" Popup="true" />
+                                </EditTemplate>
+                                </RadzenDataGridColumn> *@
+                                <RadzenDataGridColumn Context="order" Width="150px" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+                                    <Template Context="order">
+                                        <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(order))" @onclick:stopPropagation="true">
+                                        </RadzenButton>
+                                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="@(args => DeleteRow(order))" @onclick:stopPropagation="true">
+                                        </RadzenButton>
+                                    </Template>
+                                    <EditTemplate Context="order">
+                                        <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(order))" aria-label="Save">
+                                        </RadzenButton>
+                                        <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="@((args) => CancelEdit(order))" aria-label="Cancel">
+                                        </RadzenButton>
+                                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="@(args => DeleteRow(order))" aria-label="Delete">
+                                        </RadzenButton>
+                                    </EditTemplate>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+
+                    </RadzenRow>
+                </RadzenTabsItem>
             </Tabs>
         </RadzenTabs>
 
@@ -218,6 +324,11 @@
     IList<WeatherForecast> selectedCustomer;
     //
 
+
+
+
+
+
     private static readonly string[] data_channels = new[]
       {
             "เลือกPoint", "Up-Sale", "Re-Sale","ลูกค้าขุด"
@@ -225,8 +336,116 @@
 
     private static readonly string[] data_staff = new[]
        {
-            "เลือกพนักงาน", "พนักงาน A", "พนักงาน B","พนักงาน C"
+            "เลือกพนักงาน", "พนักงาน A", "พนักงาน B","พนักงาน C", "ทีม A", "ทีม B","ทีม C"
       };
+
+
+    #region grid product
+
+    RadzenDataGrid<Products> ordersGrid;
+    IEnumerable<Products> orders;
+    DataGridEditMode editMode = DataGridEditMode.Single;
+    List<Products> ordersToInsert = new List<Products>();
+    List<Products> ordersToUpdate = new List<Products>();
+    void Reset()
+    {
+        ordersToInsert.Clear();
+        ordersToUpdate.Clear();
+    }
+
+    void Reset(Products order)
+    {
+        ordersToInsert.Remove(order);
+        ordersToUpdate.Remove(order);
+    }
+
+
+    async Task EditRow(Products order)
+    {
+        if (editMode == DataGridEditMode.Single && ordersToInsert.Count() > 0)
+        {
+            Reset();
+        }
+
+        ordersToUpdate.Add(order);
+        await ordersGrid.EditRow(order);
+    }
+
+    void OnUpdateRow(Products order)
+    {
+        Reset(order);
+
+        //  dbContext.Update(order);
+
+        // dbContext.SaveChanges();
+    }
+
+    async Task SaveRow(Products order)
+    {
+        await ordersGrid.UpdateRow(order);
+    }
+
+    void CancelEdit(Products order)
+    {
+        Reset(order);
+
+        ordersGrid.CancelEditRow(order);
+
+        // var orderEntry = dbContext.Entry(order);
+        // if (orderEntry.State == EntityState.Modified)
+        // {
+        //     orderEntry.CurrentValues.SetValues(orderEntry.OriginalValues);
+        //     orderEntry.State = EntityState.Unchanged;
+        // }
+    }
+
+    async Task DeleteRow(Products order)
+    {
+        Reset(order);
+
+        if (orders.Contains(order))
+        {
+            //    dbContext.Remove<Products>(order);
+
+            //  dbContext.SaveChanges();
+
+            await ordersGrid.Reload();
+        }
+        else
+        {
+            ordersGrid.CancelEditRow(order);
+            await ordersGrid.Reload();
+        }
+    }
+
+    async Task InsertRow()
+    {
+        if (editMode == DataGridEditMode.Single)
+        {
+            Reset();
+        }
+
+        var order = new Products();
+        ordersToInsert.Add(order);
+        await ordersGrid.InsertRow(order);
+    }
+
+    void OnCreateRow(Products order)
+    {
+        //    dbContext.Add(order);
+
+        //  dbContext.SaveChanges();
+
+        ordersToInsert.Remove(order);
+    }
+
+
+    #endregion
+
+
+
+
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -247,6 +466,18 @@
             // แปลงเป็น base64 เพื่อแสดงเป็นรูปภาพใน img tag
             qrCodeImage = Convert.ToBase64String(qrCodeBytes);
         }
+
+        List<Products> prders = new List<Products>
+        {
+            new Products { Code = "P001", Name = "Product 1", Price = 100 ,SalePrice=100 },
+            new Products { Code = "P002", Name = "Product 2", Price = 200 ,SalePrice=150 },
+            new Products { Code = "P003", Name = "Product 3", Price = 150 ,SalePrice=100 },
+            new Products { Code = "P004", Name = "Product 4", Price = 99 ,SalePrice=99 },
+            new Products { Code = "P005", Name = "Product 5", Price = 250 ,SalePrice=250 }
+        };
+        orders = prders.ToList();
+
+
     }
 
 

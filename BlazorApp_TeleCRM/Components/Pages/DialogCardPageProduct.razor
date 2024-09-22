@@ -1,0 +1,129 @@
+﻿@page "/DialogCardPageProduct/{OrderID}"
+@using System.ComponentModel.DataAnnotations
+@using BlazorApp_TeleCRM.Data
+@using static BlazorApp_TeleCRM.Components.Pages.Job
+@inject IConfiguration Configuration
+@inject Radzen.DialogService dialogService
+@inject HttpClient Http
+
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+    <RadzenCard Variant="Variant.Outlined">
+        <RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnChange>
+            <Tabs>
+                <RadzenTabsItem Text="ข้อมูลสินค้า">
+
+                    <RadzenStack class="rz-12">
+                        <RadzenTemplateForm @ref="form" TItem="Products" Data="@Model" Submit="@OnSubmit" InvalidSubmit="@OnInvalidSubmit">
+                            <RadzenFieldset Text="กรอกข้อมูล">
+                                <RadzenStack class="rz-12">
+                                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="รหัสสินค้า" Component="ProductCode" />
+                                            <RadzenTextBox Placeholder="" Style="width: 100%" Name="ProductName" @bind-Value="@Model.Code" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="ชื่อสินค้า" Component="ProductName" />
+                                            <RadzenTextBox Placeholder="" Style="width: 100%" Name="ProductName" @bind-Value="@Model.Name" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
+
+                                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="ราคาสินค้า" Component="ProductPrice" />
+                                            <RadzenNumeric ShowUpDown="false" Placeholder="" Style="width: 100%" Name="ProducPrice" @bind-Value="@Model.Price" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
+
+                                      <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                            <RadzenCard Variant="Variant.Outlined" Style="width: 100%;">
+                                                <RadzenLabel Text="รูปสินค้า" />
+                                                <RadzenFileInput @bind-Value=@Photo @bind-FileName=@fileName @bind-FileSize=@fileSize TValue="string" Style="width: 100%"
+                                                                 Change=@(args => OnChange(args, "FileInput")) Error=@(args => OnError(args, "FileInput")) InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})" />
+                                            </RadzenCard>
+                                    </RadzenColumn>
+                                    </RadzenRow>
+
+                                    <!-- Submit Button -->
+                                    <RadzenRow AlignItems="AlignItems.Start">
+                                        <RadzenColumn Size="12">
+                                            <RadzenButton ButtonType="ButtonType.Submit" Text="บันทึก" Style="margin-top: 5px;" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
+
+                                </RadzenStack>
+                            </RadzenFieldset>
+                        </RadzenTemplateForm>
+
+                    </RadzenStack>
+
+                 
+                </RadzenTabsItem>
+            </Tabs>
+        </RadzenTabs>
+    </RadzenCard>
+</RadzenStack>
+@* <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="1.5rem">
+    <RadzenButton Click="@((args) => dialogService.Close(true))" Variant="Variant.Outlined" Text="ปิด" Style="width: 120px;margin-bottom:20px" />
+</RadzenStack>
+ *@
+
+@code {
+    [Parameter] public string OrderID { get; set; }
+  
+    DateTime? appointmentDate = DateTime.Now.AddDays(3);
+    
+
+    int selectedIndex = 0;
+
+
+    string fileName;
+   string Photo = @"products/product001.png";
+    long? fileSize;
+
+    private RadzenTemplateForm<Products> form;
+    private Products Model = new Products();
+    IEnumerable<string> StatusTelData;
+    IEnumerable<string> StatusConversationData;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+    
+    }
+
+    void OnChange(int index)
+    {
+
+    }
+
+
+    private async Task OnSubmit()
+    {
+
+    }
+
+    private void OnInvalidSubmit()
+    {
+
+    }
+
+
+    void OnChange(string value, string name)
+    {
+       // console.Log($"{name} value changed");
+    }
+
+    void OnError(UploadErrorEventArgs args, string name)
+    {
+     //   console.Log($"{args.Message}");
+    }
+
+
+
+}
