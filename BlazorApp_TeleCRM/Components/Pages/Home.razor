@@ -1,16 +1,101 @@
 ﻿@page "/"
 @page "/home"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 
-<PageTitle>Home</PageTitle>
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@* @attribute [Authorize]  *@
 
-<h1>Hello, world!</h1>
+<h3>Overview Team</h3>
 
-Welcome to your new app.
+@* <AuthorizeView>
+    <Authorized Context="authState">
+        <p>You are logged in as: @authState.User.Identity.Name</p>
+        <p>Your roles:</p>
+        <ul>
+            @foreach (var claim in authState.User.Claims)
+            {
+                if (claim.Type == ClaimTypes.Role)
+                {
+                    <li>@claim.Value</li>  <!-- This will list the user's roles -->
+                }
+            }
+        </ul>
 
-<RadzenButton Click="@ButtonClicked" Text="Hi"></RadzenButton>
+        <!-- Admin and Manager Section -->
+        <AuthorizeView Roles="Admin,Manager">
+            <h3>Admin and Manager Content</h3>
+            <p>This section is visible only to Admins and Managers.</p>
+        </AuthorizeView>
+
+        <!-- User Section -->
+        <AuthorizeView Roles="User">
+            <h3>User Content</h3>
+            <p>This section is visible only to Users.</p>
+        </AuthorizeView>
+
+        <!-- All Authenticated Users -->
+        <p>This section is visible to all authenticated users, regardless of role.</p>
+
+    </Authorized>
+    <NotAuthorized>
+        <p>You are not authorized to view this content.</p>
+    </NotAuthorized>
+</AuthorizeView>
+ *@
 @code {
-    void ButtonClicked()
-    {
-        // Handle the Click event of RadzenButton
-    }
+    private string username;
+    private IEnumerable<string> roles;
+
+
+    private bool isCheckingLogin = true;
+    private bool hasRendered = false;
+    private string returnUrl = "/";
+
+
+
+
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+    //     var user = authState.User;
+
+    //     if (user.Identity.IsAuthenticated)
+    //     {
+    //         username = user.Identity.Name;
+    //         roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+
+    //         // if (!user.IsInRole("Admin"))
+    //         // {
+    //         //     Navigation.NavigateTo("/access-denied", forceLoad: true);
+    //         // }
+    //     }
+    //     else
+    //     {
+    //         username = "Not authenticated";
+    //         roles = Enumerable.Empty<string>();
+    //      //   Navigation.NavigateTo("/login", forceLoad:false);
+    //     }
+    // }
+
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (firstRender)
+    //     {
+    //         var isLoggedIn = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "isLoggedIn");
+    //         if (isLoggedIn == "true")
+    //         {
+    //             // User is logged in; don't redirect
+    //         }
+    //         else
+    //         {
+    //             // Redirect to login
+    //             Navigation.NavigateTo("/login", forceLoad: true);
+    //         }
+    //     }
+    // }
+
 }

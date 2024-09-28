@@ -1,11 +1,63 @@
 ﻿@page "/adminactivity"
+@using BlazorApp_TeleCRM.Models
+@using BlazorApp_TeleCRM.Service
+@using Blazored.LocalStorage
+@using Microsoft.AspNetCore.Authorization
 @using static BlazorApp_TeleCRM.Controller.ActivityAdminController
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.EntityFrameworkCore
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
+@inject IJSRuntime JSRuntime
 @inject IConfiguration Configuration
 @inject HttpClient Http
 @inject DialogService DialogService
+@inject allseeddbPDContext allseed_Db
+@inject ILocalStorageService LocalStorage
+
 
 <PageTitle>ข้อมูลกิจกรรม</PageTitle>
+
+
+<AuthorizeView>
+    <Authorized Context="authState">
+        <p>You are logged in as: @authState.User.Identity.Name</p>
+        <p>Your roles:</p>
+        <ul>
+            @foreach (var claim in authState.User.Claims)
+            {
+                if (claim.Type == ClaimTypes.Role)
+                {
+                    <li>@claim.Value</li>  <!-- This will list the user's roles -->
+                }
+            }
+        </ul>
+
+        <!-- Admin and Manager Section -->
+        <AuthorizeView Roles="Admin,Manager">
+            <h3>Admin and Manager Content</h3>
+            <p>This section is visible only to Admins and Managers.</p>
+        </AuthorizeView>
+
+        <!-- User Section -->
+        <AuthorizeView Roles="User">
+            <h3>User Content</h3>
+            <p>This section is visible only to Users.</p>
+        </AuthorizeView>
+
+        <!-- All Authenticated Users -->
+        <p>This section is visible to all authenticated users, regardless of role.</p>
+
+    </Authorized>
+    <NotAuthorized>
+        <p>You are not authorized to view this content.</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+
 
 <div class="rz-6">
     <RadzenBreadCrumb>
@@ -32,8 +84,8 @@
                 <RadzenButton style="width: 100px" Icon="search" Variant="Variant.Flat" Text="ค้นหา" />
                 <RadzenButton style="width: 100px" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Light" Text="ล้าง" />
             </RadzenColumn>
-            <RadzenColumn > 
-      </RadzenColumn>
+            <RadzenColumn>
+            </RadzenColumn>
         </RadzenRow>
 
     </div>
@@ -59,8 +111,8 @@
             </Template>
         </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn TItem="ActivityData"  Property="@nameof(ActivityData.Activity_ID)" Width="100px" Title="กิจกรรม ID" />
-        <RadzenDataGridColumn TItem="ActivityData"  Property="@nameof(ActivityData.Activity_Name)" Width="180px" Title="ชื่อกิจกรรม" />
+        <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.Activity_ID)" Width="100px" Title="กิจกรรม ID" />
+        <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.Activity_Name)" Width="180px" Title="ชื่อกิจกรรม" />
         <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.Activity_Type)" Width="150px" Title="ประเภท" />
         <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.Activity_Status)" Width="150px" Title="Point" />
         <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.Activity_Progress)" Width="100px" Title="ความคืบหน้า" />
@@ -78,6 +130,10 @@
     private IEnumerable<ActivityData> activitys;
     IList<ActivityData> selectedActivity;
 
+    private string username;
+    private IEnumerable<string> roles;
+
+
     async Task OpenUpload()
     {
         await DialogService.OpenAsync<DialogCardPageUploadJob>($"",
@@ -85,17 +141,54 @@
               new DialogOptions() { Width = "800px", Height = "400px" });
     }
 
+
     protected override async Task OnInitializedAsync()
     {
-        var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
 
-        // Use the BaseApiUrl to call the API
+        if (user.Identity.IsAuthenticated)
+        {
+            username = user.Identity.Name;
+            roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+        }
+        else
+        {
+            try
+            {
+                InvokeAsync(async () =>
+          {
+      await Task.Delay(2000);
+      DialogService.Close();
+          });
+                await BusyDialog();
+                string? username = await LocalStorage.GetItemAsStringAsync("username");
+                var user1 = await allseed_Db.Users.Where(u => u.username == username).FirstOrDefaultAsync();
+                if (user1 != null)
+                {
+
+                    if (AuthenticationStateProvider is CustomAuthenticationStateProvider customAuthProvider)
+                    {
+                        await customAuthProvider.MarkUserAsAuthenticated(user1);
+                    }
+                    await LocalStorage.SetItemAsStringAsync("username", username);
+                }
+                else
+                {
+                    Navigation.NavigateTo("/login", forceLoad: false);
+                }
+            } catch { }
+        }
+
+
+
+        var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
         activitys = await Http.GetFromJsonAsync<IEnumerable<ActivityData>>($"{baseApiUrl}/api/ActivityAdmin");
 
         selectedActivity = new List<ActivityData>() { activitys.FirstOrDefault() };
     }
 
-    async Task OpenSideDialog(int ActID,string type)
+    async Task OpenSideDialog(int ActID, string type)
     {
 
         if (type == "กิจกรรม")
@@ -109,9 +202,9 @@
             await DialogService.OpenSideAsync<DialogCardPageCustomerActivity>(
                 "กิจกรรม",
                 new Dictionary<string, object>
-                                    {
+                                        {
             { "UploadID", ActID.ToString() }
-                                    },
+                                        },
                 new SideDialogOptions
                     {
                         CloseDialogOnOverlayClick = true,
@@ -133,9 +226,9 @@
             await DialogService.OpenSideAsync<DialogCardPageCustomerCampaign>(
                 "แคมเปญ",
                 new Dictionary<string, object>
-                                        {
+                                            {
             { "UploadID", ActID.ToString() }
-                                        },
+                                            },
                 new SideDialogOptions
                     {
                         CloseDialogOnOverlayClick = true,
@@ -148,4 +241,18 @@
         }
 
     }
+
+
+    // Busy dialog from markup
+    async Task BusyDialog()
+    {
+        await DialogService.OpenAsync("", ds =>
+    @<RadzenStack AlignItems="AlignItems.Center" Gap="2rem" class="rz-p-12">
+        <RadzenImage Path="image/system/community.svg" Style="width: 200px;" AlternateText="community" />
+        <RadzenText TextStyle="TextStyle.H6">Loading, please wait...</RadzenText>
+    </RadzenStack>, new DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;width:auto", CloseDialogOnEsc = false });
+    }
+
+  
+
 }

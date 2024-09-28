@@ -6,26 +6,109 @@
 
 <div class="login-container">
     <div class="login-box">
+        <h2>เข้าสู่ระบบ</h2>
         @Body
     </div>
+   
 </div>
 
 <style>
+   
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+    }
+
+    body {
+        background: linear-gradient(135deg, #4c8bf5, #9b60f6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
     .login-container {
         display: flex;
         justify-content: center;
         align-items: center;
         height: 100vh;
-        background-color: #f0f0f0;
     }
 
-  /*   .login-box {
-        padding: 20px;
+    .login-box {
         background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        width: 300px;
-    } */
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+        width: 650px;
+    }
+
+        .login-box h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #000;
+        }
+
+    .input-group {
+        margin-bottom: 15px;
+    }
+
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+    .login-button {
+        width: 100%;
+        padding: 10px;
+        background: linear-gradient(135deg, #4c8bf5, #9b60f6);
+        border: none;
+        border-radius: 5px;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+        .login-button:hover {
+            opacity: 0.9;
+        }
+
+    .links {
+        text-align: center;
+        margin-top: 15px;
+    }
+
+        .links a {
+            color: #000;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+            .links a span {
+                color: #4c8bf5;
+            }
+
+        .links p {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
 </style>
 
 @code {

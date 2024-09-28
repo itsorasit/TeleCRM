@@ -1,6 +1,11 @@
 using BlazorApp_TeleCRM.Components;
+using BlazorApp_TeleCRM.Models;
 using BlazorApp_TeleCRM.Service;
+using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Radzen;
@@ -20,9 +25,33 @@ builder.Services.AddScoped<Radzen.SideDialogOptions>();
 //builder.Services.AddScoped<ThemeServiceCustom>();
 builder.Services.AddScoped<SharedStateService>();
 builder.Services.AddHttpClient();
-
+builder.Services.AddBlazoredLocalStorage();
 
 builder.Services.AddControllers();
+
+
+var connectionString_allseeddbPD = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Register DbContext for EF Core with MySQL
+builder.Services.AddDbContext<allseeddbPDContext>(options =>
+    options.UseMySql(connectionString_allseeddbPD, ServerVersion.AutoDetect(connectionString_allseeddbPD)));
+
+// Add Authentication services
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/login";
+        options.AccessDeniedPath = "/access-denied"; // Path to an access-denied page
+        options.Cookie.HttpOnly = true;
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(180);
+        options.SlidingExpiration = true;
+    });
+
+// Add Authorization services
+builder.Services.AddAuthorizationCore();
+
+// Add your custom authentication state provider
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
 var app = builder.Build();
 
@@ -36,6 +65,12 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
+
+// Add authentication and authorization middleware
+app.UseAuthentication();
+app.UseAuthorization();
+
+
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode(); // Ensure this matches your setup

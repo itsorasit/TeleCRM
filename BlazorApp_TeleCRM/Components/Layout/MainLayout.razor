@@ -1,95 +1,171 @@
-﻿@using Microsoft.AspNetCore.Components.Authorization
+﻿@using BlazorApp_TeleCRM.Models
+@using Blazored.LocalStorage
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
+@using BlazorApp_TeleCRM.Service
 @inherits LayoutComponentBase
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
+@inject NotificationService NotificationService
 @inject DialogService DialogService
-@inject IJSRuntime JS
+@inject IJSRuntime JSRuntime
+
+@inject allseeddbPDContext allseed_Db
+@inject ILocalStorageService LocalStorage
 
 
 <RadzenComponents @rendermode="InteractiveServer" />
 
-<RadzenLayout>
-    <RadzenHeader>
-        <RadzenRow JustifyContent="JustifyContent.Normal">
-            <RadzenColumn Size="5">
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
-                    <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
-                    <RadzenLabel Text="ALL SEED" />
-                </RadzenStack>
-            </RadzenColumn>
-            <RadzenColumn Size="7">
-                <RadzenStack Orientation="Orientation.Horizontal" Style="margin-top:0px" JustifyContent="JustifyContent.Right" AlignItems="AlignItems.End" Wrap="FlexWrap.NoWrap">
-                    <div class="rz-stack rz-display-flex rz-flex-row rz-align-items-center rz-justify-content-flex-end" style=";flex-wrap:nowrap;" id="caOCbnzzwE" _bl_7149="">
-                        <div class="rz-display-none rz-display-sm-inline-flex align-items-center">
-                            <a href="#" title="Star Radzen Blazor Components on GitHub" target="_blank" id="sPUi4p-8DE" class="rz-link rz-text-nowrap rz-mx-2 rz-mx-lg-4"><span class="rz-link-text" _bl_7200="">สรายุทธ สรสิทธิ์</span></a>
-                            <a href="#" title="Star Radzen Blazor Components on GitHub" target="_blank" id="sPUi4p-8DE" class="rz-link rz-text-nowrap rz-mx-2 rz-mx-lg-4"><span class="rz-link-text" _bl_7200="">Shop : ALLSEED001 </span></a>
-                        </div><!--!-->
-                        <RadzenAppearanceToggle />
-                        <button aria-label="Toggle" tabindex="0" class="rz-sidebar-toggle rz-m-0" id="tiP8IdWLSU" _bl_7162=""><i class="rzi rz-display-flex rz-align-items-center">settings</i></button>
-                    </div>
-                </RadzenStack>
-            </RadzenColumn>
-        </RadzenRow>
-    </RadzenHeader>
+<AuthorizeView>
+    <Authorized Context="authState">
+        <RadzenLayout>
+            <RadzenHeader>
+                <RadzenRow JustifyContent="JustifyContent.Normal">
+                    <RadzenColumn Size="5">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
+                            <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
+                            <RadzenLabel Text="ALL SEED" />
+                        </RadzenStack>
+                    </RadzenColumn>
+                    <RadzenColumn Size="7">
+                        <RadzenStack Orientation="Orientation.Horizontal" Style="margin-top:0px" JustifyContent="JustifyContent.Right" AlignItems="AlignItems.End" Wrap="FlexWrap.NoWrap">
+                            <div class="rz-stack rz-display-flex rz-flex-row rz-align-items-center rz-justify-content-flex-end" style=";flex-wrap:nowrap;" >
+                                <div class="rz-display-none rz-display-sm-inline-flex align-items-center">
+                                    <a href="#"  class="rz-link rz-text-nowrap rz-mx-2 rz-mx-lg-4"><span class="rz-link-text"><RadzenIcon Icon="account_circle" /><span> ผู้ใช้งาน : @authState.User.Identity.Name </span></span></a>
+                                    <a href="#" class="rz-link rz-text-nowrap rz-mx-2 rz-mx-lg-4"><span class="rz-link-text">Shop : ALLSEED001 </span></a>
+                                </div><!--!-->
+                                <RadzenAppearanceToggle />
+                                <button aria-label="Toggle" tabindex="0" class="rz-sidebar-toggle rz-m-0" id="tiP8IdWLSU" _bl_7162=""><i class="rzi rz-display-flex rz-align-items-center">settings</i></button>
+                            </div>
+                        </RadzenStack>
+                    </RadzenColumn>
+                </RadzenRow>
+            </RadzenHeader>
 
-    <RadzenSidebar Responsive="false" Style="width: 220px" Expanded="@sidebarExpanded">
-        <RadzenPanelMenu DisplayStyle="@(sidebarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="true">
-            <RadzenPanelMenuItem Text="Overview Team" Icon="home" Click="@(() => GoToPage("/home"))" Selected="@IsMenuItemSelected("/home")" />
-            <RadzenPanelMenuItem Text="My Dashboard" Icon="dashboard" />
-            <RadzenPanelMenuItem Text="My Job" Icon="assignment" Click="@(() => GoToPage("/job"))" Selected="@IsMenuItemSelected("/job")" />
-            <RadzenPanelMenuItem Text="รายชื่อลูกค้า" Icon="person" Click="@(() => GoToPage("/admincustomer"))" Selected="@IsMenuItemSelected("/admincustomer")" />
+            <RadzenSidebar Responsive="false" Style="width: 220px" Expanded="@sidebarExpanded">
+                <RadzenPanelMenu DisplayStyle="@(sidebarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="true">
+                    <RadzenPanelMenuItem Text="Overview Team" Icon="home" Click="@(() => GoToPage("/home"))" Selected="@IsMenuItemSelected("/home")" />
+                  @*   <RadzenPanelMenuItem Text="My Dashboard" Icon="dashboard" />
+                   *@  
+                    <RadzenPanelMenuItem Text="งานของฉัน" Icon="assignment" Click="@(() => GoToPage("/job"))" Selected="@IsMenuItemSelected("/job")" />
+                    <RadzenPanelMenuItem Text="รายชื่อลูกค้า" Icon="person" Click="@(() => GoToPage("/admincustomer"))" Selected="@IsMenuItemSelected("/admincustomer")" />
 
-            <RadzenPanelMenuItem Text="CRM - Admin" Icon="work" Expanded="@((IsMenuItemSelected("/admincustomer") || IsMenuItemSelected("/adminactivity")))">
-                <RadzenPanelMenuItem Text="1. ข้อมูลลูกค้า" Icon="person" Click="@(() => GoToPage("/admincustomer"))" Selected="@IsMenuItemSelected("/admincustomer")" />
-                <RadzenPanelMenuItem Text="2. กิจกรรม" Icon="sprint" Click="@(() => GoToPage("/adminactivity"))" Selected="@IsMenuItemSelected("/adminactivity")" />
-                <RadzenPanelMenuItem Text="3. สินค้า" Icon="category" Click="@(() => GoToPage("/adminproduct"))" Selected="@IsMenuItemSelected("/adminproduct")" />
-            </RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="CRM - Admin" Icon="work" Expanded="@((IsMenuItemSelected("/admincustomer") || IsMenuItemSelected("/adminactivity")))">
+                        <RadzenPanelMenuItem Text="1. ข้อมูลลูกค้า" Icon="person" Click="@(() => GoToPage("/admincustomer"))" Selected="@IsMenuItemSelected("/admincustomer")" />
+                        <RadzenPanelMenuItem Text="2. กิจกรรม" Icon="sprint" Click="@(() => GoToPage("/adminactivity"))" Selected="@IsMenuItemSelected("/adminactivity")" />
+                        <RadzenPanelMenuItem Text="3. สินค้า" Icon="category" Click="@(() => GoToPage("/adminproduct"))" Selected="@IsMenuItemSelected("/adminproduct")" />
+                    </RadzenPanelMenuItem>
 
-            <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.End">
-                <RadzenPanelMenuItem Text="เข้าสู่ระบบ" Icon="open_in_new" Click="@GoToLogin" />
-            </RadzenStack>
+                    @*     <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.End">
+                    <RadzenPanelMenuItem Text="เข้าสู่ระบบ" Icon="open_in_new" Click="@GoToLogin" />
+                    </RadzenStack> *@
 
-            <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.End">
-                <RadzenPanelMenuItem Text="ออกจากระบบ" Icon="exit_to_app" />
-            </RadzenStack>
-        </RadzenPanelMenu>
-    </RadzenSidebar>
+                    <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.End">
+                        <RadzenPanelMenuItem Text="ออกจากระบบ" Icon="exit_to_app" Click="@GoToLogout" />
+                    </RadzenStack>
 
-    <RadzenBody>
-        <div class="rz-p-4">
-            @Body
-        </div>
-    </RadzenBody>
+                </RadzenPanelMenu>
+            </RadzenSidebar>
 
-    <RadzenFooter>
-        <span class="rz-badge rz-badge-success rz-variant-flat rz-shade-light rz-badge-pill">
-            Version 1.0.0
-        </span>
-    </RadzenFooter>
-</RadzenLayout>
+            <RadzenBody>
+                <div class="rz-p-4">
+                    @Body
+                </div>
+            </RadzenBody>
+
+            <RadzenFooter>
+                <span class="rz-badge rz-badge-success rz-variant-flat rz-shade-light rz-badge-pill">
+                    Version 1.0.0
+                </span>
+            </RadzenFooter>
+        </RadzenLayout>
+    </Authorized>
+    <NotAuthorized>
+        <RadzenBody>
+        </RadzenBody>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+
 
 @code {
     // Control sidebar expansion
     bool sidebarExpanded = true;
+
+    private string? username;
+    private IEnumerable<string>? roles;
+
 
     protected override void OnInitialized()
     {
         Navigation.LocationChanged += HandleLocationChanged;
     }
 
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            username = user.Identity.Name;
+            roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+        }
+        else
+        {
+            try
+            {
+                
+     
+                string? username = await LocalStorage.GetItemAsStringAsync("username");
+                string? uid = await LocalStorage.GetItemAsStringAsync("uid");
+
+
+                InvokeAsync(async () =>
+{
+  await Task.Delay(2000);
+  DialogService.Close();
+});
+                await BusyDialog();
+                
+                
+                var user1 = await allseed_Db.Users.Where(u => u.username == username && u.loginkey == uid).FirstOrDefaultAsync();
+                if (user1 != null)
+                {
+
+                    if (AuthenticationStateProvider is CustomAuthenticationStateProvider customAuthProvider)
+                    {
+                        await customAuthProvider.MarkUserAsAuthenticated(user1);
+                    }
+                    await LocalStorage.SetItemAsStringAsync("username", username);
+                }
+                else
+                {
+                    Navigation.NavigateTo("/login", forceLoad: false);
+                }
+            }
+            catch { }
+        }
+
+    }
+
+
+
     private readonly Dictionary<string, string> PageTitles = new()
     {
     { "/admincustomer", "ข้อมูลรายชื่อลูกค้า" },
     { "/adminactivity", "ข้อมูลกิจกรรม" },
-    { "/home", "Home" },
+    { "/home", "Overview Team" },
     { "/adminproduct", "สินค้า" }
     };
 
     private void HandleLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
         var matchedTitle = PageTitles.FirstOrDefault(x => e.Location.Contains(x.Key)).Value;
-        SetPageTitle(matchedTitle ?? "Default Title");
+        SetPageTitle(matchedTitle ?? "");
         StateHasChanged();
     }
 
@@ -115,7 +191,32 @@
     // private void GoToCustomers() => Navigation.NavigateTo("/admincustomer", forceLoad: false);
     // private void GoToAdminCustomer() => Navigation.NavigateTo("/admincustomer", forceLoad: false);
     // private void GoToAdminActivity() => Navigation.NavigateTo("/adminactivity", forceLoad: false);
-     private void GoToLogin() => Navigation.NavigateTo("/adminactivity", forceLoad: false);
+    private void GoToLogin() => Navigation.NavigateTo("/adminactivity", forceLoad: false);
+
+    private async Task GoToLogout()
+    {
+        // Show confirmation dialog
+        var result = await DialogService.Confirm("คุณต้องการออกจากระบบหรือไม่?", "ยืนยัน",
+        new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
+
+        // If user clicked "Yes", proceed with logout
+        if (result.HasValue && result.Value)
+        {
+            // Perform logout logic here
+
+            // Clear localStorage
+            await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "isLoggedIn");
+            await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "username");
+            await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "roles");
+            await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "uid");
+
+            // Redirect to login page
+            Navigation.NavigateTo("/login", forceLoad: true);
+        }
+       
+
+    }
+
 
     private void GoToPage(string route)
     {
@@ -123,34 +224,25 @@
         StateHasChanged();
     }
 
-
-    
-
     public void Dispose()
     {
         Navigation.LocationChanged -= HandleLocationChanged;
     }
 
-
-    private async Task ShowBusyDialog()
-    {
-      
-        await DialogService.OpenAsync("", ds =>
-    @<RadzenStack AlignItems="AlignItems.Center" Gap="2rem" class="rz-p-12">
-        <RadzenImage Path="images/community.svg" Style="width: 200px;" AlternateText="community" />
-        <RadzenText TextStyle="TextStyle.H6">Loading, please wait...</RadzenText>
-    </RadzenStack>,
-        new DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;width:auto", CloseDialogOnEsc = false });
-
-        // Simulate a delay for the loading
-        await Task.Delay(6000);
-
-        // Close the dialog after delay
-        DialogService.Close();
-    }
-
     private async Task SetPageTitle(string title)
     {
-        await JS.InvokeVoidAsync("SetDocumentTitle", title);
+        await JSRuntime.InvokeVoidAsync("SetDocumentTitle", title);
     }
+
+    // Busy dialog from markup
+    async Task BusyDialog()
+    {
+        await DialogService.OpenAsync("", ds =>
+    @<RadzenStack AlignItems="AlignItems.Center" Gap="2rem" class="rz-p-12">
+        <RadzenImage Path="image/system/community.svg" Style="width: 200px;" AlternateText="community" />
+        <RadzenText TextStyle="TextStyle.H6">Loading, please wait...</RadzenText>
+    </RadzenStack>, new DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;width:auto", CloseDialogOnEsc = false });
+    }
+
+
 }

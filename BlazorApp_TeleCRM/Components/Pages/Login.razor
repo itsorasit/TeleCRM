@@ -1,85 +1,137 @@
 ﻿@page "/login"
 @using BlazorApp_TeleCRM.Components.Layout
 @using System.ComponentModel.DataAnnotations
+@using BlazorApp_TeleCRM.Models
+@using BlazorApp_TeleCRM.Service
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.EntityFrameworkCore
+@using System.Security.Claims
 @inject IJSRuntime JSRuntime
 @layout LoginLayout
 @inject NavigationManager Navigation
 @inject NotificationService NotificationService
 
-<RadzenStack class="rz-p-0 rz-p-md-12">
-    <RadzenCard Style="width: 600px;">
-        <RadzenHeading Size="H1">Login</RadzenHeading>
-        <RadzenTemplateForm @ref="form" TItem="LoginModel" Data="@loginModel" Submit="@OnSubmit" InvalidSubmit="@OnInvalidSubmit">
-            <RadzenFieldset Text="Login Information">
-                <RadzenStack Gap="2rem" class="rz-p-4 rz-p-md-12">
+@inject allseeddbPDContext allseed_Db
+@*  @inject CustomAuthenticationStateProvider CustomAuthenticationStateProvider  *@
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-                    <!-- Username Field -->
-                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
-                        <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
-                            <RadzenLabel Text="Username" Component="Username" />
-                        </RadzenColumn>
-                        <RadzenColumn Size="12" SizeMD="8">
-                            <RadzenTextBox style="display: block" Name="Username" Placeholder="Enter username..." @bind-Value="@loginModel.Username" class="w-100" />
-                            <RadzenDataAnnotationValidator Component="Username" Popup="@popup" Style="position: absolute" />
-                        </RadzenColumn>
-                    </RadzenRow>
+<PageTitle>เข้าสู่ระบบ</PageTitle>
 
-                    <!-- Password Field -->
-                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
-                        <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
-                            <RadzenLabel Text="Password" Component="Password" />
-                        </RadzenColumn>
-                        <RadzenColumn Size="12" SizeMD="8">
-                            <RadzenPassword style="display: block" Name="Password" Placeholder="Enter password..." @bind-Value="@loginModel.Password" class="w-100" aria-label="enter password" />
-                            <RadzenDataAnnotationValidator Component="Password" Popup="@popup" Style="position: absolute" />
-                        </RadzenColumn>
-                    </RadzenRow>
 
-                    <!-- Submit Button -->
-                    <RadzenRow AlignItems="AlignItems.Center">
-                        <RadzenColumn Size="12" Offset="0" SizeMD="8" OffsetMD="4">
-                            <RadzenButton ButtonType="ButtonType.Submit" Text="Login" Style="margin-top: 5px;" />
-                        </RadzenColumn>
-                    </RadzenRow>
+<RadzenTemplateForm @ref="form" TItem="LoginModel" Data="@loginModel" Submit="@OnSubmit" InvalidSubmit="@OnInvalidSubmit">
+    <RadzenFieldset>
+        <RadzenRow JustifyContent="JustifyContent.Center" AlignItems="AlignItems.Center" style="margin-top:20px" Gap="2rem">
+            <RadzenImage Path="image/system/login.png" Style="width:150px"></RadzenImage>
+        </RadzenRow>
+        <RadzenStack Gap="2rem" class="rz-p-6 rz-p-md-12">
+            <!-- Username Field -->
+            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.50rem">
+                <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                    <RadzenLabel Text="Username" Component="Username" />
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="8">
+                    <RadzenTextBox style="display: block" Name="Username" Placeholder="กรอก Username หรือ Email ของคุณ" @bind-Value="@loginModel.Username" class="w-100" />
+                    <RadzenDataAnnotationValidator Component="Username" Popup="@popup" Style="position: absolute" />
+                </RadzenColumn>
+            </RadzenRow>
 
-                </RadzenStack>
-            </RadzenFieldset>
-        </RadzenTemplateForm>
-    </RadzenCard>
-</RadzenStack>
+            <!-- Password Field -->
+            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.50rem">
+                <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                    <RadzenLabel Text="Password" Component="Password" />
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="8">
+                    <RadzenPassword style="display: block" Name="Password" Placeholder="กรอกรหัสผ่าน" @bind-Value="@loginModel.Password" class="w-100" aria-label="enter password" />
+                    <RadzenDataAnnotationValidator Component="Password" Popup="@popup" Style="position: absolute" />
+                </RadzenColumn>
+            </RadzenRow>
+
+            <!-- Submit Button -->
+            <RadzenRow AlignItems="AlignItems.Center">
+                <RadzenColumn Size="12" Offset="0" SizeMD="8" OffsetMD="4">
+                    <RadzenButton Icon="login" Variant="Variant.Flat" ButtonType="ButtonType.Submit" Text="Login" Style="margin-top: 15px;width:200px" />
+                </RadzenColumn>
+            </RadzenRow>
+
+        </RadzenStack>
+    </RadzenFieldset>
+</RadzenTemplateForm>
+
 
 @code {
     private RadzenTemplateForm<LoginModel> form;
     private LoginModel loginModel = new LoginModel();
     private bool popup = true;
 
+    private string username;
+    private IEnumerable<string> roles;
+
+
     private async Task OnSubmit()
     {
-        if (loginModel.Username == "admin" && loginModel.Password == "password")
-        {
-            // Save login status in local storage
-            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "isLoggedIn", "true");
 
-            NotificationService.Notify(NotificationSeverity.Success, "Login successful", "Welcome back, admin!");
-            Navigation.NavigateTo("/dashboard");
+
+
+        var user = await allseed_Db.Users
+     .Where(u => (u.username == loginModel.Username || u.email == loginModel.Username)
+                 && u.password == loginModel.Password)
+     .FirstOrDefaultAsync();
+
+        if (user != null)
+        {
+
+
+            if (AuthenticationStateProvider is CustomAuthenticationStateProvider customAuthProvider)
+            {
+                await customAuthProvider.MarkUserAsAuthenticated(user);
+            }
+
+            user.loginkey = Guid.NewGuid().ToString();
+            user.lastlogin = DateTime.Now;
+
+            allseed_Db.SaveChanges();
+
+            // Save the login state in localStorage
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "isLoggedIn", "true");
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "username", user.username);
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "uid", user.loginkey);
+
+//            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "uid", string.Join(",", user.role));
+
+            NotificationService.Notify(NotificationSeverity.Success, "เข้าสู่ระบบ สำเร็จ", "สวัสดี คุณ"+user.firstname + " "+ user.lastname );
+            Navigation.NavigateTo("/home", forceLoad: false);
         }
         else
         {
-            NotificationService.Notify(NotificationSeverity.Error, "Login failed", "Invalid username or password.");
+            NotificationService.Notify(NotificationSeverity.Error, "เข้าสู่ระบบ ไม่สำเร็จ", "กรุณาตรวจสอบข้อมูล หรือติดต่อผู้ดูแลระบบ");
         }
+
+        // if (loginModel.Username == "admin" && loginModel.Password == "password")
+        // {
+        //     // Save login status in local storage
+        //     await JSRuntime.InvokeVoidAsync("localStorage.setItem", "isLoggedIn", "true");
+
+        //     NotificationService.Notify(NotificationSeverity.Success, "Login successful", "Welcome back, admin!");
+        //     Navigation.NavigateTo("/dashboard");
+        // }
+        // else
+        // {
+        //     NotificationService.Notify(NotificationSeverity.Error, "Login failed", "Invalid username or password.");
+        // }
     }
 
     private void OnInvalidSubmit()
     {
-        NotificationService.Notify(NotificationSeverity.Warning, "Form invalid", "Please check the form for errors.");
+        NotificationService.Notify(NotificationSeverity.Warning, "แจ้งเตือน", "กรุณาตรวจสอบข้อมูล");
     }
+
 
     public class LoginModel
     {
-        [Required(ErrorMessage = "Username is required")]
+        [Required(ErrorMessage = "กรอก Username หรือ Email ของคุณ")]
         public string Username { get; set; }
 
-        [Required(ErrorMessage = "Password is required")]
+        [Required(ErrorMessage = "กรอกรหัสผ่าน")]
         public string Password { get; set; }
     }
 }
