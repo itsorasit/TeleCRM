@@ -2,14 +2,18 @@ using BlazorApp_TeleCRM.Components;
 using BlazorApp_TeleCRM.Models;
 using BlazorApp_TeleCRM.Service;
 using Blazored.LocalStorage;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MySql.Data.MySqlClient;
 using Radzen;
 using Radzen.Blazor;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +39,15 @@ var connectionString_allseeddbPD = builder.Configuration.GetConnectionString("De
 // Register DbContext for EF Core with MySQL
 builder.Services.AddDbContext<allseeddbPDContext>(options =>
     options.UseMySql(connectionString_allseeddbPD, ServerVersion.AutoDetect(connectionString_allseeddbPD)));
+
+
+builder.Services.AddTransient<MySqlConnection>(_ => new MySqlConnection(connectionString_allseeddbPD));
+
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 104857600; // ¢π“¥‰ø≈Ï Ÿß ÿ¥ 100 MB
+});
 
 // Add Authentication services
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

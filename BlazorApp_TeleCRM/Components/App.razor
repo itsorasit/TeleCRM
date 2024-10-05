@@ -24,17 +24,16 @@
             document.title = title;
         };
 
-        window.readExcelFile = async function (inputElement, dotNetHelper) {
-            const file = inputElement.files[0];
-            const reader = new FileReader();
-            reader.onload = async function (e) {
-                const arrayBuffer = e.target.result;
-                const base64String = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-                await dotNetHelper.invokeMethodAsync('ProcessExcelFile', base64String);
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
+        // window.readExcelFile = async function (inputElement, dotNetHelper) {
+        //     const file = inputElement.files[0];
+        //     const reader = new FileReader();
+        //     reader.onload = async function (e) {
+        //         const arrayBuffer = e.target.result;
+        //         const base64String = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+        //         await dotNetHelper.invokeMethodAsync('ProcessExcelFile', base64String);
+        //     };
+        //     reader.readAsArrayBuffer(file);
+        // }
 
     </script>
 </body>

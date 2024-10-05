@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
+    <PackageReference Include="ClosedXML" Version="0.104.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
     <PackageReference Include="MySql.Data" Version="8.4.0" />
     <PackageReference Include="MySql.Data.EntityFrameworkCore" Version="8.0.22" />
