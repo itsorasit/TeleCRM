@@ -30,14 +30,22 @@
                         </RadzenStack>
                     </RadzenColumn>
                     <RadzenColumn Size="7">
-                        <RadzenStack Orientation="Orientation.Horizontal" Style="margin-top:0px" JustifyContent="JustifyContent.Right" AlignItems="AlignItems.End" Wrap="FlexWrap.NoWrap">
-                            <div class="rz-stack rz-display-flex rz-flex-row rz-align-items-center rz-justify-content-flex-end" style=";flex-wrap:nowrap;" >
+                        <RadzenStack Orientation="Orientation.Horizontal" Style="margin-top:5px" JustifyContent="JustifyContent.Right" AlignItems="AlignItems.End" Wrap="FlexWrap.NoWrap">
+                            <div class="rz-stack rz-display-flex rz-flex-row rz-align-items-center rz-justify-content-flex-end" style=";flex-wrap:nowrap;">
                                 <div class="rz-display-none rz-display-sm-inline-flex align-items-center">
-                                    <a href="#"  class="rz-link rz-text-nowrap rz-mx-2 rz-mx-lg-4"><span class="rz-link-text"><RadzenIcon Icon="account_circle" /><span> ผู้ใช้งาน : @authState.User.Identity.Name </span></span></a>
-                                    <a href="#" class="rz-link rz-text-nowrap rz-mx-2 rz-mx-lg-4"><span class="rz-link-text">Shop : ALLSEED001 </span></a>
-                                </div><!--!-->
+                                    <a href="#" class="rz-link rz-text-nowrap rz-mx-2 rz-mx-lg-4"><span class="rz-link-text"><RadzenIcon Icon="account_circle" /><span> ผู้ใช้งาน : @authState.User.Identity.Name </span></span></a>
+                                    @* <a href="#" class="rz-link rz-text-nowrap rz-mx-2 rz-mx-lg-4"><span class="rz-link-text">
+                                    Shop : @organization_code </span>
+                                    </a> *@
+                                    <RadzenDropDown AllowClear="true" @bind-Value=select_branch AllowVirtualization="true" Name="DropDownVirtualization"
+                                                    AllowFiltering="true" Data=@branches TextProperty="@nameof(MasBranches.name)" ValueProperty="@nameof(MasBranches.code)" Style="width: 100%; max-width: 400px;" />
+                                </div>
                                 <RadzenAppearanceToggle />
-                                <button aria-label="Toggle" tabindex="0" class="rz-sidebar-toggle rz-m-0" id="tiP8IdWLSU" _bl_7162=""><i class="rzi rz-display-flex rz-align-items-center">settings</i></button>
+
+                                <AuthorizeView Roles="Admin,Manager">
+                                    <RadzenButton Variant="Variant.Flat" Icon="settings" ButtonStyle="ButtonStyle.Primary" class="rzi rz-display-flex rz-align-items-center" />
+                                </AuthorizeView>
+
                             </div>
                         </RadzenStack>
                     </RadzenColumn>
@@ -47,20 +55,17 @@
             <RadzenSidebar Responsive="false" Style="width: 220px" Expanded="@sidebarExpanded">
                 <RadzenPanelMenu DisplayStyle="@(sidebarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="true">
                     <RadzenPanelMenuItem Text="Overview Team" Icon="home" Click="@(() => GoToPage("/home"))" Selected="@IsMenuItemSelected("/home")" />
-                  @*   <RadzenPanelMenuItem Text="My Dashboard" Icon="dashboard" />
-                   *@  
                     <RadzenPanelMenuItem Text="งานของฉัน" Icon="assignment" Click="@(() => GoToPage("/job"))" Selected="@IsMenuItemSelected("/job")" />
                     <RadzenPanelMenuItem Text="รายชื่อลูกค้า" Icon="person" Click="@(() => GoToPage("/admincustomer"))" Selected="@IsMenuItemSelected("/admincustomer")" />
 
-                    <RadzenPanelMenuItem Text="CRM - Admin" Icon="work" Expanded="@((IsMenuItemSelected("/admincustomer") || IsMenuItemSelected("/adminactivity")))">
-                        <RadzenPanelMenuItem Text="1. ข้อมูลลูกค้า" Icon="person" Click="@(() => GoToPage("/admincustomer"))" Selected="@IsMenuItemSelected("/admincustomer")" />
-                        <RadzenPanelMenuItem Text="2. กิจกรรม" Icon="sprint" Click="@(() => GoToPage("/adminactivity"))" Selected="@IsMenuItemSelected("/adminactivity")" />
-                        <RadzenPanelMenuItem Text="3. สินค้า" Icon="category" Click="@(() => GoToPage("/adminproduct"))" Selected="@IsMenuItemSelected("/adminproduct")" />
-                    </RadzenPanelMenuItem>
+                    <AuthorizeView Roles="Admin,Manager,Supervisor">
+                        <RadzenPanelMenuItem Text="CRM - Admin" Icon="work" Expanded="@((IsMenuItemSelected("/admincustomer") || IsMenuItemSelected("/adminactivity")))">
+                            <RadzenPanelMenuItem Text="1. ข้อมูลลูกค้า" Icon="person" Click="@(() => GoToPage("/admincustomer"))" Selected="@IsMenuItemSelected("/admincustomer")" />
+                            <RadzenPanelMenuItem Text="2. กิจกรรม" Icon="sprint" Click="@(() => GoToPage("/adminactivity"))" Selected="@IsMenuItemSelected("/adminactivity")" />
+                            <RadzenPanelMenuItem Text="3. สินค้า" Icon="category" Click="@(() => GoToPage("/adminproduct"))" Selected="@IsMenuItemSelected("/adminproduct")" />
+                        </RadzenPanelMenuItem>
+                    </AuthorizeView>
 
-                    @*     <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.End">
-                    <RadzenPanelMenuItem Text="เข้าสู่ระบบ" Icon="open_in_new" Click="@GoToLogin" />
-                    </RadzenStack> *@
 
                     <RadzenStack Orientation="Orientation.Vertical" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.End">
                         <RadzenPanelMenuItem Text="ออกจากระบบ" Icon="exit_to_app" Click="@GoToLogout" />
@@ -89,14 +94,17 @@
 </AuthorizeView>
 
 
-
-
 @code {
     // Control sidebar expansion
     bool sidebarExpanded = true;
 
     private string? username;
+    private string? organization_code;
     private IEnumerable<string>? roles;
+    private IEnumerable<string>? organization;
+
+    string select_branch;
+    IEnumerable<MasBranches> branches;
 
 
     protected override void OnInitialized()
@@ -106,6 +114,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
+
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
@@ -113,25 +123,28 @@
         {
             username = user.Identity.Name;
             roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+            organization = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            organization_code = organization.FirstOrDefault();
+            select_branch = organization_code;
         }
         else
         {
             try
             {
-                
-     
+
+
                 string? username = await LocalStorage.GetItemAsStringAsync("username");
                 string? uid = await LocalStorage.GetItemAsStringAsync("uid");
 
 
                 InvokeAsync(async () =>
-{
-  await Task.Delay(2000);
-  DialogService.Close();
-});
+    {
+        await Task.Delay(2000);
+        DialogService.Close();
+    });
                 await BusyDialog();
-                
-                
+
+
                 var user1 = await allseed_Db.Users.Where(u => u.username == username && u.loginkey == uid).FirstOrDefaultAsync();
                 if (user1 != null)
                 {
@@ -139,6 +152,14 @@
                     if (AuthenticationStateProvider is CustomAuthenticationStateProvider customAuthProvider)
                     {
                         await customAuthProvider.MarkUserAsAuthenticated(user1);
+
+                        var authStatex = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                        var userx = authStatex.User;
+
+                        roles = userx.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+                        organization = userx.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+                        organization_code = organization.FirstOrDefault();
+                        select_branch = organization_code;
                     }
                     await LocalStorage.SetItemAsStringAsync("username", username);
                 }
@@ -150,17 +171,18 @@
             catch { }
         }
 
+        branches = allseed_Db.MasBranches.ToList();
     }
 
 
 
     private readonly Dictionary<string, string> PageTitles = new()
-    {
+        {
     { "/admincustomer", "ข้อมูลรายชื่อลูกค้า" },
     { "/adminactivity", "ข้อมูลกิจกรรม" },
     { "/home", "Overview Team" },
     { "/adminproduct", "สินค้า" }
-    };
+        };
 
     private void HandleLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
@@ -197,7 +219,7 @@
     {
         // Show confirmation dialog
         var result = await DialogService.Confirm("คุณต้องการออกจากระบบหรือไม่?", "ยืนยัน",
-        new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
+    new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
 
         // If user clicked "Yes", proceed with logout
         if (result.HasValue && result.Value)
@@ -213,7 +235,7 @@
             // Redirect to login page
             Navigation.NavigateTo("/login", forceLoad: true);
         }
-       
+
 
     }
 

@@ -3,10 +3,14 @@
 @using static BlazorApp_TeleCRM.Components.Pages.UploadJob
 @inject IConfiguration Configuration
 @inject Radzen.DialogService dialogService
+@inject NotificationService NotificationService
 @inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+
 
 <RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
-    
+
     <RadzenCard Variant="Variant.Outlined">
         <RadzenRow Gap="1rem">
             <RadzenColumn Size="12" SizeMD="12">
@@ -14,37 +18,52 @@
                 <RadzenDropDown @bind-Value=@channel Data=@datachannel Style="width: 100%; max-width: 400px;" Name="DropDownBindValue" />
             </RadzenColumn>
             <RadzenColumn Size="12" SizeMD="12">
-                <RadzenUpload Icon="upload" ChooseText="" Progress=@(args => OnProgress(args, "Upload with icon")) Style="width: 100%" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})">
-                </RadzenUpload>
+                <RadzenUpload ChooseText="Attach Excel File"Change="OnFileSelected" Auto="false" />
             </RadzenColumn>
             <RadzenColumn Size="12" SizeMD="12">
-                <RadzenButton Text="อัพโหลด" Style="margin-top:15px" ButtonStyle="ButtonStyle.Primary" />
+
+
+                <RadzenAlert AlertStyle="AlertStyle.Danger" @bind-Visible=isError ShowIcon="true" Variant="Variant.Flat" Shade="Shade.Lighter">
+                    @TextError
+                </RadzenAlert>
+
+                <RadzenButton Text="อัพโหลด" Style="margin-top:15px" Click="@(() => OnUpload())" ButtonStyle="ButtonStyle.Primary" />
             </RadzenColumn>
 
-            <RadzenColumn Size="12" SizeMD="12">
-                <RadzenCard Variant="Variant.Outlined" style="background-color:#CBE2F5; height:150px">
-                    <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
-                        <RadzenProgressBarCircular ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
-                            <Template>Wait</Template>
-                        </RadzenProgressBarCircular>
-                        <RadzenText TextStyle="TextStyle.Caption">ระบบกำลังทำงาน</RadzenText>
-                    </RadzenStack>
-                </RadzenCard>
-            </RadzenColumn>
+            @* <RadzenColumn Size="12" SizeMD="12">
+            <RadzenCard Variant="Variant.Outlined" style="background-color:#CBE2F5; height:150px">
+            <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+            <RadzenProgressBarCircular ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+            <Template>Wait</Template>
+            </RadzenProgressBarCircular>
+            <RadzenText TextStyle="TextStyle.Caption">ระบบกำลังทำงาน</RadzenText>
+            </RadzenStack>
+            </RadzenCard>
+            </RadzenColumn> *@
+
         </RadzenRow>
     </RadzenCard>
-    
+
 
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="1.5rem">
         <RadzenButton Click="@((args) => dialogService.Close(true))" Variant="Variant.Outlined" Text="ปิด" Style="width: 120px;margin-bottom:20px" />
     </RadzenStack>
 </RadzenStack>
+
 @code {
     [Parameter] public int UploadID { get; set; }
 
 
+    private List<string[]> excelData;
+    private string message = "No file attached.";
+
+    private DotNetObjectReference<DialogCardPageUploadCustomer> dotNetHelper;
+
     string channel = "เลือกแหล่งข้อมูล";
     IEnumerable<string> datachannel;
+
+    bool isError = false;
+    string TextError = "";
 
 
     private static readonly string[] data_channels = new[]
@@ -57,21 +76,60 @@
         await base.OnInitializedAsync();
 
         datachannel = data_channels;
-   
+
 
     }
 
-    void OnProgress(UploadProgressArgs args, string name)
+    private void OnUpload()
     {
-       // console.Log($"{args.Progress}% '{name}' / {args.Loaded} of {args.Total} bytes.");
-
-        if (args.Progress == 100)
+        if (channel == "" || channel == "เลือกแหล่งข้อมูล")
         {
-            foreach (var file in args.Files)
-            {
-              //  console.Log($"Uploaded: {file.Name} / {file.Size} bytes");
-            }
+            isError = true;
+            TextError = "กรุณาเลือกแหล่งข้อมูล";
+            NotificationService.Notify(NotificationSeverity.Warning, "แจ้งเตือน", "กรุณาเลือกแหล่งข้อมูล");
+            return;
         }
+        if (channel == "" || channel == "เลือกแหล่งข้อมูล")
+        {
+            isError = true;
+            TextError = "กรุณาเลือกแหล่งข้อมูล";
+            NotificationService.Notify(NotificationSeverity.Warning, "แจ้งเตือน", "กรุณาเลือกแหล่งข้อมูล");
+        }
+
+        // StateHasChanged();
+    }
+
+
+
+    // Handle the file selection event
+    private async Task OnFileSelected(UploadChangeEventArgs args)
+    {
+        var inputFileElement = args.Files.FirstOrDefault();
+        if (inputFileElement != null)
+        {
+            // Invoke JavaScript to read the file
+            await JSRuntime.InvokeVoidAsync("readExcelFile", inputFileElement, dotNetHelper);
+        }
+    }
+
+    // Process the Excel file's base64 content passed from JavaScript
+    [JSInvokable]
+    public async Task ProcessExcelFile(string base64Content)
+    {
+        message = "Processing file...";
+
+        // Decode the base64 string back to binary data
+        byte[] fileBytes = Convert.FromBase64String(base64Content);
+
+        // Process the Excel data here using your library of choice (e.g., EPPlus, ClosedXML)
+        excelData = new List<string[]>(); // Example: Replace with actual processing logic
+
+        // Example: Fake data (for testing purposes)
+        excelData.Add(new string[] { "Row 1", "Data 1" });
+        excelData.Add(new string[] { "Row 2", "Data 2" });
+
+        message = "File processed successfully.";
+        StateHasChanged();
     }
 
 }

@@ -39,6 +39,8 @@
                 var identity = new ClaimsIdentity(new[]
                 {
                   new Claim(ClaimTypes.Name, _currentUser.username),
+                  new Claim(ClaimTypes.Email, _currentUser.email),
+                  new Claim(ClaimTypes.GivenName, _currentUser.firstname + " "+ _currentUser.lastname),
                   new Claim(ClaimTypes.Role,_currentUser.role),
                   new Claim(ClaimTypes.Locality,_currentUser.organization)
             }, "apiauth_type");
