@@ -3,11 +3,16 @@
 @using BlazorApp_TeleCRM.Data
 @using BlazorApp_TeleCRM.Service
 @using static BlazorApp_TeleCRM.Components.Pages.UploadJob
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.EntityFrameworkCore
+@using MySql.Data.MySqlClient
+@using System.Security.Claims
 @inject IConfiguration Configuration
 @inject Radzen.DialogService dialogService
 @inject HttpClient Http
-
+@inject MySqlConnection MySqlConnection
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NotificationService NotificationService
 
 <RadzenStack Gap="1rem" Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
 
@@ -35,38 +40,53 @@
                                 <RadzenRequiredValidator Component="activities_name" Text="กรอกชื่อกิจกรรม" Style="position: absolute" />
                         </RadzenColumn>
                         <RadzenColumn Size="12" SizeMD="12">
-                            <RadzenText TextStyle="TextStyle.Caption">รายละเอียด</RadzenText>
-                            <RadzenTextBox Style="width: 100%" AutoComplete="false" />
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">รายละเอียด</RadzenText>
+                                <RadzenTextBox Name="activities_name" style="display: block;width: 100%"
+                                               @bind-Value=@model.activities_description AutoComplete="false" class="w-100" />
                         </RadzenColumn>
 
                         <RadzenColumn Size="6" SizeMD="6">
-                            <RadzenText TextStyle="TextStyle.Caption">วันที่เริ่มจ่ายงาน</RadzenText>
-                            <RadzenDatePicker @bind-Value=@datevalue Name="RadzenDatePickerBindValue" ShowTime="true" ShowSeconds="true" HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm" />
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">วันที่เริ่มจ่ายงาน <span class="rz-messages-error">*</span> </RadzenText>
+                                <RadzenDatePicker @bind-Value=@model.activities_startdate Name="activities_startdate" ShowTime="true" ShowSeconds="true"
+                                                  HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm" class="w-100" style="display: block;width: 100%" />
+                                <RadzenRequiredValidator Component="activities_startdate" Text="เลือกวันที่เริ่มจ่ายงาน" Style="position: absolute" />
                         </RadzenColumn>
                         <RadzenColumn Size="6" SizeMD="6">
-                            <RadzenText TextStyle="TextStyle.Caption">วันที่ครบกำหนด</RadzenText>
-                            <RadzenDatePicker @bind-Value=@datevalue Name="RadzenDatePickerBindValue" ShowTime="true" ShowSeconds="true" HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm" />
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">วันที่ครบกำหนด <span class="rz-messages-error">*</span> </RadzenText>
+                                <RadzenDatePicker @bind-Value=@model.activities_duedate Name="activities_duedate" ShowTime="true" ShowSeconds="true"
+                                                  HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm" class="w-100" style="display: block;width: 100%" />
+                                <RadzenRequiredValidator Component="activities_duedate" Text="เลือกวันที่ครบกำหนด" Style="position: absolute" />
                         </RadzenColumn>
                         <RadzenColumn Size="6" SizeMD="6">
-                            <RadzenText TextStyle="TextStyle.Caption">แจ้งใกล้ครบกำหนด</RadzenText>
-                            <RadzenDatePicker @bind-Value=@datevalue Name="RadzenDatePickerBindValue" ShowTime="true" ShowSeconds="true" HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm" />
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">แจ้งใกล้ครบกำหนด <span class="rz-messages-error">*</span> </RadzenText>
+                                <RadzenDatePicker @bind-Value=@model.activities_reminder_duedate Name="activities_reminder_duedate" ShowTime="true" ShowSeconds="true"
+                                                  HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm" class="w-100" style="display: block;width: 100%" />
                         </RadzenColumn>
-                        <RadzenColumn Size="12" SizeMD="12">
-                            <RadzenText TextStyle="TextStyle.Caption">มอบหมายให้กับพนักงาน</RadzenText>
-                            <RadzenDropDown @bind-Value=@staff Style="width: 100%" Data=@datastaff Name="DropDownBindValue" Multiple=true AllowClear=true />
-
+                            <RadzenColumn Size="6" SizeMD="6">
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">มอบหมายให้กับพนักงาน<span class="rz-messages-error">*</span> </RadzenText>
+                                <RadzenDropDown @ref="radzenDropDown"
+                                                @bind-SearchText="SearchText"
+                                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                FilterOperator="StringFilterOperator.StartsWith"
+                                                AllowFiltering="true"
+                                                Data="@Assignworks"
+                                                TextProperty="FullName"
+                                                ValueProperty="Username"
+                                                AllowClear="true"
+                                                @bind-Value=@model.activities_assign_work
+                                                Name="activities_assign_work" class="w-100" style="display: block;width: 100%" />
+                                <RadzenRequiredValidator Component="activities_assign_work" Text="มอบหมายให้กับพนักงาน" Style="position: absolute" />
                         </RadzenColumn>
 
 
-                        <RadzenColumn Size="4" SizeMD="4">
-                            <RadzenText TextStyle="TextStyle.Caption">จำนวนลูกค้าที่เลือกทั้งหมด</RadzenText>
-                            <RadzenTextBox @bind-Value=@countcustomer Style="width: 100%" AutoComplete="false" />
+                        <RadzenColumn Size="6" SizeMD="6">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">จำนวนลูกค้าที่เลือกทั้งหมด </RadzenText>
+                            <RadzenTextBox @bind-Value=@countcustomer Disabled="true"  Style="width: 100%; max-width:100px" AutoComplete="false" />
                         </RadzenColumn>
                         <RadzenColumn Size="6" SizeMD="6">
-                            <RadzenStack Orientation="Orientation.Vertical" Gap="0.5rem" AlignItems="AlignItems.End" Wrap="FlexWrap.NoWrap" JustifyContent="JustifyContent.Right">
-
-                                <RadzenText TextStyle="TextStyle.Caption">ฝากงานให้นายหน้า</RadzenText>
-                                <RadzenCheckBox @bind-Value=@allowRowSelectOnRowClick Name="CheckBox1" />
+                            <RadzenStack Orientation="Orientation.Vertical" Gap="0.5rem" >
+                                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">ฝากงานให้นายหน้า </RadzenText>
+                                    <RadzenCheckBox @bind-Value=@model.allowagent Name="CheckBox1" />
                             </RadzenStack>
                         </RadzenColumn>
 
@@ -76,16 +96,17 @@
                         <RadzenColumn Size="12" SizeMD="12">
                                 <RadzenButton Text="บันทึก" Disabled="@btnDisable" ButtonType="ButtonType.Submit" Style="margin-top:15px" ButtonStyle="ButtonStyle.Primary" />
                         </RadzenColumn>
-                        <RadzenColumn Size="12" SizeMD="12">
-                            <RadzenCard Variant="Variant.Outlined" style="background-color:#CBE2F5; height:150px">
-                                <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
-                                    <RadzenProgressBarCircular ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
-                                        <Template>Wait</Template>
-                                    </RadzenProgressBarCircular>
-                                    <RadzenText TextStyle="TextStyle.Caption">ระบบกำลังทำงาน</RadzenText>
-                                </RadzenStack>
-                            </RadzenCard>
-                        </RadzenColumn>
+
+                            <RadzenColumn Size="12" SizeMD="12">
+                                <RadzenCard Variant="Variant.Outlined" @bind-Visible=runProcess style="background-color:#CBE2F5;">
+                                    <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                                        <RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+                                            <Template>รอ</Template>
+                                        </RadzenProgressBarCircular>
+                                        <RadzenText Style="margin-top:20px" TextStyle="TextStyle.Caption">@TextProcess</RadzenText>
+                                    </RadzenStack>
+                                </RadzenCard>
+                            </RadzenColumn>
 
                         <RadzenColumn Size="12" SizeMD="12">
                             <div>
@@ -191,26 +212,46 @@
 
 
     bool btnDisable = false;
+    bool isError = false;
+    string TextError = "";
+    bool runProcess = false;
+    bool runProcess_wait = false;
+    string TextProcess = "";
 
+
+    private string username;
     string ID = "Auto";
     string staff = "เลือกพนักงาน";
     string countcustomer = "0";
 
-    bool allowRowSelectOnRowClick = false;
-
+    bool allowagent = false;
     int selectedIndex = 0;
 
 
+    private List<Assignwork> Assignworks = new();
+    private string SearchText { get; set; }
+    private string selectedUserId { get; set; }
+    private RadzenDropDown<string> radzenDropDown;
+
+    private string BranchCode { get; set; }
+    private IEnumerable<string> _BranchCode;
+
+
     IEnumerable<string> datachannel;
-    IEnumerable<string> datastaff;
     DateTime? datevalue;
 
 
-
+    //from data
     class Model
     {
-        public string activities_name { get; set; }
-        public string activities_touch_point { get; set; }
+        public string? activities_name { get; set; }
+        public string? activities_touch_point { get; set; }
+        public string? activities_description { get; set; }
+        public DateTime? activities_startdate { get; set; }
+        public DateTime? activities_duedate { get; set; }
+        public DateTime? activities_reminder_duedate { get; set; }
+        public string? activities_assign_work { get; set; }
+        public bool? allowagent { get; set; } = false;
     }
 
     Model model = new Model();
@@ -233,15 +274,80 @@
         //     return;
         // }
 
-        // SaveToDatabase();
+        SaveBatchToDatabaseWithTransaction();
 
     }
 
     void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
     {
-       // console.Log($"InvalidSubmit: {JsonSerializer.Serialize(args, new JsonSerializerOptions() { WriteIndented = true })}");
+        // console.Log($"InvalidSubmit: {JsonSerializer.Serialize(args, new JsonSerializerOptions() { WriteIndented = true })}");
     }
 
+
+    private async Task SaveBatchToDatabaseWithTransaction()
+    {
+        btnDisable = true;
+        runProcess = true;
+        runProcess_wait = true;
+        TextProcess = "กรุณารอ ระบบกำลังทำการบันทึกข้อมูล..";
+       
+        DateTime today = new DateTime();
+        today = DateTime.Now;
+
+
+        await MySqlConnection.OpenAsync();
+        using var transaction = await MySqlConnection.BeginTransactionAsync();
+
+        try
+        {
+            var query = @"INSERT INTO crm_activitys (guid, customer_code, branch_code, touch_point, name, description, startdate, duedate, reminder_duedate, assign_work, assign_work_type, allowagent, record_status, created_by, created_date)
+            VALUES (@guid, @customer_code, @branch_code, @touch_point, @name, @description, @startdate, @duedate, @reminder_duedate, @assign_work, @assign_work_type, @allowagent, @record_status, @created_by, @created_date)";
+            foreach (var i in SharedState.SelectedCustomerIDs)
+            {
+                using var command = new MySqlCommand(query, MySqlConnection, transaction);
+
+                command.Parameters.AddWithValue("@guid", Guid.NewGuid().ToString());
+                command.Parameters.AddWithValue("@customer_code", i );
+                command.Parameters.AddWithValue("@branch_code", BranchCode ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@touch_point", model.activities_touch_point ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@name", model.activities_name ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@description", model.activities_description ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@startdate", model.activities_startdate ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@duedate", model.activities_duedate ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@reminder_duedate", model.activities_reminder_duedate ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@assign_work", model.activities_assign_work ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@assign_work_type", "Activities" ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@allowagent", model.allowagent ?? false);
+                command.Parameters.AddWithValue("@record_status", true );
+                command.Parameters.AddWithValue("@created_by", username);
+                command.Parameters.AddWithValue("@created_date", today);
+                // command.Parameters.AddWithValue("@modified_by", activity.modified_by ?? (object)DBNull.Value);
+                // command.Parameters.AddWithValue("@modified_date", activity.modified_date ?? (object)DBNull.Value);
+
+                await command.ExecuteNonQueryAsync();
+            }
+
+            // Commit transaction
+            await transaction.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            // Rollback transaction in case of an error
+            await transaction.RollbackAsync();
+            TextProcess = $"Error: {ex.Message}";
+            btnDisable = false;
+            runProcess_wait = false;
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+            btnDisable = true;
+            runProcess_wait = false;
+            TextProcess = "บันทึกข้อมูลระบบเรียบร้อยแล้ว";
+            NotificationService.Notify(NotificationSeverity.Success, "สำเร็จ", "บันทึกข้อมูลสำเร็จ");
+            StateHasChanged();
+        }
+    }
 
 
     #region grid product
@@ -351,11 +457,6 @@
            "Up-Sale", "Re-Sale","ลูกค้าขุด"
       };
 
-    private static readonly string[] data_staff = new[]
-       {
-           "เลือกพนักงาน", "พนักงาน A", "พนักงาน B","พนักงาน C", "ทีม A", "ทีม B","ทีม C"
-      };
-
 
     void OnChange(int index)
     {
@@ -368,13 +469,17 @@
         await base.OnInitializedAsync();
 
         datachannel = data_channels;
-        datastaff = data_staff;
 
         model.activities_touch_point = "";
 
 
         //  countcustomer = customercode.Count().ToString();
         countcustomer = SharedState.SelectedCustomerIDs.Count().ToString();
+
+
+        // foreach (var i in SharedState.SelectedCustomerIDs){
+        //     Console.WriteLine(i.ToString());
+        // }
 
 
         // orders = dbContext.Orders.Include("Customer").Include("Employee");
@@ -387,6 +492,26 @@
             new Products { Code = "P005", Name = "Product 5", Price = 250 ,SalePrice=250 }
         };
         orders = prders.ToList();
+
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            username = user.Identity.Name;
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+        }
+        else
+        {
+            username = "";
+            BranchCode = "";
+        }
+
+
+        await LoadUsers();
+
     }
 
     private async Task OnFetchData()
@@ -429,5 +554,36 @@
             }
         }
     }
+
+    private async Task LoadUsers()
+    {
+        string connectionString = Configuration.GetConnectionString("DefaultConnection");
+        using MySqlConnection connection = new MySqlConnection(connectionString);
+        await connection.OpenAsync();
+
+        using MySqlCommand command = new MySqlCommand(
+            @"SELECT id, username, firstname, lastname 
+            FROM mas_users u WHERE u.organization = @organization AND u.role IN ('User', 'Supervisor')",
+            connection);
+
+        command.Parameters.AddWithValue("@organization", BranchCode); // replace with actual organization value
+
+        using (MySqlDataReader reader = (MySqlDataReader)await command.ExecuteReaderAsync())
+        {
+            while (await reader.ReadAsync())
+            {
+                Assignworks.Add(new Assignwork
+                    {
+                        Id = "xx",
+                        Username = reader.GetString("username"),
+                        FirstName = reader.GetString("firstname"),
+                        LastName = reader.GetString("lastname"),
+                        FullName = $"{reader.GetString("firstname")} {reader.GetString("lastname")} ({reader.GetString("username")})"
+                    });
+            }
+        }
+    }
+
+    
 
 }

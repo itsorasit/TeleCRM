@@ -121,20 +121,97 @@ namespace BlazorApp_TeleCRM.Controller
 
                 if (searchCriteria.fdate == null || searchCriteria.ldate == null)
                 {
-                    query = @"SELECT guid, code, name, phone, address1, sub_district, district, province, zipcode, datasource_platform, social_media, branch_code, created_by, created_date, modified_by, modified_date
-                          FROM mas_customers
-                          WHERE branch_code=@branch_code order by modified_date desc LIMIT 500 ";
+                    query = @"SELECT mc.guid, 
+       mc.code, 
+       mc.name, 
+       mc.phone, 
+       mc.address1, 
+       mc.sub_district, 
+       mc.district, 
+       mc.province, 
+       mc.zipcode, 
+       mc.datasource_platform, 
+       mc.social_media, 
+       mc.branch_code, 
+       mc.created_by, 
+       mc.created_date, 
+       mc.modified_by, 
+       mc.modified_date, 
+       COUNT(ca.guid) AS activity_count, 
+       (SELECT ca_sub.guid 
+        FROM crm_activitys ca_sub 
+        WHERE ca_sub.customer_code = mc.guid 
+        ORDER BY ca_sub.created_date DESC 
+        LIMIT 1) AS latest_activity_guid
+FROM mas_customers mc
+LEFT JOIN crm_activitys ca ON ca.customer_code = mc.guid
+WHERE  mc.branch_code = @branch_code
+GROUP BY mc.guid, 
+         mc.code, 
+         mc.name, 
+         mc.phone, 
+         mc.address1, 
+         mc.sub_district, 
+         mc.district, 
+         mc.province, 
+         mc.zipcode, 
+         mc.datasource_platform, 
+         mc.social_media, 
+         mc.branch_code, 
+         mc.created_by, 
+         mc.created_date, 
+         mc.modified_by, 
+         mc.modified_date
+         ORDER BY mc.modified_date DESC LIMIT 500 ";
 
                     searchCriteria.fdate = today;
                     searchCriteria.ldate = today;
                 }
                 else {
-                    query = @"SELECT guid, code, name, phone, address1, sub_district, district, province, zipcode, datasource_platform, social_media, branch_code, created_by, created_date, modified_by, modified_date
-                          FROM mas_customers
-                          WHERE modified_date >= @FromDate 
-                          AND modified_date <= @ToDate 
-                          AND branch_code=@branch_code 
-                          order by modified_date desc ";
+                    query = @"SELECT mc.guid, 
+       mc.code, 
+       mc.name, 
+       mc.phone, 
+       mc.address1, 
+       mc.sub_district, 
+       mc.district, 
+       mc.province, 
+       mc.zipcode, 
+       mc.datasource_platform, 
+       mc.social_media, 
+       mc.branch_code, 
+       mc.created_by, 
+       mc.created_date, 
+       mc.modified_by, 
+       mc.modified_date, 
+       COUNT(ca.guid) AS activity_count, 
+       (SELECT ca_sub.guid 
+        FROM crm_activitys ca_sub 
+        WHERE ca_sub.customer_code = mc.guid 
+        ORDER BY ca_sub.created_date DESC 
+        LIMIT 1) AS latest_activity_guid
+FROM mas_customers mc
+LEFT JOIN crm_activitys ca ON ca.customer_code = mc.guid
+WHERE mc.modified_date >= @FromDate 
+  AND mc.modified_date <= @ToDate 
+  AND mc.branch_code = @branch_code
+GROUP BY mc.guid, 
+         mc.code, 
+         mc.name, 
+         mc.phone, 
+         mc.address1, 
+         mc.sub_district, 
+         mc.district, 
+         mc.province, 
+         mc.zipcode, 
+         mc.datasource_platform, 
+         mc.social_media, 
+         mc.branch_code, 
+         mc.created_by, 
+         mc.created_date, 
+         mc.modified_by, 
+         mc.modified_date
+        ORDER BY mc.modified_date DESC;";
 
                 }
 
@@ -173,7 +250,9 @@ namespace BlazorApp_TeleCRM.Controller
                                 created_by = reader.GetString(12),
                                 created_date = reader.GetDateTime(13),
                                 modified_by = reader.IsDBNull(14) ? null : reader.GetString(14),
-                                modified_date = reader.IsDBNull(15) ? (DateTime?)null : reader.GetDateTime(15)
+                                modified_date = reader.IsDBNull(15) ? (DateTime?)null : reader.GetDateTime(15),
+                                count_activity = reader.IsDBNull(16) ? (int?)null : reader.GetInt32(16),
+                                activity_code = reader.IsDBNull(17) ? null : reader.GetString(17),
                             };
 
                             customers.Add(customer);

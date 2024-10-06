@@ -19,6 +19,7 @@
         public string? modified_by { get; set; }
         public DateTime? modified_date { get; set; }
         public int?  count_activity { get; set; }
+        public string activity_code { get; set; }
         public DateTime? activity_lastdate { get; set; }
 
     }
