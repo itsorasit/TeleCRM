@@ -123,7 +123,7 @@ namespace BlazorApp_TeleCRM.Controller
                 {
                     query = @"SELECT guid, code, name, phone, address1, sub_district, district, province, zipcode, datasource_platform, social_media, branch_code, created_by, created_date, modified_by, modified_date
                           FROM mas_customers
-                          WHERE branch_code='000000' order by modified_date desc LIMIT 500 ";
+                          WHERE branch_code=@branch_code order by modified_date desc LIMIT 500 ";
 
                     searchCriteria.fdate = today;
                     searchCriteria.ldate = today;
@@ -133,7 +133,7 @@ namespace BlazorApp_TeleCRM.Controller
                           FROM mas_customers
                           WHERE modified_date >= @FromDate 
                           AND modified_date <= @ToDate 
-                          AND branch_code='000000' 
+                          AND branch_code=@branch_code 
                           order by modified_date desc ";
 
                 }
@@ -148,6 +148,10 @@ namespace BlazorApp_TeleCRM.Controller
                     var toDate = (searchCriteria.ldate?.Date ?? DateTime.MaxValue.Date).AddDays(1).AddTicks(-1);
                     cmd.Parameters.AddWithValue("@ToDate", toDate);
 
+                    var branch_code = searchCriteria.branch_code ?? "";
+                    cmd.Parameters.AddWithValue("@branch_code", branch_code);
+
+                    
                     using (var reader = await cmd.ExecuteReaderAsync())
                     {
                         while (await reader.ReadAsync())
@@ -186,6 +190,7 @@ namespace BlazorApp_TeleCRM.Controller
         {
             public DateTime? fdate { get; set; }
             public DateTime? ldate { get; set; }
+            public string? branch_code { get; set; }
         }
     }
 }

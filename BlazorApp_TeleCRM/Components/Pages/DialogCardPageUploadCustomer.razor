@@ -25,8 +25,8 @@
             </RadzenColumn>
             <RadzenColumn Size="12" SizeMD="12">
                 <InputFile OnChange="HandleFileSelected" />
-         
-         </RadzenColumn>
+
+            </RadzenColumn>
             <RadzenColumn Size="12" SizeMD="12">
                 <RadzenAlert AlertStyle="AlertStyle.Danger" @bind-Visible=isError ShowIcon="true" Variant="Variant.Flat" Shade="Shade.Lighter">
                     @TextError
@@ -36,7 +36,7 @@
                     <RadzenCard Variant="Variant.Outlined" @bind-Visible=runProcess style="background-color:#CBE2F5;">
                         <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
                             <RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
-                                <Template>Wait</Template>
+                                <Template>รอ</Template>
                             </RadzenProgressBarCircular>
                             <RadzenText Style="margin-top:20px" TextStyle="TextStyle.Caption">@TextProcess</RadzenText>
                         </RadzenStack>
@@ -81,7 +81,8 @@
 
     private string username;
     private IEnumerable<string> roles;
-
+    private string BranchCode { get; set; }
+    private IEnumerable<string> _BranchCode;
 
     private static readonly string[] data_channels = new[]
       {
@@ -94,23 +95,27 @@
 
         datachannel = data_channels;
 
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
 
-            if (user.Identity.IsAuthenticated)
-            {
-                username = user.Identity.Name;
-                roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
-                // if (!user.IsInRole("Admin"))
-                // {
-                //     Navigation.NavigateTo("/access-denied", forceLoad: true);
-                // }
-            }
-            else
-            {
-                username = "Not authenticated";
-                roles = Enumerable.Empty<string>();
-            }
+        if (user.Identity.IsAuthenticated)
+        {
+            username = user.Identity.Name;
+            roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+            // if (!user.IsInRole("Admin"))
+            // {
+            //     Navigation.NavigateTo("/access-denied", forceLoad: true);
+            // }
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+
+        }
+        else
+        {
+            username = "Not authenticated";
+            roles = Enumerable.Empty<string>();
+            BranchCode = "";
+        }
 
 
     }
@@ -167,13 +172,13 @@
                         district = worksheet.Cell(row, 10).GetValue<string>(),
                         province = worksheet.Cell(row, 11).GetValue<string>(),
                         zipcode = worksheet.Cell(row, 12).GetValue<string>(),
-                        datasource_platform ="GoSell",
+                        datasource_platform = channel,
                         social_media = worksheet.Cell(row, 3).GetValue<string>(),
-                        branch_code = "000000",
+                        branch_code = BranchCode,
                         created_by = username,
                         created_date = today,
-                        modified_by ="",
-                        modified_date =null
+                        modified_by = "",
+                        modified_date = today
                     };
 
                 data.Add(employee);
@@ -214,7 +219,7 @@
                 using (var cmd = new MySqlCommand(query, MySqlConnection))
                 {
                     cmd.Parameters.AddWithValue("@Guid", Guid.NewGuid());  // สร้าง GUID ใหม่
-                    cmd.Parameters.AddWithValue("@Code", employee.code + "-000000");
+                    cmd.Parameters.AddWithValue("@Code", employee.code + "-" + BranchCode);
                     cmd.Parameters.AddWithValue("@Name", employee.name);
                     cmd.Parameters.AddWithValue("@Phone", employee.phone);
                     cmd.Parameters.AddWithValue("@Address1", employee.address1);
@@ -226,9 +231,9 @@
                     cmd.Parameters.AddWithValue("@SocialMedia", employee.social_media);
                     cmd.Parameters.AddWithValue("@BranchCode", employee.branch_code);
                     cmd.Parameters.AddWithValue("@CreatedBy", username);  // ระบุค่าเริ่มต้น
-                    cmd.Parameters.AddWithValue("@CreatedDate", DateTime.UtcNow);  // วันที่สร้าง
+                    cmd.Parameters.AddWithValue("@CreatedDate", employee.created_date);  // วันที่สร้าง DateTime.UtcNow
                     cmd.Parameters.AddWithValue("@ModifiedBy", username);  // ระบุค่าเริ่มต้น
-                    cmd.Parameters.AddWithValue("@ModifiedDate", DateTime.UtcNow);  // วันที่แก้ไขล่าสุด
+                    cmd.Parameters.AddWithValue("@ModifiedDate", employee.modified_date);  // วันที่แก้ไขล่าสุด DateTime.UtcNow
 
                     await cmd.ExecuteNonQueryAsync();
                 }
@@ -241,7 +246,7 @@
         finally
         {
 
-           await MySqlConnection.CloseAsync();
+            await MySqlConnection.CloseAsync();
 
 
             btnDisable = false;
@@ -265,7 +270,7 @@
             return;
         }
 
-        if (excelData==null)
+        if (excelData == null)
         {
             isError = true;
             TextError = "กรุณานำไฟล์มาอัพโหลด";
@@ -277,8 +282,5 @@
 
         // StateHasChanged();
     }
-
-
-
 
 }

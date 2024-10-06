@@ -16,18 +16,23 @@
         <RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnChange>
             <Tabs>
                 <RadzenTabsItem Text="กิจกรรม">
+                  <RadzenTemplateForm TItem="Model" Data=@model Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
                     <RadzenRow Gap="1rem">
                         <RadzenColumn Size="6" SizeMD="6">
-                            <RadzenText TextStyle="TextStyle.Caption">รหัสกิจกรรม</RadzenText>
-                            <RadzenTextBox Style="width: 100%" AutoComplete="false" @bind-Value=@ID />
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">รหัสกิจกรรม <span class="rz-messages-error">*</span> </RadzenText>
+                            <RadzenTextBox Style="width: 100%" Disabled="true" AutoComplete="false" @bind-Value=@ID />
                         </RadzenColumn>
                         <RadzenColumn Size="6" SizeMD="6">
-                            <RadzenText TextStyle="TextStyle.Caption">Point</RadzenText>
-                            <RadzenDropDown @bind-Value=@channel Style="width: 100%" Data=@datachannel Name="DropDownBindValue" />
-                        </RadzenColumn>
-                        <RadzenColumn Size="12" SizeMD="12">
-                            <RadzenText TextStyle="TextStyle.Caption">ชื่อกิจกรรม</RadzenText>
-                            <RadzenTextBox Style="width: 100%" AutoComplete="false" />
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Touch Point <span class="rz-messages-error">*</span> </RadzenText>
+                                <RadzenDropDown @bind-Value=@model.activities_touch_point style="display:block;width:100%"
+                                                Data=@datachannel Name="activities_touch_point" class="w-100" />
+                                <RadzenRequiredValidator Component="activities_touch_point" Text="เลือก Touch Point" Style="position: absolute" />
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="12">
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">ชื่อกิจกรรม <span class="rz-messages-error">*</span> </RadzenText>
+                                <RadzenTextBox Name="activities_name" style="display: block;width: 100%"
+                                               @bind-Value=@model.activities_name AutoComplete="false" class="w-100" />
+                                <RadzenRequiredValidator Component="activities_name" Text="กรอกชื่อกิจกรรม" Style="position: absolute" />
                         </RadzenColumn>
                         <RadzenColumn Size="12" SizeMD="12">
                             <RadzenText TextStyle="TextStyle.Caption">รายละเอียด</RadzenText>
@@ -69,10 +74,7 @@
 
 
                         <RadzenColumn Size="12" SizeMD="12">
-                            <RadzenButton Text="บันทึก" Style="margin-top:15px" ButtonStyle="ButtonStyle.Primary" />
-                            @*    <RadzenButton Text="ดึงข้อมูล" Icon="autorenew" Style="margin-top:15px" ButtonStyle="ButtonStyle.Light" Click="@OnFetchData" />
-                            *@
-
+                                <RadzenButton Text="บันทึก" Disabled="@btnDisable" ButtonType="ButtonType.Submit" Style="margin-top:15px" ButtonStyle="ButtonStyle.Primary" />
                         </RadzenColumn>
                         <RadzenColumn Size="12" SizeMD="12">
                             <RadzenCard Variant="Variant.Outlined" style="background-color:#CBE2F5; height:150px">
@@ -98,6 +100,7 @@
 
 
                     </RadzenRow>
+                    </RadzenTemplateForm>
                 </RadzenTabsItem>
                 <RadzenTabsItem Text="ขายสินค้า">
                     <RadzenRow Gap="1rem">
@@ -110,43 +113,6 @@
                             </HeaderTemplate>
                             <Columns>
                              
-                               @*  <RadzenDataGridColumn Property="Customer.CompanyName" Title="Customer" Width="280px">
-                                    <EditTemplate Context="order">
-                                        <RadzenDropDown @bind-Value="order.CustomerID" Data="@customers" TextProperty="@nameof(Customer.CompanyName)" ValueProperty="@nameof(Customer.CustomerID)" Style="width:100%; display: block;"
-                                                        InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select customer" }})" />
-                                    </EditTemplate>
-                                </RadzenDataGridColumn> *@
-                  @*               <RadzenDataGridColumn Property="Employee.LastName" Title="Employee" Width="220px">
-                                    <Template Context="order">
-                                        <RadzenImage Path="@order.Employee?.Photo" Style="width: 32px; height: 32px;" class="rz-border-radius-4 rz-me-2" AlternateText="@(order.Employee?.FirstName + " " + order.Employee?.LastName)" />
-                                        @order.Employee?.FirstName @order.Employee?.LastName
-                                    </Template>
-                                    <EditTemplate Context="order">
-                                        <RadzenDropDown @bind-Value="order.EmployeeID" Data="@employees" ValueProperty="EmployeeID" Style="width:100%; display: block;"
-                                                        InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select employee" }})">
-                                            <Template>
-                                                <RadzenImage Path="@context.Photo" Style="width: 20px; height: 20px;" class="rz-border-radius-4 rz-me-2" />
-                                                @context.FirstName @context.LastName
-                                            </Template>
-                                        </RadzenDropDown>
-                                    </EditTemplate>
-                                </RadzenDataGridColumn> *@
-                  @*               <RadzenDataGridColumn Property="@nameof(Order.OrderDate)" Title="Order Date" Width="200px">
-                                    <Template Context="order">
-                                        @String.Format("{0:d}", order.OrderDate)
-                                    </Template>
-                                    <EditTemplate Context="order">
-                                        <RadzenDatePicker @bind-Value="order.OrderDate" Style="width:100%" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select order date" }})" />
-                                    </EditTemplate>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn Property="@nameof(Order.Freight)" Title="Freight">
-                                    <Template Context="order">
-                                        @String.Format(new System.Globalization.CultureInfo("en-US"), "{0:C}", order.Freight)
-                                    </Template>
-                                    <EditTemplate Context="order">
-                                        <RadzenNumeric @bind-Value="order.Freight" Style="width:100%" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select freight" }})" />
-                                    </EditTemplate>
-                                </RadzenDataGridColumn> *@
                                 <RadzenDataGridColumn Property="Code" Width="100px" Title="รหัสสินค้า">
                                     <EditTemplate Context="order">
                                         <RadzenTextBox @bind-Value="order.Code" Style="width:100px; display: block" Name="ProductCode" aria-label="" />
@@ -223,8 +189,10 @@
     [Inject]
     public SharedStateService SharedState { get; set; }
 
+
+    bool btnDisable = false;
+
     string ID = "Auto";
-    string channel = "เลือกPoint";
     string staff = "เลือกพนักงาน";
     string countcustomer = "0";
 
@@ -236,6 +204,44 @@
     IEnumerable<string> datachannel;
     IEnumerable<string> datastaff;
     DateTime? datevalue;
+
+
+
+    class Model
+    {
+        public string activities_name { get; set; }
+        public string activities_touch_point { get; set; }
+    }
+
+    Model model = new Model();
+
+    private void OnSubmit(Model model)
+    {
+        // if (channel == "" || channel == "เลือกแหล่งข้อมูล")
+        // {
+        //     isError = true;
+        //     TextError = "กรุณาเลือกแหล่งข้อมูล";
+        //     NotificationService.Notify(NotificationSeverity.Warning, "แจ้งเตือน", "กรุณาเลือกแหล่งข้อมูล");
+        //     return;
+        // }
+
+        // if (excelData == null)
+        // {
+        //     isError = true;
+        //     TextError = "กรุณานำไฟล์มาอัพโหลด";
+        //     NotificationService.Notify(NotificationSeverity.Warning, "แจ้งเตือน", "กรุณานำไฟล์มาอัพโหลด");
+        //     return;
+        // }
+
+        // SaveToDatabase();
+
+    }
+
+    void OnInvalidSubmit(FormInvalidSubmitEventArgs args)
+    {
+       // console.Log($"InvalidSubmit: {JsonSerializer.Serialize(args, new JsonSerializerOptions() { WriteIndented = true })}");
+    }
+
 
 
     #region grid product
@@ -342,7 +348,7 @@
 
     private static readonly string[] data_channels = new[]
       {
-            "เลือกPoint", "Up-Sale", "Re-Sale","ลูกค้าขุด"
+           "Up-Sale", "Re-Sale","ลูกค้าขุด"
       };
 
     private static readonly string[] data_staff = new[]
@@ -363,6 +369,9 @@
 
         datachannel = data_channels;
         datastaff = data_staff;
+
+        model.activities_touch_point = "";
+
 
         //  countcustomer = customercode.Count().ToString();
         countcustomer = SharedState.SelectedCustomerIDs.Count().ToString();

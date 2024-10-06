@@ -2,12 +2,13 @@
 @using BlazorApp_TeleCRM.Data
 @using BlazorApp_TeleCRM.Service
 @using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 @using static BlazorApp_TeleCRM.Controller.CustomerAdminController
 @inject IConfiguration Configuration
 @inject HttpClient Http
 @inject DialogService DialogService
 @inject SharedStateService SharedState
-
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>ข้อมูลรายชื่อลูกค้า</PageTitle>
 
@@ -22,7 +23,7 @@
 <AuthorizeView>
 
 <div class="rz-col-12 ">
-    <RadzenCard Variant="Variant.Outlined" Style="background-color:#CBE2F5; padding: 1rem;">
+        <RadzenCard Variant="Variant.Outlined" class="rz-info rz-shade-lighte" Style="padding: 1rem;">
         <strong>ค้นหา</strong>
         <RadzenRow Gap="1rem"  JustifyContent="JustifyContent.Start" Class="rz-mt-2">
             <RadzenColumn Size="3">
@@ -36,7 +37,7 @@
             <RadzenColumn Size="3">
                 <br />
                 <RadzenButton Text="ค้นหา" Icon="search" Variant="Variant.Flat" Style="width: 100px; margin-right: 0.5rem;" Click="@OnSearch" />
-                <RadzenButton Text="ล้าง" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Light" Style="width: 100px;" Click="@OnClear" />
+                <RadzenButton Text="ล้าง" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Secondary" Style="width: 100px;" Click="@OnClear" />
             </RadzenColumn>
         </RadzenRow>
         
@@ -62,11 +63,11 @@
 <RadzenCard Variant="Variant.Outlined" class="rz-my-4">
     <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.SpaceBetween">
         <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
-            <RadzenCheckBox @bind-Value=@allowRowSelectOnRowClick Name="CheckBox1" />
+             <RadzenCheckBox @bind-Value=@allowRowSelectOnRowClick Name="CheckBox1" />
             <RadzenLabel Text="" Component="CheckBox1" />
-            <RadzenButton Text="ล้างตัวเลือก" ButtonStyle="ButtonStyle.Warning" Click="@(args => selectedCustomer = null)" />
-            <RadzenButton Text="สร้างกิจกรรม" Click="@OpenSideDialog" />
-            <RadzenButton Text="สร้างแคมเปญ" Click="@OpenSideDialog2" />
+                <RadzenButton Icon="clear_all" ButtonStyle="ButtonStyle.Secondary" Variant="Variant.Flat" Click="@(args => selectedCustomer = null)" />
+                <RadzenButton Text="สร้างกิจกรรม" ButtonStyle="ButtonStyle.Info" Click="@OpenSideDialog" />
+                <RadzenButton Text="สร้างแคมเปญ" ButtonStyle="ButtonStyle.Info" Click="@OpenSideDialog2" />
             </RadzenStack>
 
         <!-- Upload button aligned to the right -->
@@ -74,13 +75,13 @@
     </RadzenStack>
 </RadzenCard>
 
-
     <RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
-        <Template>Loading..</Template>
+        <Template>โหลด</Template>
     </RadzenProgressBarCircular>
 
 
-<RadzenDataGrid TItem="CustomerDataList" Data="@cus_datas" PagerPosition="PagerPosition.Bottom"
+    <RadzenDataGrid @ref="grid" TItem="CustomerDataList" Data="@cus_datas" PagerPosition="PagerPosition.Bottom"
+                 AllowRowSelectOnRowClick="@allowRowSelectOnRowClick"
                 FilterMode="FilterMode.SimpleWithMenu" PageSize="10"
                 SelectionMode="DataGridSelectionMode.Multiple"
                 @bind-Value=@selectedCustomer
@@ -106,16 +107,16 @@
             </Template>
         </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn TItem="CustomerDataList"  Property="@nameof(CustomerDataList.code)" Width="120px" Title="รหัสลูกค้า" />
-        <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.datasource_platform)" Width="100px" Title="แหล่งข้อมูล" />
-        <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.name)" Width="180px" Title="ชื่อลูกค้า" />
+        <RadzenDataGridColumn TItem="CustomerDataList"  Property="@nameof(CustomerDataList.code)" Width="180px" Title="รหัสลูกค้า" />
+        <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.datasource_platform)" Width="120px" Title="แหล่งข้อมูล" />
+        <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.name)" Width="200px" Title="ชื่อลูกค้า" />
         <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.phone)" Width="180px" Title="เบอร์โทรศัพท์" />
-        <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.province)" Width="120px" Title="จังหวัด" />
-        <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.count_activity)" Width="150px" Title="กิจกรรม" />
-        <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.activity_lastdate)" Width="150px" Title="กิจกรรมล่าสุด" />
-        <RadzenDataGridColumn TItem="CustomerDataList" Property="Remark1" Title="หมายเหตุ" Width="150px" />
-        <RadzenDataGridColumn TItem="CustomerDataList"  Property="@nameof(CustomerDataList.modified_by)" Width="150px" Title="ผู้อัพโหลด" />
-        <RadzenDataGridColumn TItem="CustomerDataList"  Property="@nameof(CustomerDataList.modified_date)" Width="150px" Title="อัพโหลดวันที่" />
+        <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.province)" Width="130px" Title="จังหวัด" />
+        <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.count_activity)" Width="180px" Title="กิจกรรม" />
+        <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.activity_lastdate)" Width="158px" Title="กิจกรรมล่าสุด" />
+    @*     <RadzenDataGridColumn TItem="CustomerDataList" Property="Remark1" Title="หมายเหตุ" Width="150px" /> *@
+        <RadzenDataGridColumn TItem="CustomerDataList"  Property="@nameof(CustomerDataList.modified_by)" Width="180px" Title="ผู้อัพโหลด" />
+        <RadzenDataGridColumn TItem="CustomerDataList"  Property="@nameof(CustomerDataList.modified_date)" Width="180px" Title="อัพโหลดวันที่" />
      
     </Columns>
 </RadzenDataGrid>
@@ -145,6 +146,8 @@
     private bool IsActivityOngoing { get; set; }
     private string ActivityCode { get; set; }
     private string ActivityName { get; set; }
+    private string BranchCode { get; set; }
+    private IEnumerable<string> _BranchCode;
 
     private async Task OnSearch()
     {
@@ -304,6 +307,29 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
+
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            //  username = user.Identity.Name;
+            //  roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+
+        }
+        else
+        {
+            // username = "Not authenticated";
+            // roles = Enumerable.Empty<string>();
+            BranchCode = "";
+        }
+
+       
+
         // เรียกใช้เมธอด FetchCustomerDataAsync เพื่อดึงข้อมูล
         cus_datas = await FetchCustomerDataAsync(this.UploadDateFrom, this.UploadDateTo);
 
@@ -318,6 +344,7 @@
     {
         try
         {
+
             // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
             runProcess_wait = true;
             StateHasChanged(); // บังคับ UI อัปเดต
@@ -328,7 +355,8 @@
             var searchCriteria = new
             {
                 fdate = fdate,
-                ldate = ldate
+                ldate = ldate,
+                branch_code = BranchCode
             };
 
             // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
