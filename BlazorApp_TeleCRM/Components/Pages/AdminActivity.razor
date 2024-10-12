@@ -1,4 +1,5 @@
 ﻿@page "/adminactivity"
+@using BlazorApp_TeleCRM.Data
 @using BlazorApp_TeleCRM.Models
 @using BlazorApp_TeleCRM.Service
 @using Blazored.LocalStorage
@@ -20,178 +21,201 @@
 
 <PageTitle>ข้อมูลกิจกรรม</PageTitle>
 
-
 <AuthorizeView>
-    <Authorized Context="authState">
-        <p>You are logged in as: @authState.User.Identity.Name</p>
-        <p>Your roles:</p>
-        <ul>
-            @foreach (var claim in authState.User.Claims)
-            {
-                if (claim.Type == ClaimTypes.Role)
-                {
-                    <li>@claim.Value</li>  <!-- This will list the user's roles -->
-                }
-            }
-        </ul>
 
-        <!-- Admin and Manager Section -->
-        <AuthorizeView Roles="Admin,Manager">
-            <h3>Admin and Manager Content</h3>
-            <p>This section is visible only to Admins and Managers.</p>
-        </AuthorizeView>
 
-        <!-- User Section -->
-        <AuthorizeView Roles="User">
-            <h3>User Content</h3>
-            <p>This section is visible only to Users.</p>
-        </AuthorizeView>
+    <div class="rz-6">
+        <RadzenBreadCrumb>
+            <RadzenBreadCrumbItem Text="CRM - Admin" />
+            <RadzenBreadCrumbItem Path="/adminactivity" Text="กิจกรรม" />
+        </RadzenBreadCrumb>
+        <RadzenText TextStyle="TextStyle.DisplayH5">ข้อมูลกิจกรรม</RadzenText>
+    </div>
 
-        <!-- All Authenticated Users -->
-        <p>This section is visible to all authenticated users, regardless of role.</p>
 
-    </Authorized>
-    <NotAuthorized>
-        <p>You are not authorized to view this content.</p>
-    </NotAuthorized>
+    <div class="rz-col-12">
+
+        <RadzenCard Variant="Variant.Outlined" class="rz-info rz-shade-lighte" Style="padding: 1rem;">
+        <strong>ค้นหา</strong>
+        <RadzenRow Gap="1rem"  JustifyContent="JustifyContent.Start" Class="rz-mt-2">
+
+                <RadzenColumn>
+                    <RadzenLabel Text="วันที่สร้างกิจกรรม " Component="RadzenDatePickerBindValue" />
+                    <RadzenDatePicker @bind-Value="CreateDateFrom" Name="CreateDateFrom" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
+                </RadzenColumn>
+                <RadzenColumn>
+                    <RadzenLabel Text="ถึงวันที่ " Component="RadzenDatePickerBindValue" />
+                    <RadzenDatePicker @bind-Value="CreateDateTo" Name="CreateDateTo" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
+                </RadzenColumn>
+                <RadzenColumn Size="3">
+                    <br />
+                    <RadzenButton Text="ค้นหา" Icon="search" Variant="Variant.Flat" Style="width: 100px; margin-right: 0.5rem;" Click="@OnSearch" />
+                    <RadzenButton Text="ล้าง" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Secondary" Style="width: 100px;" Click="@OnClear" />
+                </RadzenColumn>
+        </RadzenRow>
+        </RadzenCard>
+
+    </div>
+
+
+    <RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+        <Template>โหลด</Template>
+    </RadzenProgressBarCircular>
+
+
+
+    <RadzenDataGrid TItem="ActivitysDataList" Data="@act_data" PagerPosition="PagerPosition.Bottom"
+                    FilterMode="FilterMode.SimpleWithMenu" PageSize="10"
+                    SelectionMode="DataGridSelectionMode.Single"
+                    @bind-Value=@selectedAct
+                    AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
+                    AllowSorting="true" ColumnWidth="300px">
+        <Columns>
+
+            <RadzenDataGridColumn Width="60px" Filterable="false" Property="@nameof(ActivitysDataList.guid)" Title="">
+                <Template Context="data">
+                    <RadzenButton ButtonStyle="ButtonStyle.Light" Click="@(args => OpenSideDialog(data.guid,data.assign_work_type))" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" />
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn Width="100px" Filterable="false" Property="product_code" Title="สินค้า">
+                <Template Context="data">
+                    @if (!string.IsNullOrEmpty(data.product_code))
+                    {
+                        <RadzenImage Path="/products/product001.png" Style="width: 60px; height: 60px;" class="rz-border-radius-2" AlternateText="" />
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.guid)" Width="200px" Title="เลขที่กิจกรรม" />
+            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.name)" Width="200px" Title="ชื่อกิจกรรม" />
+            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.assign_work_type)" Width="150px" Title="ประเภท" />
+            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.touch_point)" Width="150px" Title="Touch Point" />
+            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.progress)" Width="100px" Title="ความคืบหน้า" />
+            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.assign_work)" Width="180px" Title="มอบหมายให้" />
+            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.succeed)" Width="100px" Title="สำเร็จ" />
+            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.progress_total)" Width="100px" Title="ทั้งหมด" />
+            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.created_by)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Width="180px" Title="วันที่สร้างกิจกรรม" />
+            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.startdate)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Width="180px" Title="วันที่เริ่มกิจกรรม" />
+            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.duedate)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Width="180px" Title="วันครบกำหนด" />
+        </Columns>
+    </RadzenDataGrid>
+
+
+
+
+
 </AuthorizeView>
 
 
 
 
-<div class="rz-6">
-    <RadzenBreadCrumb>
-        <RadzenBreadCrumbItem Text="CRM - Admin" />
-        <RadzenBreadCrumbItem Path="/adminactivity" Text="กิจกรรม" />
-    </RadzenBreadCrumb>
-    <RadzenText TextStyle="TextStyle.DisplayH5">ข้อมูลกิจกรรม</RadzenText>
-</div>
-
-
-<div class="rz-col-12">
-    <div class="rz-card rz-variant-flat rz-background-color-info-lighter">
-        <b>ค้นหา</b>
-        <RadzenRow Gap="1rem">
-            <RadzenColumn>
-                <RadzenLabel Text="วันที่สร้างกิจกรรม " Component="RadzenDatePickerBindValue" />
-                <RadzenDatePicker @bind-Value=@value Name="RadzenDatePickerBindValue" ShowCalendarWeek />
-            </RadzenColumn>
-            <RadzenColumn>
-                <RadzenLabel Text="ถึงวันที่ " Component="RadzenDatePickerBindValue" />
-                <RadzenDatePicker @bind-Value=@value Name="RadzenDatePickerBindValue" ShowCalendarWeek />
-            </RadzenColumn>
-            <RadzenColumn>
-                <RadzenButton style="width: 100px" Icon="search" Variant="Variant.Flat" Text="ค้นหา" />
-                <RadzenButton style="width: 100px" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Light" Text="ล้าง" />
-            </RadzenColumn>
-            <RadzenColumn>
-            </RadzenColumn>
-        </RadzenRow>
-
-    </div>
-</div>
-
-<RadzenDataGrid TItem="ActivityData" Data="@activitys" PagerPosition="PagerPosition.Bottom"
-                FilterMode="FilterMode.SimpleWithMenu" PageSize="10"
-                SelectionMode="DataGridSelectionMode.Single"
-                @bind-Value=@selectedActivity
-                AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
-                AllowSorting="true" ColumnWidth="300px">
-    <Columns>
-
-        <RadzenDataGridColumn Width="60px" Filterable="false" Property="@nameof(ActivityData.Activity_ID)" Title="">
-            <Template Context="data">
-                <RadzenButton ButtonStyle="ButtonStyle.Light" Click="@(args => OpenSideDialog(data.Activity_ID,data.Activity_Type))" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" />
-            </Template>
-        </RadzenDataGridColumn>
-
-        <RadzenDataGridColumn Width="100px" Filterable="false" Property="Activity_ID" Title="สินค้า">
-            <Template Context="data">
-                <RadzenImage Path="/products/product001.png" Style="width: 60px; height: 60px;" class="rz-border-radius-2" AlternateText="" />
-            </Template>
-        </RadzenDataGridColumn>
-
-        <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.Activity_ID)" Width="100px" Title="กิจกรรม ID" />
-        <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.Activity_Name)" Width="180px" Title="ชื่อกิจกรรม" />
-        <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.Activity_Type)" Width="150px" Title="ประเภท" />
-        <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.Activity_Status)" Width="150px" Title="Point" />
-        <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.Activity_Progress)" Width="100px" Title="ความคืบหน้า" />
-        <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.Activity_Assign)" Width="180px" Title="มอบหมายให้" />
-        <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.CountActivity_Succeed)" Width="100px" Title="สำเร็จ" />
-        <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.CountActivity_ALL)" Width="100px" Title="ทั้งหมด" />
-        <RadzenDataGridColumn TItem="ActivityData" Property="@nameof(ActivityData.Activity_Duedate)" Width="180px" Title="วันครบกำหนด" />
-    </Columns>
-</RadzenDataGrid>
-
-
 @code {
+
+
+    bool runProcess_wait = false;
     bool isDialogOpen = false;
     DateTime? value = DateTime.Now;
-    private IEnumerable<ActivityData> activitys;
-    IList<ActivityData> selectedActivity;
+    private DateTime? CreateDateFrom { get; set; }
+    private DateTime? CreateDateTo { get; set; }
 
     private string username;
     private IEnumerable<string> roles;
+
+    private string BranchCode { get; set; }
+    private IEnumerable<string> _BranchCode;
+
+
+    private IEnumerable<ActivitysDataList> act_data;
+    IList<ActivitysDataList> selectedAct;
+    RadzenDataGrid<ActivitysDataList> grid;
+
 
 
     async Task OpenUpload()
     {
         await DialogService.OpenAsync<DialogCardPageUploadJob>($"",
-              new Dictionary<string, object>() { { "UploadID", 1 } },
+              new Dictionary<string, object>() { { "ActivitysID", 1 } },
               new DialogOptions() { Width = "800px", Height = "400px" });
     }
 
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
+
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
         if (user.Identity.IsAuthenticated)
         {
-            username = user.Identity.Name;
-            roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+            //  username = user.Identity.Name;
+            //  roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+
         }
         else
         {
-            try
-            {
-                InvokeAsync(async () =>
-          {
-      await Task.Delay(2000);
-      DialogService.Close();
-          });
-                await BusyDialog();
-                string? username = await LocalStorage.GetItemAsStringAsync("username");
-                var user1 = await allseed_Db.Users.Where(u => u.username == username).FirstOrDefaultAsync();
-                if (user1 != null)
-                {
-
-                    if (AuthenticationStateProvider is CustomAuthenticationStateProvider customAuthProvider)
-                    {
-                        await customAuthProvider.MarkUserAsAuthenticated(user1);
-                    }
-                    await LocalStorage.SetItemAsStringAsync("username", username);
-                }
-                else
-                {
-                    Navigation.NavigateTo("/login", forceLoad: false);
-                }
-            } catch { }
+            // username = "Not authenticated";
+            // roles = Enumerable.Empty<string>();
+            BranchCode = "";
         }
 
 
 
-        var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
-        activitys = await Http.GetFromJsonAsync<IEnumerable<ActivityData>>($"{baseApiUrl}/api/ActivityAdmin");
+        // เรียกใช้เมธอด FetchCustomerDataAsync เพื่อดึงข้อมูล
+        act_data = await FetchCustomerDataAsync(this.CreateDateFrom, this.CreateDateTo);
 
-        selectedActivity = new List<ActivityData>() { activitys.FirstOrDefault() };
+        if (act_data != null && act_data.Any())
+        {
+            selectedAct = new List<ActivitysDataList>() { act_data.FirstOrDefault() };
+        }
+
     }
 
-    async Task OpenSideDialog(int ActID, string type)
+
+    private async Task OnSearch()
+    {
+        // เรียกใช้เมธอด FetchCustomerDataAsync เพื่อค้นหาข้อมูลตามวันที่ที่เลือก
+        act_data = await FetchCustomerDataAsync(this.CreateDateFrom, this.CreateDateTo);
+
+        if (act_data != null && act_data.Any())
+        {
+            selectedAct = new List<ActivitysDataList>() { act_data.FirstOrDefault() };
+        }
+
+
+        // บังคับให้ UI อัปเดตใหม่
+        StateHasChanged();
+    }
+
+    private async Task OnClear()
+    {
+        // Reset all filters
+        CreateDateFrom = null;
+        CreateDateTo = null;
+      
+        // เรียกใช้เมธอด FetchCustomerDataAsync เพื่อค้นหาข้อมูลตามวันที่ที่เลือก
+        act_data = await FetchCustomerDataAsync(this.CreateDateFrom, this.CreateDateTo);
+
+        if (act_data != null && act_data.Any())
+        {
+            selectedAct = new List<ActivitysDataList>() { act_data.FirstOrDefault() };
+        }
+
+
+        // บังคับให้ UI อัปเดตใหม่
+        StateHasChanged();
+    }
+
+
+
+
+    async Task OpenSideDialog(string ActID, string type)
     {
 
-        if (type == "กิจกรรม")
+        if (type == "กิจกรรม" || type == "Activities")
         {
             if (isDialogOpen)
             {
@@ -203,7 +227,7 @@
                 "กิจกรรม",
                 new Dictionary<string, object>
                                         {
-            { "UploadID", ActID.ToString() }
+            { "ActivitysID", ActID.ToString() }
                                         },
                 new SideDialogOptions
                     {
@@ -227,7 +251,7 @@
                 "แคมเปญ",
                 new Dictionary<string, object>
                                             {
-            { "UploadID", ActID.ToString() }
+            { "ActivitysID", ActID.ToString() }
                                             },
                 new SideDialogOptions
                     {
@@ -243,16 +267,49 @@
     }
 
 
-    // Busy dialog from markup
-    async Task BusyDialog()
+    public async Task<IEnumerable<ActivitysDataList>> FetchCustomerDataAsync(DateTime? fdate, DateTime? ldate)
     {
-        await DialogService.OpenAsync("", ds =>
-    @<RadzenStack AlignItems="AlignItems.Center" Gap="2rem" class="rz-p-12">
-        <RadzenImage Path="image/system/community.svg" Style="width: 200px;" AlternateText="community" />
-        <RadzenText TextStyle="TextStyle.H6">Loading, please wait...</RadzenText>
-    </RadzenStack>, new DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;width:auto", CloseDialogOnEsc = false });
+        try
+        {
+
+            // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
+            runProcess_wait = true;
+            StateHasChanged(); // บังคับ UI อัปเดต
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+            var searchCriteria = new
+            {
+                fdate = fdate,
+                ldate = ldate,
+                branch_code = BranchCode
+            };
+
+            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/ActivityAdmin/GetActivitysData", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // แปลงข้อมูลที่ได้รับเป็น IEnumerable<ActivitysDataList>
+                var activitysDataList = await response.Content.ReadFromJsonAsync<IEnumerable<ActivitysDataList>>();
+                return activitysDataList;
+            }
+            else
+            {
+                Console.WriteLine("Error fetching Activity Data.");
+                return Enumerable.Empty<ActivitysDataList>();
+            }
+        }
+        finally
+        {
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
     }
 
-  
+
+
 
 }
