@@ -362,7 +362,7 @@
             };
 
             // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
-            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/CustomerAdmin", searchCriteria);
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/CustomerAdmin/GetCustomerData", searchCriteria);
 
             if (response.IsSuccessStatusCode)
             {

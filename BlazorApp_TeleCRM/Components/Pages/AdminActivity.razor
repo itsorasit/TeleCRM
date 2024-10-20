@@ -87,11 +87,37 @@
                 </Template>
             </RadzenDataGridColumn>
 
+            <RadzenDataGridColumn Width="160px" Property="status" Title="ความคืบหน้า">
+                <Template Context="data">
+
+                    @if (data.status == "สำเร็จ")
+                    {
+                        <RadzenButton Text="สำเร็จ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                    }
+                    else if (data.status == "")
+                    {
+                        <RadzenButton Text="รอดำเนินการ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                    }
+                    else if (data.status == "ปิดการขาย")
+                    {
+                        <RadzenButton Text="ปิดการขาย" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                    }
+                    else if (data.status == "ไม่สำเร็จ")
+                    {
+                        <RadzenButton Text="ไม่สำเร็จ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                    }
+                    else
+                    {
+                        <RadzenButton Text="@data.status" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Dark" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                    }
+
+                </Template>
+            </RadzenDataGridColumn>
+
             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.guid)" Width="200px" Title="เลขที่กิจกรรม" />
             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.name)" Width="200px" Title="ชื่อกิจกรรม" />
             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.assign_work_type)" Width="150px" Title="ประเภท" />
             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.touch_point)" Width="150px" Title="Touch Point" />
-            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.progress)" Width="100px" Title="ความคืบหน้า" />
             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.assign_work)" Width="180px" Title="มอบหมายให้" />
             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.succeed)" Width="100px" Title="สำเร็จ" />
             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.progress_total)" Width="100px" Title="ทั้งหมด" />
@@ -129,6 +155,8 @@
     private IEnumerable<ActivitysDataList> act_data;
     IList<ActivitysDataList> selectedAct;
     RadzenDataGrid<ActivitysDataList> grid;
+
+
 
 
 

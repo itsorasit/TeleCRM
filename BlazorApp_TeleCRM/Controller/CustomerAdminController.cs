@@ -1,6 +1,7 @@
 ﻿using BlazorApp_TeleCRM.Data;
 using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
+using System;
 
 namespace BlazorApp_TeleCRM.Controller
 {
@@ -104,7 +105,7 @@ namespace BlazorApp_TeleCRM.Controller
         }
 
 
-        [HttpPost]
+        [HttpPost("GetCustomerData")]
         public async Task<IActionResult> GetCustomerData([FromBody] SearchCriteria searchCriteria)
         {
 
@@ -264,6 +265,75 @@ GROUP BY mc.guid,
             return Ok(customers);
         }
 
+        [HttpPost("GetCustomerDataById")]
+        public async Task<IActionResult> GetCustomerDataById([FromBody] SearchCriteriaByID searchCriteria)
+        {
+            DateTime today = DateTime.Now;
+            var customers = new List<CustomerDataList>();
+
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                var query = @"SELECT mc.guid, 
+                             mc.code, 
+                             mc.name, 
+                             mc.phone, 
+                             mc.address1, 
+                             mc.sub_district, 
+                             mc.district, 
+                             mc.province, 
+                             mc.zipcode, 
+                             mc.datasource_platform, 
+                             mc.social_media, 
+                             mc.branch_code, 
+                             mc.created_by, 
+                             mc.created_date, 
+                             mc.modified_by, 
+                             mc.modified_date
+                      FROM mas_customers mc
+                      WHERE mc.guid = @guid";
+
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    var guid = searchCriteria.guid ?? "";
+                    cmd.Parameters.AddWithValue("@guid", guid);
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var customer = new CustomerDataList
+                            {
+                                guid = reader.GetString(reader.GetOrdinal("guid")),
+                                code = reader.GetString(reader.GetOrdinal("code")),
+                                name = reader.GetString(reader.GetOrdinal("name")),
+                                phone = reader.GetString(reader.GetOrdinal("phone")),
+                                address1 = reader.GetString(reader.GetOrdinal("address1")),
+                                sub_district = reader.GetString(reader.GetOrdinal("sub_district")),
+                                district = reader.GetString(reader.GetOrdinal("district")),
+                                province = reader.GetString(reader.GetOrdinal("province")),
+                                zipcode = reader.GetString(reader.GetOrdinal("zipcode")),
+                                datasource_platform = reader.GetString(reader.GetOrdinal("datasource_platform")),
+                                social_media = reader.GetString(reader.GetOrdinal("social_media")),
+                                branch_code = reader.GetString(reader.GetOrdinal("branch_code")),
+                                created_by = reader.GetString(reader.GetOrdinal("created_by")),
+                                created_date = reader.GetDateTime(reader.GetOrdinal("created_date")),
+                                modified_by = reader.IsDBNull(reader.GetOrdinal("modified_by")) ? null : reader.GetString(reader.GetOrdinal("modified_by")),
+                                modified_date = reader.IsDBNull(reader.GetOrdinal("modified_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("modified_date")),
+                            };
+
+                            customers.Add(customer);
+                        }
+                    }
+                }
+            }
+
+            return Ok(customers);
+        }
+
+
+
 
         public class SearchCriteria
         {
@@ -271,5 +341,11 @@ GROUP BY mc.guid,
             public DateTime? ldate { get; set; }
             public string? branch_code { get; set; }
         }
+
+        public class SearchCriteriaByID
+        {
+            public string? guid { get; set; }
+        }
+
     }
 }

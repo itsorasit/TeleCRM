@@ -124,7 +124,7 @@ namespace BlazorApp_TeleCRM.Controller
                 {
                     query = @"SELECT guid, customer_code, branch_code, touch_point, name, description, startdate, duedate, reminder_duedate, 
                         assign_work, assign_work_type, allowagent, record_status, created_by, created_date, modified_by, modified_date,
-                        '' as activitys_code,'' as progress,0 as succeed, 0 as progress_total
+                        '' as activitys_code,'' as progress,0 as succeed, 0 as progress_total ,status
                         FROM crm_activitys ca
                         where ca.branch_code = @branch_code
                         ORDER BY ca.created_date  DESC LIMIT 500 ";
@@ -136,7 +136,7 @@ namespace BlazorApp_TeleCRM.Controller
                 {
                     query = @"SELECT guid, customer_code, branch_code, touch_point, name, description, startdate, duedate, reminder_duedate, 
                     assign_work, assign_work_type, allowagent, record_status, created_by, created_date, modified_by, modified_date,
-                    '' as activitys_code,'' as progress,0 as succeed, 0 as progress_total
+                    '' as activitys_code,'' as progress,0 as succeed, 0 as progress_total ,status
                     FROM crm_activitys ca
                     where ca.branch_code = @branch_code
                     AND  ca.created_date >= @FromDate 
@@ -185,6 +185,7 @@ namespace BlazorApp_TeleCRM.Controller
                                 modified_by = reader.IsDBNull(reader.GetOrdinal("modified_by")) ? null : reader["modified_by"].ToString(),
                                 modified_date = reader.IsDBNull(reader.GetOrdinal("modified_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("modified_date")),
 
+                                status = reader["status"].ToString(),
 
                                 activitys_code = reader["activitys_code"].ToString(),
                                 progress = reader["activitys_code"].ToString(),
