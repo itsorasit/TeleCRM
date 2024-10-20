@@ -24,5 +24,11 @@
         public int? succeed { get; set; }
         public int? progress_total { get; set; }
         public string? product_code { get; set; }
+        public string? status { get; set; }
+        public string? call_status { get; set; }
+        public string? call_action { get; set; }
+        public string? sale_order_no { get; set; }
+        public string? code { get; set; }
+
     }
 }

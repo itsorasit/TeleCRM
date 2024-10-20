@@ -219,7 +219,7 @@ namespace BlazorApp_TeleCRM.Controller
 
                 var query  = @"SELECT guid, customer_code, branch_code, touch_point, name, description, startdate, duedate, reminder_duedate, 
                     assign_work, assign_work_type, allowagent, record_status, created_by, created_date, modified_by, modified_date,
-                    '' as activitys_code,'' as progress,0 as succeed, 0 as progress_total
+                    ca.code as activitys_code, ca.status as progress,0 as succeed, 0 as progress_total ,call_status ,call_action, sale_order_no ,ca.status
                     FROM crm_activitys ca
                     where ca.guid = @guid
                     ";
@@ -257,7 +257,14 @@ namespace BlazorApp_TeleCRM.Controller
 
 
                                 activitys_code = reader["activitys_code"].ToString(),
-                                progress = reader["activitys_code"].ToString(),
+ 
+                               // progress = reader["progress"].ToString(),
+                                status = reader["status"].ToString(),
+                               
+                                call_status = reader["call_status"].ToString(),
+                                call_action  = reader["call_action"].ToString(),
+                                sale_order_no = reader["sale_order_no"].ToString(),
+
                                 succeed = reader.IsDBNull(reader.GetOrdinal("succeed")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("succeed")),
                                 progress_total = reader.IsDBNull(reader.GetOrdinal("progress_total")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("progress_total"))
                             };

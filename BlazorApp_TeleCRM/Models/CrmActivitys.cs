@@ -19,5 +19,10 @@
         public DateTime created_date { get; set; }
         public string? modified_by { get; set; }
         public DateTime? modified_date { get; set; }
+        public string? status { get; set; }
+        public string? call_status { get; set; }
+        public string? call_action { get; set; }
+        public string? sale_order_no { get; set; }
+
     }
 }
