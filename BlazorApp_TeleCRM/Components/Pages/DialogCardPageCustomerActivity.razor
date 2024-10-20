@@ -1,6 +1,7 @@
 ﻿@page "/DialogCardPageCustomerActivity/{ActivitysID}"
 @using System.ComponentModel.DataAnnotations
 @using BlazorApp_TeleCRM.Data
+@using BlazorApp_TeleCRM.Helper
 @using BlazorApp_TeleCRM.Service
 @using Microsoft.AspNetCore.Components.Authorization
 @using MySql.Data.MySqlClient
@@ -13,7 +14,7 @@
 @inject MySqlConnection MySqlConnection
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NotificationService NotificationService
-
+@inject UtilityConvet utility ;
 
 
 
@@ -185,14 +186,17 @@
                             <RadzenText TextStyle="TextStyle.Body2">รายชื่อลูกค้า</RadzenText>
                             <RadzenCard Variant="Variant.Flat">
                                 <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start">
-                                    <RadzenImage Path="/user/customer-service.png" Style="width: 100px; height: 100px; border-radius: 50%;" />
+                                    <RadzenImage Path="/user/customer-service.png" Style="width: 50px; height: 50px; border-radius: 50%;" />
                                     <RadzenStack Gap="0">
+                                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">รหัสลูกค้า</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Caption"><b>@selectedCus.guid </b></RadzenText>
                                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">ชื่อลูกค้า-นามสกุล</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Body1"><b>"สมหวัง สุขใจ"</b></RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Body1"><b>@selectedCus.name </b></RadzenText>
                                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">ที่อยู่</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Body1"><b>"99 xxxxxxx xxxxxx xxxxxx xxxxx 00000"</b></RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Body1"><b>@selectedCus.address1 @selectedCus.sub_district @selectedCus.district 
+                                            @selectedCus.province @selectedCus.zipcode</b></RadzenText>
                                         <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">เบอร์ติดต่อ</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Body1"><b><a href="tel:+66850931002"><RadzenIcon Icon="smartphone" />085-0931-002</a></b></RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Body1"><b><a href="tel:@utility.FormatPhoneNumberWithCountryCode(@selectedCus.phone)"><RadzenIcon Icon="smartphone" /> @utility.FormatPhoneNumber(@selectedCus.phone) </a></b></RadzenText>
                                         <img width="150px" style="margin-top:20px" src="data:image/png;base64,@qrCodeImage" alt="QR Code" />
                                     </RadzenStack>
                                 </RadzenStack>
@@ -251,18 +255,7 @@
                                         <RadzenRequiredValidator Text="ราคาขาย" Component="ProductSalePrice" Popup="true" />
                                     </EditTemplate>
                                 </RadzenDataGridColumn>
-                                @*   <RadzenDataGridColumn Property="@nameof(Order.ShipCountry)" Title="ShipCountry">
-                                <EditTemplate Context="order">
-                                <RadzenTextBox @bind-Value="order.ShipCountry" Style="width:200px; display: block" Name="ShipCountry" aria-label="Enter ship country" />
-                                <RadzenRequiredValidator Text="ShipCountry is required" Component="ShipCountry" Popup="true" />
-                                </EditTemplate>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn Property="@nameof(Order.ShipCity)" Title="ShipCity">
-                                <EditTemplate Context="order">
-                                <RadzenTextBox @bind-Value="order.ShipCity" Style="width:200px; display: block" Name="ShipCity" aria-label="Enter ship city" />
-                                <RadzenRequiredValidator Text="ShipCity is required" Component="ShipCity" Popup="true" />
-                                </EditTemplate>
-                                </RadzenDataGridColumn> *@
+
                                 <RadzenDataGridColumn Context="order" Width="150px" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
                                     <Template Context="order">
                                         <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(order))" @onclick:stopPropagation="true">
@@ -336,7 +329,7 @@
 
     private string username;
     int selectedIndex = 0;
-    string channel = "Up-Sale";
+    string channel = "";
     string staff = "เลือกพนักงาน";
     string countcustomer = "0";
 
@@ -368,9 +361,14 @@
     ActivitysDataList selectedAct;
 
 
+    private IEnumerable<CustomerDataList> cus_data;
+    CustomerDataList selectedCus;
+
+
+
     private static readonly string[] data_channels = new[]
       {
-            "Up-Sale", "Re-Sale","ลูกค้าขุด"
+            "","Up-Sale", "Re-Sale","ลูกค้าขุด"
       };
 
 
@@ -419,10 +417,8 @@
 
         try
         {
-            var query = @"UPDATE crm_activitys
-                      SET customer_code = @customer_code,
-                          branch_code = @branch_code,
-                          touch_point = @touch_point,
+            var query = @"UPDATE crm_activitys 
+                          SET touch_point = @touch_point,
                           name = @name,
                           description = @description,
                           startdate = @startdate,
@@ -439,12 +435,11 @@
                           sale_order_no = @sale_order_no,
                           code = @code,
                           call_action = @call_action
-                      WHERE guid = @guid";
+                      WHERE guid = @guid and branch_code = @branch_code ";
 
             using var command = new MySqlCommand(query, MySqlConnection, transaction);
 
             command.Parameters.AddWithValue("@guid", model.activities_id); // ใช้ GUID ที่มีอยู่
-            command.Parameters.AddWithValue("@customer_code", "");
             command.Parameters.AddWithValue("@branch_code", BranchCode ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@touch_point", model.activities_touch_point ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@name", model.activities_name ?? (object)DBNull.Value);
@@ -661,20 +656,6 @@
         datachannel = data_channels;
 
 
-        string phoneNumber = "tel:+66850931002";
-
-        // สร้าง QR Code
-        using (var qrGenerator = new QRCoder.QRCodeGenerator())
-        {
-            var qrCodeData = qrGenerator.CreateQrCode(phoneNumber, QRCoder.QRCodeGenerator.ECCLevel.Q);
-            var qrCode = new QRCoder.PngByteQRCode(qrCodeData);
-            var qrCodeBytes = qrCode.GetGraphic(20);
-
-            // แปลงเป็น base64 เพื่อแสดงเป็นรูปภาพใน img tag
-            qrCodeImage = Convert.ToBase64String(qrCodeBytes);
-        }
-
-
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
@@ -726,9 +707,35 @@
                 model.status = selectedAct.status;
                 model.call_action = selectedAct.call_action;
                 model.call_status = selectedAct.call_status;
+
+
+                cus_data = await FetchCustomerByIDDataAsync(selectedAct.customer_code);
+                if (cus_data != null && act_data.Any())
+                {
+                    selectedCus = cus_data.FirstOrDefault();
+
+                    string phoneNumber = "tel:"+@utility.FormatPhoneNumberWithCountryCode(@selectedCus.phone); 
+
+                    // สร้าง QR Code
+                    using (var qrGenerator = new QRCoder.QRCodeGenerator())
+                    {
+                        var qrCodeData = qrGenerator.CreateQrCode(phoneNumber, QRCoder.QRCodeGenerator.ECCLevel.Q);
+                        var qrCode = new QRCoder.PngByteQRCode(qrCodeData);
+                        var qrCodeBytes = qrCode.GetGraphic(20);
+
+                        // แปลงเป็น base64 เพื่อแสดงเป็นรูปภาพใน img tag
+                        qrCodeImage = Convert.ToBase64String(qrCodeBytes);
+                    }
+
+
+                }
+            
             }
 
         }
+
+
+     
 
 
         countcustomer = "1";
@@ -792,6 +799,48 @@
             StateHasChanged(); // บังคับ UI อัปเดต
         }
     }
+
+    public async Task<IEnumerable<CustomerDataList>> FetchCustomerByIDDataAsync(string Guid)
+    {
+        try
+        {
+
+            // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
+            runProcess_wait = true;
+            StateHasChanged(); // บังคับ UI อัปเดต
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+            var searchCriteria = new
+            {
+                guid = Guid,
+                branch_code = BranchCode
+            };
+
+            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/CustomerAdmin/GetCustomerDataById", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // แปลงข้อมูลที่ได้รับเป็น IEnumerable<CustomerDataList>
+                var customerDataList = await response.Content.ReadFromJsonAsync<IEnumerable<CustomerDataList>>();
+                return customerDataList;
+            }
+            else
+            {
+                Console.WriteLine("Error fetching customer data.");
+                return Enumerable.Empty<CustomerDataList>();
+            }
+        }
+        finally
+        {
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
+    }
+
 
 
     void OnProgress(UploadProgressArgs args, string name)

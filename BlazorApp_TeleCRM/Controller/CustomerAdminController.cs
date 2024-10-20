@@ -292,12 +292,15 @@ GROUP BY mc.guid,
                              mc.modified_by, 
                              mc.modified_date
                       FROM mas_customers mc
-                      WHERE mc.guid = @guid";
+                      WHERE mc.guid = @guid and mc.branch_code = @branch_code";
 
                 using (var cmd = new MySqlCommand(query, connection))
                 {
                     var guid = searchCriteria.guid ?? "";
                     cmd.Parameters.AddWithValue("@guid", guid);
+
+                    var branch_code = searchCriteria.branch_code ?? "";
+                    cmd.Parameters.AddWithValue("@branch_code", branch_code);
 
                     using (var reader = await cmd.ExecuteReaderAsync())
                     {
@@ -345,6 +348,7 @@ GROUP BY mc.guid,
         public class SearchCriteriaByID
         {
             public string? guid { get; set; }
+            public string? branch_code { get; set; }
         }
 
     }

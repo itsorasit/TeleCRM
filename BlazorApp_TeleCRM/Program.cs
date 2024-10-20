@@ -1,4 +1,5 @@
 using BlazorApp_TeleCRM.Components;
+using BlazorApp_TeleCRM.Helper;
 using BlazorApp_TeleCRM.Models;
 using BlazorApp_TeleCRM.Service;
 using Blazored.LocalStorage;
@@ -28,6 +29,8 @@ builder.Services.AddScoped<Radzen.TooltipService>();
 builder.Services.AddScoped<Radzen.SideDialogOptions>();
 //builder.Services.AddScoped<ThemeServiceCustom>();
 builder.Services.AddScoped<SharedStateService>();
+builder.Services.AddScoped<UtilityConvet>();
+
 builder.Services.AddHttpClient();
 builder.Services.AddBlazoredLocalStorage();
 
