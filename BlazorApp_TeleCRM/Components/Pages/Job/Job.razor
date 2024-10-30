@@ -1,0 +1,301 @@
+﻿@page "/job"
+@using BlazorApp_TeleCRM.Data
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IConfiguration Configuration
+@inject HttpClient Http
+@inject DialogService DialogService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+
+<PageTitle>My Job</PageTitle>
+
+<div class="rz-6">
+    <RadzenBreadCrumb>
+        <RadzenBreadCrumbItem Path="/mydashboard" Text="My Dashboard" />
+        <RadzenBreadCrumbItem Path="/job" Text="My Job" />
+    </RadzenBreadCrumb>
+    <RadzenText TextStyle="TextStyle.DisplayH5">งานของคุณ</RadzenText>
+</div>
+
+
+<div class="rz-col-12">
+
+    <RadzenCard Variant="Variant.Outlined" class="rz-info rz-shade-lighte" Style="padding: 1rem;">
+        <strong>ค้นหา</strong>
+        <RadzenRow Gap="1rem" JustifyContent="JustifyContent.Start" Class="rz-mt-2">
+            <RadzenColumn>
+                <RadzenLabel Text="งานวันที่ " Component="RadzenDatePickerBindValue" />
+                <RadzenDatePicker @bind-Value="CreateDateFrom" Name="CreateDateFrom" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenLabel Text="ถึงวันที่ " Component="RadzenDatePickerBindValue" />
+                <RadzenDatePicker @bind-Value="CreateDateTo" Name="CreateDateTo" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
+            </RadzenColumn>
+            <RadzenColumn Size="3">
+                <br />
+                <RadzenButton Text="ค้นหา" Icon="search" Variant="Variant.Flat" Style="width: 100px; margin-right: 0.5rem;" Click="@OnSearch" />
+                <RadzenButton Text="ล้าง" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Secondary" Style="width: 100px;" Click="@OnClear" />
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenCard>
+
+
+</div>
+
+
+
+<RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" class="rz-p-1" Gap="2rem">
+    <RadzenButton ButtonStyle="ButtonStyle.Primary">
+        Up-Sale
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="20" class="rz-ms-2" />
+    </RadzenButton>
+
+    <RadzenButton ButtonStyle="ButtonStyle.Secondary">
+        Re-Order
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="50" class="rz-ms-2" />
+    </RadzenButton>
+
+    <RadzenButton ButtonStyle="ButtonStyle.Base">
+        ลูกค้าขุด
+        <RadzenBadge Variant="Variant.Outlined" Text="30" class="rz-ms-2" />
+    </RadzenButton>
+
+    <RadzenButton ButtonStyle="ButtonStyle.Info">
+        จัดการแล้ว
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="70" class="rz-ms-2" />
+    </RadzenButton>
+
+</RadzenStack>
+
+<RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+    <Template>โหลด</Template>
+</RadzenProgressBarCircular>
+
+<RadzenDataGrid TItem="JobDataList" Data="@act_data" PagerPosition="PagerPosition.Bottom"
+                FilterMode="FilterMode.SimpleWithMenu" PageSize="10"
+                SelectionMode="DataGridSelectionMode.Single"
+                @bind-Value=@selectedAct
+                AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
+                AllowSorting="true" ColumnWidth="300px">
+    <Columns>
+        <RadzenDataGridColumn Width="100px" Filterable="false" Property="JobID" Title="">
+            <Template Context="data">
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" Click=@(() => OpenSideDialog(data.guid)) />
+            </Template>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn Width="160px" Property="act_status" Title="ความคืบหน้า">
+            <Template Context="data">
+
+                @if (data.act_status == "สำเร็จ")
+                {
+                    <RadzenButton Text="สำเร็จ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                }
+                else if (data.act_status == "")
+                {
+                    <RadzenButton Text="รอดำเนินการ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                }
+                else if (data.act_status == "ปิดการขาย")
+                {
+                    <RadzenButton Text="ปิดการขาย" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                }
+                else if (data.act_status == "ไม่สำเร็จ")
+                {
+                    <RadzenButton Text="ไม่สำเร็จ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                }
+                else
+                {
+                    <RadzenButton Text="@data.act_status" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Dark" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                }
+
+            </Template>
+        </RadzenDataGridColumn>
+
+
+        <RadzenDataGridColumn Width="100px" Filterable="false" Property="product_code" Title="สินค้า">
+            <Template Context="data">
+                @if (!string.IsNullOrEmpty(data.product_code))
+                {
+                    <RadzenImage Path="/products/product001.png" Style="width: 60px; height: 60px;" class="rz-border-radius-2" AlternateText="" />
+                }
+            </Template>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.call_status)" Width="180px" Title="สถานะการโทร" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.call_action)" Width="180px" Title="สถานะการสนทนา" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.customer_name)" Width="180px" Title="ชื่อลูกค้า" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.customer_phone)" Width="150px" Title="เบอร์ลูกค้า" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.customer_province)" Width="120px" Title="จังหวัด" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.assign_work)" Width="150px" Title="ผู้ติดต่อ" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.startdate)" Width="150px" Title="วันที่ติดต่อลูกค้า" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="Last_Contact_By" Width="150px" Title="ผู้ติดต่อครั้งก่อน" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="Last_Contact_Date" Width="150px" Title="วันที่ติดต่อครั้งก่อน" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="Last_Contact_Action" Width="120px" Title="ผลตอบรับครั้งก่อน" />
+
+
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.startdate)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Title="วันที่มอบหมายงาน" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="Remark" Title="หมายเหตุ" />
+    </Columns>
+</RadzenDataGrid>
+
+
+@code {
+
+
+
+    bool runProcess_wait = false;
+    bool isDialogOpen = false;
+    DateTime? value = DateTime.Now;
+    private DateTime? CreateDateFrom { get; set; }
+    private DateTime? CreateDateTo { get; set; }
+
+    private string username;
+    private IEnumerable<string> roles;
+
+    private string BranchCode { get; set; }
+    private IEnumerable<string> _BranchCode;
+
+
+    private IEnumerable<JobDataList> act_data;
+    IList<JobDataList> selectedAct;
+    RadzenDataGrid<JobDataList> grid;
+
+
+    private async Task OnSearch()
+    {
+        act_data = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo);
+
+        if (act_data != null && act_data.Any())
+        {
+            selectedAct = new List<JobDataList>() { act_data.FirstOrDefault() };
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task OnClear()
+    {
+        // Reset all filters
+        CreateDateFrom = null;
+        CreateDateTo = null;
+
+        act_data = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo);
+
+        if (act_data != null && act_data.Any())
+        {
+            selectedAct = new List<JobDataList>() { act_data.FirstOrDefault() };
+        }
+
+        // บังคับให้ UI อัปเดตใหม่
+        StateHasChanged();
+    }
+
+
+
+
+
+    async Task OpenSideDialog(string orderId)
+    {
+
+        if (isDialogOpen)
+        {
+            DialogService.Close();
+            // await Task.Delay(200);
+        }
+        StateHasChanged();
+        await DialogService.OpenSideAsync<DialogCardPage>(
+            "งานกิจกรรมการโทร",
+            new Dictionary<string, object>() { { "OrderID", orderId } },
+            new SideDialogOptions
+                {
+                    CloseDialogOnOverlayClick = true,
+                    Position = DialogPosition.Right,
+                    ShowMask = false,
+                    Width = "60%"
+                });
+
+        isDialogOpen = true;
+
+    }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            username = user.Identity.Name;
+            roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+
+        }
+        else
+        {
+            username = "Not authenticated";
+            roles = Enumerable.Empty<string>();
+            BranchCode = "";
+        }
+
+
+
+        // เรียกใช้เมธอด FetchCustomerDataAsync เพื่อดึงข้อมูล
+        act_data = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo);
+
+        if (act_data != null && act_data.Any())
+        {
+            selectedAct = new List<JobDataList>() { act_data.FirstOrDefault() };
+        }
+    }
+
+
+
+    public async Task<IEnumerable<JobDataList>> FetchJobDataAsync(DateTime? fdate, DateTime? ldate)
+    {
+        try
+        {
+
+            // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
+            runProcess_wait = true;
+            StateHasChanged(); // บังคับ UI อัปเดต
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+            var searchCriteria = new
+            {
+                fdate = fdate,
+                ldate = ldate,
+                branch_code = BranchCode,
+                assign_work = username
+            };
+
+            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/Job/GetJobData", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jobDataList = await response.Content.ReadFromJsonAsync<IEnumerable<JobDataList>>();
+                return jobDataList;
+            }
+            else
+            {
+                Console.WriteLine("Error fetching Job Data.");
+                return Enumerable.Empty<JobDataList>();
+            }
+        }
+        finally
+        {
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
+    }
+
+}

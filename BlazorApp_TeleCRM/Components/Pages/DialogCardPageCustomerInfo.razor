@@ -1,6 +1,7 @@
 ﻿@page "/DialogCardPageCustomerInfo/{OrderID}"
 @using System.ComponentModel.DataAnnotations
-@using static BlazorApp_TeleCRM.Components.Pages.Job
+@using BlazorApp_TeleCRM.Data
+@using static BlazorApp_TeleCRM.Components.Pages.Job.Job
 @inject IConfiguration Configuration
 @inject Radzen.DialogService dialogService
 @inject HttpClient Http
@@ -70,12 +71,12 @@
                         PagerPosition="PagerPosition.Bottom"
                         AllowAlternatingRows="false">
             <Columns>
-                <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_By" Width="150px" Title="ผู้ติดต่อ" />
-                <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_Date" Width="150px" Title="วันที่ติดต่อลูกค้า" />
-                <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_By" Width="150px" Title="ผู้ติดต่อครั้งก่อน" />
-                <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_Date" Width="150px" Title="วันที่ติดต่อครั้งก่อน" />
-                <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_Action" Width="120px" Title="ผลตอบรับครั้งก่อน" />
-                <RadzenDataGridColumn TItem="WeatherForecast" Property="Remark" Width="200px" Title="หมายเหตุ" />
+                <RadzenDataGridColumn TItem="JobDataList" Property="Contact_By" Width="150px" Title="ผู้ติดต่อ" />
+                <RadzenDataGridColumn TItem="JobDataList" Property="Contact_Date" Width="150px" Title="วันที่ติดต่อลูกค้า" />
+                <RadzenDataGridColumn TItem="JobDataList" Property="Last_Contact_By" Width="150px" Title="ผู้ติดต่อครั้งก่อน" />
+                <RadzenDataGridColumn TItem="JobDataList" Property="Last_Contact_Date" Width="150px" Title="วันที่ติดต่อครั้งก่อน" />
+                <RadzenDataGridColumn TItem="JobDataList" Property="Last_Contact_Action" Width="120px" Title="ผลตอบรับครั้งก่อน" />
+                <RadzenDataGridColumn TItem="JobDataList" Property="Remark" Width="200px" Title="หมายเหตุ" />
             </Columns>
         </RadzenDataGrid>
     </RadzenStack>
@@ -84,8 +85,8 @@
 @code {
     [Parameter] public int OrderID { get; set; }
     Order order;
-    private IEnumerable<WeatherForecast> forecasts;
-    IList<WeatherForecast> selectedCustomer;
+    private IEnumerable<JobDataList> forecasts;
+    IList<JobDataList> selectedCustomer;
 
     private RadzenTemplateForm<UpdateJob> form;
     private UpdateJob Model = new UpdateJob();
@@ -116,10 +117,10 @@
 
         var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
         // Use the BaseApiUrl to call the API
-        var _forecasts = await Http.GetFromJsonAsync<IEnumerable<WeatherForecast>>($"{baseApiUrl}/api/weatherforecast");
+        var _forecasts = await Http.GetFromJsonAsync<IEnumerable<JobDataList>>($"{baseApiUrl}/api/JobDataList");
 
         forecasts = _forecasts.Take(5).ToList();
-        selectedCustomer = new List<WeatherForecast>() { forecasts.FirstOrDefault() };
+        selectedCustomer = new List<JobDataList>() { forecasts.FirstOrDefault() };
 
         StatusData = new List<string>
 {
