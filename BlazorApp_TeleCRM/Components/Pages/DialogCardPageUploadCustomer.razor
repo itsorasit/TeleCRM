@@ -86,7 +86,7 @@
 
     private static readonly string[] data_channels = new[]
       {
-            "เลือกแหล่งข้อมูล", "MyOrder", "GoSell"
+            "เลือกแหล่งข้อมูล", "MyOrder รูปแบบที่ 3", "GoSell"
       };
 
     protected override async Task OnInitializedAsync()
@@ -151,6 +151,12 @@
 
         DateTime today = new DateTime();
         today = DateTime.Now;
+
+        if (channel == "MyOrder รูปแบบที่ 3")
+        {
+            channel = "MyOrder";
+        }
+
 
         var data = new List<MasCustomers>();
         using (var workbook = new ClosedXML.Excel.XLWorkbook(filePath))

@@ -16,7 +16,7 @@
 
 
 
-<RadzenStack Gap="1rem" Orientation="Orientation.Horizontal" >
+<RadzenStack Gap="1rem" Orientation="Orientation.Horizontal">
     <RadzenCard Variant="Variant.Outlined">
         <RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnChange>
             <Tabs>
@@ -25,83 +25,92 @@
                         <RadzenRow>
                             <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
                                 <RadzenTemplateForm TItem="Model" Data=@model Submit="@OnSubmit" InvalidSubmit="@OnInvalidSubmit">
-                                  
-                                        <RadzenStack class="rz-12">
 
-                                            <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
-                                                <RadzenColumn SizeSM="4">
-                                                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">สถานะการโทร <span class="rz-messages-error">*</span> </RadzenText>
-                                                </RadzenColumn>
+                                    <RadzenStack class="rz-12">
+
+                                        <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                            <RadzenColumn SizeSM="4">
+                                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">สถานะการโทร <span class="rz-messages-error">*</span> </RadzenText>
+                                            </RadzenColumn>
                                             <RadzenColumn Size="12" SizeMD="8">
-                                                    <RadzenDropDown @bind-Value=@model.call_status style="display:block;width:100%"
-                                                                    Data=@StatusTelData Name="call_status" class="w-100" />
-                                                    <RadzenRequiredValidator Component="call_status" Text="เลือก สถานะการโทร" Style="position: absolute" />
-                                                </RadzenColumn>
-                                            </RadzenRow>
+                                                <RadzenDropDown @bind-Value=@model.call_status style="display:block;width:100%"
+                                                                Data=@StatusTelData Name="call_status" class="w-100"
+                                                                Change="@(args => OnCallStatusChange(model.call_status))" />
+                                                <RadzenRequiredValidator Component="call_status" Text="เลือก สถานะการโทร" Style="position: absolute" />
+                                            </RadzenColumn>
+                                        </RadzenRow>
 
-                                            <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
-                                                <RadzenColumn SizeMD="4">
-                                                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">สถานะการสนทนา <span class="rz-messages-error">*</span> </RadzenText>
-                                                </RadzenColumn>
-                                                <RadzenColumn Size="12" SizeMD="8">
-                                                    <RadzenDropDown @bind-Value=@model.call_action style="display:block;width:100%"
-                                                                    Data=@StatusConversationData Name="call_action" class="w-100" />
-                                                    <RadzenRequiredValidator Component="call_action" Text="เลือก สถานะการสนทนา" Style="position: absolute" />
-                                                </RadzenColumn>
-                                            </RadzenRow>
+                                        <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                            <RadzenColumn SizeMD="4">
+                                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">สถานะการสนทนา <span class="rz-messages-error">*</span> </RadzenText>
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="12" SizeMD="8">
+                                                <RadzenDropDown @bind-Value=@model.call_action style="display:block;width:100%"
+                                                                Data=@StatusConversationData Name="call_action" class="w-100"
+                                                                Change="@(args => OnCallActionChange(model.call_action))" />
+                                                <RadzenRequiredValidator Component="call_action" Text="เลือก สถานะการสนทนา" Style="position: absolute" />
+                                            </RadzenColumn>
+                                        </RadzenRow>
 
-                                            <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
-                                                <RadzenColumn Size="12" SizeMD="4">
-                                                    <RadzenLabel Text="คำสั่งซื้อใหม่" Component="sale_order" />
-                                                </RadzenColumn>
-                                                <RadzenColumn Size="12" SizeMD="8">
-                                                <RadzenTextBox Placeholder="กรอกเลขที่เปิดคำสั่งซื้อใหม่" Name="sale_order" @bind-Value="@model.sale_order" class="w-100" />
-                                                </RadzenColumn>
-                                            </RadzenRow>
 
-                                            <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
-                                                <RadzenColumn Size="12" SizeMD="4">
-                                                <RadzenLabel Text="หมายเหตุ" Component="remark" />
-                                                </RadzenColumn>
-                                                <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                            <RadzenColumn Size="12" SizeMD="4">
+                                                <RadzenLabel Text="คำสั่งซื้อใหม่" TextStyle="TextStyle.Subtitle2" Component="sale_order_no" />
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="12" SizeMD="8">
+                                                <RadzenTextBox Placeholder="กรอกเลขที่เปิดคำสั่งซื้อใหม่" Disabled="btnDisable_sale_order_no" Name="sale_order_no" @bind-Value="@model.sale_order_no" class="w-100" />
+                                            </RadzenColumn>
+                                        </RadzenRow>
+
+                                        <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                            <RadzenColumn Size="12" SizeMD="4">
+                                                <RadzenLabel Text="หมายเหตุ" TextStyle="TextStyle.Subtitle2" Component="remark" />
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="12" SizeMD="8">
                                                 <RadzenTextArea Placeholder="" Name="remark" @bind-Value="@model.remark" class="w-100" />
-                                                </RadzenColumn>
-                                            </RadzenRow>
+                                            </RadzenColumn>
+                                        </RadzenRow>
 
-                                            <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
-                                                <RadzenColumn Size="12" SizeMD="4">
-                                                    <RadzenLabel Text="คะแนนการมีส่วนร่วม" Component="Participation" />
-                                                </RadzenColumn>
-                                                <RadzenColumn Size="12" SizeMD="8">
-                                                    <RadzenRating @bind-Value=@model.statusparticipation />
-                                                </RadzenColumn>
-                                            </RadzenRow>
+                                        <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                            <RadzenColumn Size="12" SizeMD="4">
+                                                <RadzenLabel Text="คะแนนส่วนร่วม" Component="Participation" />
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="12" SizeMD="8">
+                                                <RadzenRating @bind-Value=@model.statusparticipation /> <span>( @model.statusparticipation )</span>
+                                            </RadzenColumn>
+                                        </RadzenRow>
 
-                                            <!-- Submit Button -->
-                                            <RadzenRow AlignItems="AlignItems.Start">
-                                                <RadzenColumn Size="12">
+                                        <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                            <RadzenColumn Size="12" SizeMD="4">
+                                                <RadzenLabel Text="นัดโทรครั้งถัดไป" TextStyle="TextStyle.Subtitle2" Style="color:mediumseagreen" Component="appointment_date" />
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="12" SizeMD="8">
+                                                <RadzenDatePicker Disabled="@btnDisable_appointmentDate" @bind-Value=@model.appointment_date ShowTime="true" ShowSeconds="true"
+                                                                  HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm"
+                                                                  Name="appointment_date" class="w-100" style="display:block;width:100%" />
+
+                                                @if (model.call_status == "เลื่อนการโทร")
+                                                {
+                                                    <RadzenRequiredValidator Component="appointment_date" Text="เลือกวันที่นัดโทรครั้งถัดไป" Style="position: absolute" />
+                                                }
+                                            </RadzenColumn>
+                                        </RadzenRow>
+
+
+
+                                        <!-- Submit Button -->
+                                        <RadzenRow AlignItems="AlignItems.Start">
+                                            <RadzenColumn Size="12">
                                                 <RadzenButton Disabled="@btnDisable" ButtonType="ButtonType.Submit" Text="บันทึก" Style="margin-top: 5px;" />
-                                                </RadzenColumn>
-                                            </RadzenRow>
-
-                                            <hr>
-
-                                            <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
-                                                <RadzenColumn Size="12" SizeMD="4">
-                                                    <RadzenLabel Text="นัดโทรครั้งถัดไป" Component="DatePickerWithTime" />
-                                                </RadzenColumn>
-                                                <RadzenColumn Size="12" SizeMD="8">
-                                                    <RadzenDatePicker @bind-Value=@appointmentDate ShowTime="true" ShowSeconds="true" HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm" Name="DatePickerWithTime" />
-                                                </RadzenColumn>
-                                            </RadzenRow>
-                                            <RadzenRow AlignItems="AlignItems.Start">
-                                                <RadzenButton ButtonType="ButtonType.Button" Disabled="true" ButtonStyle="ButtonStyle.Warning" Text="นัดหมายครั้งหน้า" Style="margin-top: 5px;" />
-                                                <RadzenText TextStyle="TextStyle.H6" Style="color:crimson">1 กรณีที่ไม่สะดวก หรือ ต้องติดตาม ระบบต้องมีหน้าให้พนักงานสร้าง นัดหมายครั้งหน้าได้ </RadzenText>
-                                            </RadzenRow>
+                                            </RadzenColumn>
+                                        </RadzenRow>
 
 
-                                        </RadzenStack>
-                                  
+
+
+
+                                    </RadzenStack>
+
                                 </RadzenTemplateForm>
                             </RadzenColumn>
                             <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
@@ -156,12 +165,20 @@
                                         <RadzenImage Path="/user/staff1.jpg" Style="width: 5rem;" AlternateText="@* @order.Contact_By *@" />
                                         <RadzenStack Gap="0" class="rz-text-truncate">
                                             <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-2 rz-my-0" Style="color: var(--rz-text-tertiary-color);">พนักงาน</RadzenText>
-                                            <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@* @order.Contact_By *@</b></RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b> @model.contact_by </b></RadzenText>
                                             <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-4 rz-mb-0" Style="color: var(--rz-text-tertiary-color);">วันที่ติดต่อ</RadzenText>
-                                            <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@* @order.Contact_Date *@</b></RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate">
+                                                <b>
+                                                    @if (model.contact_date != null)
+                                                    {
+                                                        @model.contact_date.Value.ToString("dd/MM/yyyy HH:mm:ss")
+                                                    }
+
+                                                </b>
+                                            </RadzenText>
 
                                             <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-4 rz-mb-0" Style="color: var(--rz-text-tertiary-color);">เบอร์ที่ใช้โทร</RadzenText>
-                                            <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>-</b></RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@model.contact_use_phone </b></RadzenText>
                                         </RadzenStack>
                                     </RadzenStack>
                                 </RadzenColumn>
@@ -170,13 +187,19 @@
 
                             </RadzenColumn>
 
-                    
+
                         </RadzenRow>
                     </RadzenStack>
-                    
+
                     <RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;margin-top:10px">
                         <RadzenStack>
-                            <RadzenText TextStyle="TextStyle.H5" Style="margin-top:10px"><b>ข้อมูลกิจกรรม</b></RadzenText>
+                            <RadzenText TextStyle="TextStyle.H5" Style="margin-top:10px">
+                                <b>
+                                    ข้อมูลกิจกรรม TouchPoint :
+                                    @model.activities_touch_point
+
+                                </b>
+                            </RadzenText>
                             <RadzenRow>
                                 <RadzenColumn Size="12" SizeMD="12" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
                                     <RadzenRow Gap="0">
@@ -196,14 +219,14 @@
                                             <RadzenText TextStyle="TextStyle.Caption">
                                                 @if (model.activities_startdate != null)
                                                 {
-                                                    @model.activities_startdate.Value.ToString("dd/MM/yyyy HH:mm:ss") 
+                                                    @model.activities_startdate.Value.ToString("dd/MM/yyyy HH:mm:ss")
                                                 }
-                                                 - 
+                                                -
                                                 @if (model.activities_duedate != null)
                                                 {
                                                     @model.activities_duedate.Value.ToString("dd/MM/yyyy HH:mm:ss")
                                                 }
-                                              </RadzenText>
+                                            </RadzenText>
                                         </RadzenColumn>
                                     </RadzenRow>
                                     <RadzenRow Gap="0">
@@ -221,9 +244,21 @@
 
                                     <RadzenRow Gap="0">
                                         <RadzenColumn>
-                                            <RadzenText TextStyle="TextStyle.Caption"><b>งานโอน</b></RadzenText>
+                                            @if (model.re_activity == true)
+                                            {
+                                                <RadzenText TextStyle="TextStyle.Caption">
+                                                    <b>งานเลื่อนนัด</b>
+                                                </RadzenText>
+                                            }
+                                            else
+                                            {
+                                                <RadzenText TextStyle="TextStyle.Caption">
+                                                    <b>งานโอน</b>
+                                                </RadzenText>
+                                            }
+
                                             <br />
-                                            <RadzenText TextStyle="TextStyle.Caption">-</RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Caption">@model.old_activity_guid </RadzenText>
                                         </RadzenColumn>
                                         <RadzenColumn>
                                             <RadzenText TextStyle="TextStyle.Caption"><b>ฝากงานให้นายหน้า</b></RadzenText>
@@ -490,16 +525,19 @@
     [Parameter] public string OrderID { get; set; }
     // Order order;
 
-    DateTime? appointmentDate = DateTime.Now.AddDays(3);
+    DateTime? appointmentDate;
 
 
     bool runProcess_wait = false;
     bool btnDisable = false;
+    bool btnDisable_appointmentDate = true;
+    bool btnDisable_sale_order_no = true;
+
     bool isError = false;
     string TextError = "";
     bool runProcess = false;
     string TextProcess = "";
-
+    string new_activity_ref_guid = "";
 
 
     private string? username;
@@ -534,7 +572,6 @@
         public string? sale_order_no { get; set; }
         public string? code { get; set; }
         public int statusparticipation { get; set; }
-        public string? sale_order { get; set; }
         public string? remark { get; set; }
 
 
@@ -544,8 +581,16 @@
         public string? customer_address1 { get; set; }
         public string? customer_sub_district { get; set; }
         public string? customer_district { get; set; }
-        public string? customer_zipcode  { get; set; }
+        public string? customer_zipcode { get; set; }
 
+
+        public string? contact_by { get; set; }
+        public DateTime? contact_date { get; set; }
+        public string? contact_use_phone { get; set; }
+        public string? new_activity_ref_guid { get; set; }
+        public DateTime? appointment_date { get; set; }
+        public string? old_activity_guid { get; set; }
+        public bool? re_activity { get; set; }
 
     }
 
@@ -566,7 +611,7 @@
 {
     "รับสาย",
     "ไม่รับสาย",
-    "ติดต่อไม่ได้"
+    "เลื่อนการโทร"
 };
 
         StatusConversationData = new List<string>
@@ -575,6 +620,7 @@
     "ไม่สะดวก",
     "ติดตาม",
     "ขายได้",
+    "ติดต่อไม่ได้"
 };
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -621,7 +667,7 @@
                 model.call_status = selectedAct.call_status;
                 model.sale_order_no = selectedAct.sale_order_no;
                 model.remark = selectedAct.remark;
-
+                model.statusparticipation = selectedAct.statusparticipation.Value;
 
                 model.customer_name = selectedAct.customer_name;
                 model.customer_phone = selectedAct.customer_phone;
@@ -630,6 +676,14 @@
                 model.customer_sub_district = selectedAct.customer_sub_district;
                 model.customer_district = selectedAct.customer_district;
                 model.customer_zipcode = selectedAct.customer_zipcode;
+
+                model.contact_by = selectedAct.contact_by;
+                model.contact_date = selectedAct.contact_date;
+                model.contact_use_phone = selectedAct.contact_use_phone;
+                model.new_activity_ref_guid = selectedAct.new_activity_ref_guid;
+                model.appointment_date = selectedAct.appointment_date;
+                model.old_activity_guid = selectedAct.old_activity_guid;
+                model.re_activity = selectedAct.re_activity;
 
                 string phoneNumber = "tel:" + @utility.FormatPhoneNumberWithCountryCode(selectedAct.customer_phone);
 
@@ -651,6 +705,71 @@
 
 
     }
+
+    private void OnCallStatusChange(string value)
+    {
+
+        StatusConversationData = new List<string>
+            {
+                 "คุยจบ",
+                 "ไม่สะดวก",
+                 "ติดตาม",
+                 "ขายได้",
+                 "ติดต่อไม่ได้"
+             };
+
+        if (value == "รับสาย")
+        {
+            StatusConversationData = new List<string>
+            {
+                 "คุยจบ",
+                 "ไม่สะดวก",
+                 "ติดตาม",
+                 "ขายได้"
+             };
+
+            model.appointment_date = null;
+            btnDisable_appointmentDate = true;
+        }
+        if (value == "ไม่รับสาย")
+        {
+            StatusConversationData = StatusConversationData.Where(item => item == "ติดต่อไม่ได้");
+            model.call_action = "ติดต่อไม่ได้";
+            model.appointment_date = null;
+            btnDisable_appointmentDate = true;
+
+        }
+        else if (value == "เลื่อนการโทร")
+        {
+            StatusConversationData = new List<string>
+            {
+                 "ไม่สะดวก",
+                 "ติดตาม",
+                 "ติดต่อไม่ได้"
+             };
+
+            model.call_action = "ติดตาม";
+            btnDisable_appointmentDate = false;
+        }
+
+
+    }
+
+    private void OnCallActionChange(string value)
+    {
+        if (model.call_status == "รับสาย" && value == "ขายได้")
+        {
+            btnDisable_sale_order_no = false;
+            btnDisable_appointmentDate = true;
+            model.appointment_date = null;
+        }
+        else
+        {
+            btnDisable_sale_order_no = true;
+            model.sale_order_no = "";
+        }
+    }
+
 
 
     public async Task<IEnumerable<JobDataList>> FetchCustomerDataAsync(string Guid)
@@ -694,6 +813,11 @@
 
 
 
+    private void OnInvalidSubmit()
+    {
+
+    }
+
 
     void OnChange(int index)
     {
@@ -714,11 +838,11 @@
 
         if (confirmed.HasValue && confirmed.Value)
         {
-             await UpdateBatchToDatabaseWithTransaction();
+            await UpdateBatchToDatabaseWithTransaction();
         }
         else
         {
-            
+
             btnDisable = false;
         }
 
@@ -740,16 +864,29 @@
         try
         {
             var query = @"UPDATE crm_activitys
-                          SET 
+                          SET
                           modified_by = @modified_by,
                           modified_date = @modified_date,
                           status = @status,
                           call_status = @call_status,
                           sale_order_no = @sale_order_no,
                           remark= @remark,
+                          statusparticipation = @statusparticipation,
                           code = @code,
-                          call_action = @call_action
-                      WHERE guid = @guid and branch_code = @branch_code ";
+                          call_action = @call_action,
+                          contact_by = @contact_by,
+                          contact_date = @contact_date,
+                          contact_use_phone = @contact_use_phone ";
+
+            if (model.call_status == "เลื่อนการโทร")
+            {
+                query += @" ,appointment_date = @appointment_date
+                            ,new_activity_ref_guid = @new_activity_ref_guid
+                            ,re_activity = @re_activity ";
+            }
+
+
+            query += @" WHERE guid = @guid and branch_code = @branch_code ";
 
             using var command = new MySqlCommand(query, MySqlConnection, transaction);
 
@@ -766,8 +903,43 @@
             command.Parameters.AddWithValue("@allowagent", model.allowagent ?? false);
             command.Parameters.AddWithValue("@record_status", true);
             command.Parameters.AddWithValue("@modified_by", username);
+            command.Parameters.AddWithValue("@statusparticipation", model.statusparticipation);
             command.Parameters.AddWithValue("@modified_date", today);
+
+            command.Parameters.AddWithValue("@contact_by", username);
+            command.Parameters.AddWithValue("@contact_date", today);
+            command.Parameters.AddWithValue("@contact_use_phone", "");
+
+
+            if (model.call_status == "เลื่อนการโทร")
+            {
+
+                if (string.IsNullOrEmpty(model.new_activity_ref_guid))
+                {
+                    new_activity_ref_guid = Guid.NewGuid().ToString();
+                    command.Parameters.AddWithValue("@new_activity_ref_guid", new_activity_ref_guid);
+                    command.Parameters.AddWithValue("@re_activity", true);
+                    command.Parameters.AddWithValue("@appointment_date", model.appointment_date ?? (object)DBNull.Value);
+                }
+                else
+                {
+                    command.Parameters.AddWithValue("@new_activity_ref_guid", model.new_activity_ref_guid);
+                    command.Parameters.AddWithValue("@appointment_date", model.appointment_date ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@re_activity", true);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(model.sale_order_no))
+            {
+                model.status = "ปิดการขาย";
+            }
+            else
+            {
+                model.status = "สำเร็จ";
+            }
+
             command.Parameters.AddWithValue("@status", model.status ?? (object)DBNull.Value);
+
             command.Parameters.AddWithValue("@call_status", model.call_status ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@sale_order_no", model.sale_order_no ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@remark", model.remark ?? (object)DBNull.Value);
@@ -790,51 +962,77 @@
         finally
         {
             await MySqlConnection.CloseAsync();
+            if (model.call_status == "เลื่อนการโทร")
+            {
+                await SaveBatchToDatabaseWithTransaction(new_activity_ref_guid, model.activities_id);
+            }
+
             btnDisable = true;
             runProcess_wait = false;
             TextProcess = "อัปเดตข้อมูลในระบบเรียบร้อยแล้ว";
             NotificationService.Notify(NotificationSeverity.Success, "สำเร็จ", "อัปเดตข้อมูลสำเร็จ");
             StateHasChanged();
+
         }
     }
 
 
-
-    private void OnInvalidSubmit()
+    private async Task SaveBatchToDatabaseWithTransaction(string new_activity_ref_guid, string old_activity_guid)
     {
 
+        DateTime today = new DateTime();
+        today = DateTime.Now;
+
+
+        await MySqlConnection.OpenAsync();
+        using var transaction = await MySqlConnection.BeginTransactionAsync();
+
+        try
+        {
+            var query = @"INSERT INTO crm_activitys (guid, customer_code, branch_code, touch_point, name, description, startdate, duedate, reminder_duedate, assign_work, assign_work_type, allowagent, record_status, created_by, created_date ,old_activity_guid ,re_activity)
+            VALUES (@guid, @customer_code, @branch_code, @touch_point, @name, @description, @startdate, @duedate, @reminder_duedate, @assign_work, @assign_work_type, @allowagent, @record_status, @created_by, @created_date ,@old_activity_guid ,@re_activity)";
+            using var command = new MySqlCommand(query, MySqlConnection, transaction);
+
+            command.Parameters.AddWithValue("@guid", new_activity_ref_guid);
+            command.Parameters.AddWithValue("@customer_code", selectedAct.customer_code);
+            command.Parameters.AddWithValue("@branch_code", BranchCode ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@touch_point", model.activities_touch_point ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@name", model.activities_name ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@description", model.activities_description ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@startdate", model.appointment_date ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@duedate", model.appointment_date.Value.AddDays(7));
+            command.Parameters.AddWithValue("@reminder_duedate", model.appointment_date.Value.AddDays(7));
+            command.Parameters.AddWithValue("@assign_work", model.activities_assign_work ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@assign_work_type", "Activities" ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@allowagent", model.allowagent ?? false);
+            command.Parameters.AddWithValue("@record_status", true);
+            command.Parameters.AddWithValue("@created_by", username);
+            command.Parameters.AddWithValue("@created_date", today);
+            command.Parameters.AddWithValue("@old_activity_guid", old_activity_guid);
+            command.Parameters.AddWithValue("@re_activity", true);
+            await command.ExecuteNonQueryAsync();
+
+            // Commit transaction
+            await transaction.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            // // Rollback transaction in case of an error
+            await transaction.RollbackAsync();
+            // TextProcess = $"Error: {ex.Message}";
+            // btnDisable = false;
+            // runProcess_wait = false;
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+            // btnDisable = true;
+            // runProcess_wait = false;
+            // TextProcess = "บันทึกข้อมูลระบบเรียบร้อยแล้ว";
+            // NotificationService.Notify(NotificationSeverity.Success, "สำเร็จ", "บันทึกข้อมูลสำเร็จ");
+            StateHasChanged();
+        }
     }
-
-
-    public class UpdateJob
-    {
-        [Required(ErrorMessage = "เลือกสถานะ")]
-        public string statusTel { get; set; }
-        public string statusConversation { get; set; }
-        public int statusparticipation { get; set; }
-        public string sale_order { get; set; }
-        public string remark { get; set; }
-    }
-
-
-    private class Order
-    {
-        public string? JobID { get; set; }
-        public DateTime? Date { get; set; }
-        public int? TemperatureC { get; set; }
-        public string Summary { get; set; }
-        public string Customer_FullName { get; set; }
-        public string Customer_Phone { get; set; }
-        public string Customer_Address { get; set; }
-        public string Customer_Action { get; set; }
-        public string Contact_By { get; set; }
-        public DateTime? Contact_Date { get; set; }
-        public string Last_Contact_By { get; set; }
-        public DateTime? Last_Contact_Date { get; set; }
-        public string Last_Contact_Action { get; set; }
-        public string Remark { get; set; }
-    }
-
 
 
 

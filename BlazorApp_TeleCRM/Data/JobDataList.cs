@@ -47,6 +47,15 @@
         public string? product_code { get; set; }
         public string? sale_order_no { get; set; }
         public string? remark { get; set; }
+        public int? statusparticipation { get; set; }
+
+        public string? contact_by { get; set; }
+        public DateTime? contact_date { get; set; }
+        public string? contact_use_phone { get; set; }
+        public string? new_activity_ref_guid { get; set; }
+        public DateTime? appointment_date { get; set; }
+        public string? old_activity_guid { get; set; }
+        public bool? re_activity { get; set; }
 
 
     }

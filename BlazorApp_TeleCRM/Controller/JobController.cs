@@ -4,6 +4,8 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
+using Radzen.Blazor;
+using static QRCoder.PayloadGenerator;
 
 namespace BlazorApp_TeleCRM.Controller
 {
@@ -161,7 +163,9 @@ namespace BlazorApp_TeleCRM.Controller
                     mc.address1 as customer_address1, 
                     mc.sub_district as customer_sub_district,
                     mc.district as customer_district,
-                    mc.zipcode as customer_zipcode, ca.sale_order_no, ca.remark
+                    mc.zipcode as customer_zipcode, ca.sale_order_no, ca.remark ,IFNULL(ca.statusparticipation, 0) as statusparticipation,
+                    ca.contact_by, ca.contact_date, ca.contact_use_phone, ca.new_activity_ref_guid, ca.appointment_date ,ca.old_activity_guid,
+                    ca.re_activity
                     FROM crm_activitys ca
                     inner join mas_customers mc on mc.guid = ca.customer_code 
                     where ca.guid = @guid
@@ -184,7 +188,9 @@ namespace BlazorApp_TeleCRM.Controller
                                 branch_code = reader["branch_code"].ToString(),
                                 touch_point = reader["touch_point"].ToString(),
                                 act_name = reader["name"].ToString(),
-
+                                remark  = reader["remark"].ToString(),
+                                sale_order_no = reader["sale_order_no"].ToString(),
+                                statusparticipation = reader.IsDBNull(reader.GetOrdinal("statusparticipation")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("statusparticipation")),
 
 
                                 product_code = reader["product_code"].ToString(),
@@ -202,6 +208,16 @@ namespace BlazorApp_TeleCRM.Controller
                                 created_date = reader.GetDateTime(reader.GetOrdinal("created_date")),
                                 modified_by = reader.IsDBNull(reader.GetOrdinal("modified_by")) ? null : reader["modified_by"].ToString(),
                                 modified_date = reader.IsDBNull(reader.GetOrdinal("modified_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("modified_date")),
+
+
+                                contact_by = reader["contact_by"].ToString(),
+                                contact_date = reader.IsDBNull(reader.GetOrdinal("contact_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("contact_date")),
+                                contact_use_phone = reader["contact_use_phone"].ToString(),
+                                new_activity_ref_guid = reader["new_activity_ref_guid"].ToString(),
+                                appointment_date = reader.IsDBNull(reader.GetOrdinal("appointment_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("appointment_date")),
+                                old_activity_guid = reader["old_activity_guid"].ToString(),
+                                re_activity = reader.IsDBNull(reader.GetOrdinal("re_activity")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("re_activity")),
+
 
                                 act_status = reader["status"].ToString(),
                                 call_status = reader["call_status"].ToString(),
