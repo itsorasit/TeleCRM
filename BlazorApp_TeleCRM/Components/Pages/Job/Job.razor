@@ -46,24 +46,24 @@
 
 
 <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" class="rz-p-1" Gap="2rem">
-    <RadzenButton ButtonStyle="ButtonStyle.Primary">
+    <RadzenButton ButtonStyle="ButtonStyle.Primary" Click=@(() => OnSearch_Touch_point("Up-Sale"))>
         Up-Sale
-        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="20" class="rz-ms-2" />
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="@count_UpSale.ToString()" class="rz-ms-2" />
     </RadzenButton>
 
-    <RadzenButton ButtonStyle="ButtonStyle.Secondary">
-        Re-Order
-        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="50" class="rz-ms-2" />
+    <RadzenButton ButtonStyle="ButtonStyle.Secondary" Click=@(() => OnSearch_Touch_point("Re-Sale"))>
+        Re-Sale
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="@count_ReSale.ToString()" class="rz-ms-2" />
     </RadzenButton>
 
-    <RadzenButton ButtonStyle="ButtonStyle.Base">
+    <RadzenButton ButtonStyle="ButtonStyle.Base" Click=@(() => OnSearch_Touch_point("ลูกค้าขุด"))>
         ลูกค้าขุด
-        <RadzenBadge Variant="Variant.Outlined" Text="30" class="rz-ms-2" />
+        <RadzenBadge Variant="Variant.Outlined" Text="@count_x.ToString()" class="rz-ms-2"  />
     </RadzenButton>
 
-    <RadzenButton ButtonStyle="ButtonStyle.Info">
+    <RadzenButton ButtonStyle="ButtonStyle.Info" Click=@(() => OnSearch_JobCompleted())>
         จัดการแล้ว
-        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="70" class="rz-ms-2" />
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="@count_completed.ToString()" class="rz-ms-2" />
     </RadzenButton>
 
 </RadzenStack>
@@ -72,7 +72,7 @@
     <Template>โหลด</Template>
 </RadzenProgressBarCircular>
 
-<RadzenDataGrid TItem="JobDataList" Data="@act_data" PagerPosition="PagerPosition.Bottom"
+<RadzenDataGrid @ref="grid" TItem="JobDataList" Data="@act_data" PagerPosition="PagerPosition.Bottom"
                 FilterMode="FilterMode.SimpleWithMenu" PageSize="10"
                 SelectionMode="DataGridSelectionMode.Single"
                 @bind-Value=@selectedAct
@@ -112,6 +112,7 @@
             </Template>
         </RadzenDataGridColumn>
 
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.touch_point)" Width="180px" Title="Touch Point" />
 
         <RadzenDataGridColumn Width="100px" Filterable="false" Property="product_code" Title="สินค้า">
             <Template Context="data">
@@ -128,21 +129,23 @@
         <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.customer_phone)" Width="150px" Title="เบอร์ลูกค้า" />
         <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.customer_province)" Width="120px" Title="จังหวัด" />
         <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.assign_work)" Width="150px" Title="ผู้ติดต่อ" />
-        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.startdate)" Width="150px" Title="วันที่ติดต่อลูกค้า" />
-        <RadzenDataGridColumn TItem="JobDataList" Property="Last_Contact_By" Width="150px" Title="ผู้ติดต่อครั้งก่อน" />
-        <RadzenDataGridColumn TItem="JobDataList" Property="Last_Contact_Date" Width="150px" Title="วันที่ติดต่อครั้งก่อน" />
-        <RadzenDataGridColumn TItem="JobDataList" Property="Last_Contact_Action" Width="120px" Title="ผลตอบรับครั้งก่อน" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.startdate)" Width="180px" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Title="วันที่ติดต่อลูกค้า" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.contact_created_by)" Width="150px" Title="ผู้ติดต่อครั้งก่อน" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.contact_created_at)" Width="180px" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Title="วันที่ติดต่อครั้งก่อน" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.contact_result2)" Width="150px" Title="ผลตอบรับครั้งก่อน" />
 
 
-        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.startdate)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Title="วันที่มอบหมายงาน" />
-        <RadzenDataGridColumn TItem="JobDataList" Property="Remark" Title="หมายเหตุ" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.startdate)" Width="180px" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Title="วันที่มอบหมายงาน" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.remark)" Title="หมายเหตุ" />
     </Columns>
 </RadzenDataGrid>
 
 
 @code {
-
-
+    private int count_UpSale = 0;
+    private int count_ReSale = 0;
+    private int count_x = 0;
+    private int count_completed = 0;
 
     bool runProcess_wait = false;
     bool isDialogOpen = false;
@@ -174,11 +177,47 @@
         StateHasChanged();
     }
 
+
+    private async Task OnSearch_Touch_point(string value)
+    {
+        var column = grid.ColumnsCollection.Where(c => c.Property == "act_status").FirstOrDefault();
+        if (column != null)
+        {
+            column.SetFilterOperator(FilterOperator.IsEmpty);
+        }
+
+        var column1 = grid.ColumnsCollection.Where(c => c.Property == "touch_point").FirstOrDefault();
+        if (column1 != null)
+        {
+            column1.SetFilterValue(value);
+            column1.SetFilterOperator(FilterOperator.StartsWith);
+        }
+
+        grid.Reload();
+    }
+
+    private async Task OnSearch_JobCompleted()
+    {
+        var column = grid.ColumnsCollection.Where(c => c.Property == "act_status").FirstOrDefault();
+        if (column != null)
+        {
+            column.SetFilterOperator(FilterOperator.IsNotEmpty);
+        }
+        var column1 = grid.ColumnsCollection.Where(c => c.Property == "touch_point").FirstOrDefault();
+        if (column1 != null)
+        {
+            column1.SetFilterOperator(FilterOperator.IsNotEmpty);
+        }
+        grid.Reload();
+    }
+
+
     private async Task OnClear()
     {
         // Reset all filters
         CreateDateFrom = null;
         CreateDateTo = null;
+        // grid.Reset();
 
         act_data = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo);
 
@@ -187,6 +226,19 @@
             selectedAct = new List<JobDataList>() { act_data.FirstOrDefault() };
         }
 
+        var column0 = grid.ColumnsCollection.Where(c => c.Property == "act_status").FirstOrDefault();
+        if (column0 != null)
+        {
+            column0.SetFilterOperator(FilterOperator.IsEmpty);
+        }
+
+        var column1 = grid.ColumnsCollection.Where(c => c.Property == "touch_point").FirstOrDefault();
+        if (column1 != null)
+        {
+            column1.SetFilterOperator(FilterOperator.IsNotEmpty);
+        }
+
+        grid.Reload();
         // บังคับให้ UI อัปเดตใหม่
         StateHasChanged();
     }
@@ -243,15 +295,30 @@
             BranchCode = "";
         }
 
-
-
         // เรียกใช้เมธอด FetchCustomerDataAsync เพื่อดึงข้อมูล
         act_data = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo);
 
         if (act_data != null && act_data.Any())
         {
             selectedAct = new List<JobDataList>() { act_data.FirstOrDefault() };
+
         }
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var column = grid.ColumnsCollection.Where(c => c.Property == "act_status").FirstOrDefault();
+            if (column != null)
+            {
+                //  column.SetFilterValue("is empty");
+                column.SetFilterOperator(FilterOperator.IsEmpty);
+                grid.Reload();
+            }
+        }
+
+        return base.OnAfterRenderAsync(firstRender);
     }
 
 
@@ -281,7 +348,39 @@
 
             if (response.IsSuccessStatusCode)
             {
+                count_UpSale = 0;
+                count_ReSale = 0;
+                count_x = 0;
+                count_completed = 0;
+
                 var jobDataList = await response.Content.ReadFromJsonAsync<IEnumerable<JobDataList>>();
+                if (jobDataList.Count() > 0)
+                {
+                    foreach (var i in jobDataList)
+                    {
+                        if (i.touch_point == "Up-Sale" && string.IsNullOrEmpty(i.act_status) )
+                        {
+                            count_UpSale++;
+                        }
+                        else if (i.touch_point == "Re-Sale" && string.IsNullOrEmpty(i.act_status))
+                        {
+                            count_ReSale++;
+                        }
+                        else if (i.touch_point == "ลูกค้าขุด" && string.IsNullOrEmpty(i.act_status))
+                        {
+                            count_x++;
+                        }
+
+                        if (!string.IsNullOrEmpty( i.act_status))
+                        {
+                            count_completed++;
+                        }
+
+                    }
+                }
+
+                
+
                 return jobDataList;
             }
             else

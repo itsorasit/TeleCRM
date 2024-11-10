@@ -13,7 +13,7 @@ namespace BlazorApp_TeleCRM.Models
         public DbSet<MasBranches> MasBranches { get; set; }
         public DbSet<MasCustomers>MasCustomers { get; set; }
         public DbSet<CrmActivitys> CrmActivitys { get; set; }
-
+        public DbSet<CrmContactLog> CrmContactLog { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,6 +33,10 @@ namespace BlazorApp_TeleCRM.Models
             modelBuilder.Entity<CrmActivitys>()
              .ToTable("crm_activitys")
              .HasKey(u => u.guid);
+
+            modelBuilder.Entity<CrmContactLog>()
+            .ToTable("crm_contact_logs")
+            .HasKey(u => u.log_id);
 
             base.OnModelCreating(modelBuilder);
         }

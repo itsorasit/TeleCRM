@@ -56,7 +56,9 @@
         public DateTime? appointment_date { get; set; }
         public string? old_activity_guid { get; set; }
         public bool? re_activity { get; set; }
-
+        public string? contact_result2 { get; set; }
+        public string?  contact_created_by { get; set; }
+        public DateTime?  contact_created_at { get; set; }
 
     }
 }

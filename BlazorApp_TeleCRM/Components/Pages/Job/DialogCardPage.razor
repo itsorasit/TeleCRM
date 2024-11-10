@@ -2,6 +2,7 @@
 @using System.ComponentModel.DataAnnotations
 @using BlazorApp_TeleCRM.Data
 @using BlazorApp_TeleCRM.Helper
+@using BlazorApp_TeleCRM.Models
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 @using MySql.Data.MySqlClient
@@ -99,12 +100,14 @@
 
 
                                         <!-- Submit Button -->
-                                        <RadzenRow AlignItems="AlignItems.Start">
-                                            <RadzenColumn Size="12">
+                                        @if (model.status == "")
+                                        {
+                                            <RadzenRow AlignItems="AlignItems.Start">
+                                                <RadzenColumn Size="12">
                                                 <RadzenButton Disabled="@btnDisable" ButtonType="ButtonType.Submit" Text="บันทึก" Style="margin-top: 5px;" />
                                             </RadzenColumn>
                                         </RadzenRow>
-
+                                        }
 
 
 
@@ -291,7 +294,29 @@
                         </RadzenStack>
                     </RadzenStack>
                 </RadzenTabsItem>
+                <RadzenTabsItem Text="ประวัติการติดต่อ">
+                    <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Start" Gap="1rem" class="rz-12" Style="width%90">
+                        <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
+                                        FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                        @bind-Value=@selecteContact
+                                        Data="@contacts" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
+                                        PagerPosition="PagerPosition.Bottom"
+                                        AllowAlternatingRows="false">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.created_by)" Width="120px" Title="ผู้ติดต่อ" />
+                                <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.created_at)" Width="150px" Title="วันที่ติดต่อลูกค้า" />
+                                <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_result)" Width="120px" Title="ความคืบหน้า" />
+                                <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_result2)" Width="120px" Title="ผลตอบรับครั้งก่อน" />
+                                <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_remark)" Width="150px" Title="หมายเหตุ" />
+                                <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.statusparticipation)" Width="150px" Title="คะแนนการมีส่วนร่วม" />
+                            </Columns>
+                        </RadzenDataGrid>
+                    </RadzenStack>
+                </RadzenTabsItem>
+                
                 @*
+
+
                 <RadzenTabsItem Text="ข้อมูลลูกค้า & กิจกรรม">
                 <RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
                 <RadzenStack>
@@ -419,26 +444,7 @@
 
 
                 </RadzenTabsItem>
-                <RadzenTabsItem Text="ประวัติการติดต่อ">
-                <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Start" Gap="1rem" class="rz-12" Style="max-width:800px">
-                <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
-                FilterPopupRenderMode="PopupRenderMode.OnDemand"
-                @bind-Value=@selectedCustomer
-                Data="@forecasts" ColumnWidth="150px" SelectionMode="DataGridSelectionMode.Single"
-                Density="Density.Compact"
-                PagerPosition="PagerPosition.Bottom"
-                AllowColumnResize="true">
-                <Columns>
-                <RadzenDataGridColumn TItem="JobDataList" Property="Contact_By" Width="150px" Title="ผู้ติดต่อ" />
-                <RadzenDataGridColumn TItem="JobDataList" Property="Contact_Date" Width="150px" Title="วันที่ติดต่อลูกค้า" />
-                <RadzenDataGridColumn TItem="JobDataList" Property="Last_Contact_By" Width="150px" Title="ผู้ติดต่อครั้งก่อน" />
-                <RadzenDataGridColumn TItem="JobDataList" Property="Last_Contact_Date" Width="150px" Title="วันที่ติดต่อครั้งก่อน" />
-                <RadzenDataGridColumn TItem="JobDataList" Property="Last_Contact_Action" Width="120px" Title="ผลตอบรับครั้งก่อน" />
-                <RadzenDataGridColumn TItem="JobDataList" Property="Remark" Width="200px" Title="หมายเหตุ" />
-                </Columns>
-                </RadzenDataGrid>
-                </RadzenStack>
-                </RadzenTabsItem>
+                
                 <RadzenTabsItem Text="ประวัติการซื้อ">
                 <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Start" Gap="1rem" class="rz-12" Style="max-width:800px">
 
@@ -549,6 +555,10 @@
 
     private IEnumerable<JobDataList>? act_data;
     JobDataList selectedAct;
+
+    private IEnumerable<CrmContactLog> contacts;
+    IList<CrmContactLog> selecteContact;
+
 
 
     //from data
@@ -699,10 +709,9 @@
                 }
 
             }
-
+            contacts =  await FetchCrmContactLogDataAsync(selectedAct.customer_code);
+            selecteContact = new List<CrmContactLog>() { contacts.FirstOrDefault() };
         }
-
-
 
     }
 
@@ -810,6 +819,46 @@
             StateHasChanged(); // บังคับ UI อัปเดต
         }
     }
+
+    public async Task<IEnumerable<CrmContactLog>> FetchCrmContactLogDataAsync(string Guid)
+    {
+        try
+        {
+
+            // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
+            runProcess_wait = true;
+            StateHasChanged(); // บังคับ UI อัปเดต
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+            var searchCriteria = new
+            {
+                guid = Guid
+            };
+
+            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/Job/GetCrmContactLogDataByID", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var contacts = await response.Content.ReadFromJsonAsync<IEnumerable<CrmContactLog>>();
+                return contacts;
+            }
+            else
+            {
+                Console.WriteLine("Error fetching ContactLogData Data.");
+                return Enumerable.Empty<CrmContactLog>();
+            }
+        }
+        finally
+        {
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
+    }
+
 
 
 
@@ -967,6 +1016,8 @@
                 await SaveBatchToDatabaseWithTransaction(new_activity_ref_guid, model.activities_id);
             }
 
+            await InsertCrmContactLog();
+
             btnDisable = true;
             runProcess_wait = false;
             TextProcess = "อัปเดตข้อมูลในระบบเรียบร้อยแล้ว";
@@ -1034,6 +1085,45 @@
         }
     }
 
+    private async Task InsertCrmContactLog()
+    {
+        await MySqlConnection.OpenAsync();
+        using var transaction = await MySqlConnection.BeginTransactionAsync();
+
+        try
+        {
+            var query = @"INSERT INTO crm_contact_logs
+                      ( activity_id, customer_id, contact_date, contact_method, contact_result, contact_remark, branch_code, created_by, created_at ,statusparticipation ,contact_result2)
+                      VALUES (@activity_id, @customer_id, @contact_date, @contact_method, @contact_result, @contact_remark, @branch_code, @created_by, @created_at ,@statusparticipation ,@contact_result2)";
+
+            using var command = new MySqlCommand(query, MySqlConnection, transaction);
+
+            command.Parameters.AddWithValue("@activity_id", model.activities_id);
+            command.Parameters.AddWithValue("@customer_id", selectedAct.customer_code);
+            command.Parameters.AddWithValue("@contact_date", DateTime.Now.Date);
+            command.Parameters.AddWithValue("@contact_method", "โทร") ;
+            command.Parameters.AddWithValue("@contact_result", model.status ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@contact_result2",  model.call_status +"/"+model.call_action) ;
+            command.Parameters.AddWithValue("@contact_remark", model.remark ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@branch_code", BranchCode);
+            command.Parameters.AddWithValue("@created_by", username);
+            command.Parameters.AddWithValue("@created_at", DateTime.Now);
+            command.Parameters.AddWithValue("@statusparticipation", model.statusparticipation);
+
+
+            await command.ExecuteNonQueryAsync();
+            await transaction.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            // Log error or handle exception
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+    }
 
 
 }

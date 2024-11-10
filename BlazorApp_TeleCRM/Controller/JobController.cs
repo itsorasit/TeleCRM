@@ -1,10 +1,13 @@
 ﻿using BlazorApp_TeleCRM.Data;
+using BlazorApp_TeleCRM.Models;
 using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
 using Radzen.Blazor;
+using System.Data;
+using System.Data.Common;
 using static QRCoder.PayloadGenerator;
 
 namespace BlazorApp_TeleCRM.Controller
@@ -40,35 +43,108 @@ namespace BlazorApp_TeleCRM.Controller
 
                 if (searchCriteria.fdate == null || searchCriteria.ldate == null)
                 {
-                    query = @"SELECT ca.guid, ca.customer_code, ca.branch_code, ca.touch_point, ca.name, ca.description, ca.startdate, ca.duedate, ca.reminder_duedate,            
-                    ca.assign_work, ca.assign_work_type, ca.allowagent, ca.record_status, ca.created_by, ca.created_date, ca.modified_by, ca.modified_date,     
-                    '' as activitys_code,'' as progress,0 as succeed, 0 as progress_total ,ca.status ,
-                    mc.name as customer_name ,'' as product_code ,ca.call_status ,ca.call_action, 
-                    mc.phone  as customer_phone, mc.province as customer_province
-                    FROM crm_activitys ca
-                    inner join mas_customers mc on mc.guid = ca.customer_code 
-                    WHERE ca.branch_code = @branch_code 
-                    AND ca.assign_work = @assign_work 
-                    ORDER BY ca.created_date  DESC LIMIT 500 ";
+                    query = @"SELECT 
+    ca.guid, 
+    ca.customer_code, 
+    ca.branch_code, 
+    ca.touch_point, 
+    ca.name, 
+    ca.description, 
+    ca.startdate, 
+    ca.duedate, 
+    ca.reminder_duedate,            
+    ca.assign_work, 
+    ca.assign_work_type, 
+    ca.allowagent, 
+    ca.record_status, 
+    ca.created_by , 
+    ca.created_date , 
+    ca.modified_by, 
+    ca.modified_date,     
+    '' AS activitys_code, 
+    '' AS progress, 
+    0 AS succeed, 
+    0 AS progress_total,
+    ca.status,
+    mc.name AS customer_name,
+    '' AS product_code,
+    ca.call_status, 
+    ca.call_action, 
+    mc.phone AS customer_phone, 
+    mc.province AS customer_province, 
+    ca.remark,
+    cl.contact_result2,
+    cl.created_by AS contact_created_by,
+    cl.created_at AS contact_created_at
+FROM 
+    crm_activitys ca
+INNER JOIN 
+    mas_customers mc ON mc.guid = ca.customer_code
+LEFT JOIN 
+    (SELECT customer_id, contact_result2, created_by, created_at,
+            ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY created_at DESC) AS rn
+     FROM crm_contact_logs) cl ON cl.customer_id = ca.customer_code AND cl.rn = 1
+WHERE 
+    ca.branch_code = @branch_code 
+    AND ca.assign_work = @assign_work
+    AND ca.startdate <= NOW()
+    AND ca.duedate >= NOW()
+ORDER BY 
+    ca.created_date DESC 
+LIMIT 500 ";
 
                     searchCriteria.fdate = today;
                     searchCriteria.ldate = today;
                 }
                 else
                 {
-                    query = @"SELECT ca.guid, ca.customer_code, ca.branch_code, ca.touch_point, ca.name, ca.description, ca.startdate, ca.duedate, ca.reminder_duedate,            
-                    ca.assign_work, ca.assign_work_type, ca.allowagent, ca.record_status, ca.created_by, ca.created_date, ca.modified_by, ca.modified_date,     
-                    '' as activitys_code,'' as progress,0 as succeed, 0 as progress_total ,ca.status ,
-                    mc.name as customer_name ,'' as product_code ,ca.call_status ,ca.call_action, 
-                    mc.phone  as customer_phone, mc.province as customer_province
-                    FROM crm_activitys ca
-                    inner join mas_customers mc on mc.guid = ca.customer_code 
+                    query = @"SELECT 
+    ca.guid, 
+    ca.customer_code, 
+    ca.branch_code, 
+    ca.touch_point, 
+    ca.name, 
+    ca.description, 
+    ca.startdate, 
+    ca.duedate, 
+    ca.reminder_duedate,            
+    ca.assign_work, 
+    ca.assign_work_type, 
+    ca.allowagent, 
+    ca.record_status, 
+    ca.created_by , 
+    ca.created_date , 
+    ca.modified_by, 
+    ca.modified_date,     
+    '' AS activitys_code, 
+    '' AS progress, 
+    0 AS succeed, 
+    0 AS progress_total,
+    ca.status,
+    mc.name AS customer_name,
+    '' AS product_code,
+    ca.call_status, 
+    ca.call_action, 
+    mc.phone AS customer_phone, 
+    mc.province AS customer_province, 
+    ca.remark,
+    cl.contact_result2,
+    cl.created_by AS contact_created_by,
+    cl.created_at AS contact_created_at
+FROM 
+    crm_activitys ca
+INNER JOIN 
+    mas_customers mc ON mc.guid = ca.customer_code
+LEFT JOIN 
+    (SELECT customer_id, contact_result2, created_by, created_at,
+            ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY created_at DESC) AS rn
+     FROM crm_contact_logs) cl ON cl.customer_id = ca.customer_code AND cl.rn = 1
                     WHERE ca.branch_code = @branch_code
-                    AND  ca.created_date >= @FromDate 
+                    AND  ca.startdate >= @FromDate 
                     AND ca.assign_work = @assign_work
-                    AND  ca.created_date <= @ToDate
+                    AND  ca.startdate <= @ToDate
                     AND ca.assign_work = @assign_work 
-                    ORDER BY ca.created_date";
+                    ORDER BY ca.startdate";
 
                 }
 
@@ -93,69 +169,75 @@ namespace BlazorApp_TeleCRM.Controller
                     {
                         while (await reader.ReadAsync())
                         {
-                            var dataList = new JobDataList
-                            {
-                                guid = reader["guid"].ToString(),
-                                customer_code = reader["customer_code"].ToString(),
-                                branch_code = reader["branch_code"].ToString(),
-                                touch_point = reader["touch_point"].ToString(),
-                                
-                                customer_name = reader["customer_name"].ToString(),
-                                customer_phone = reader["customer_phone"].ToString(),
-                                customer_province = reader["customer_province"].ToString(),
+                            JobDataList d = new JobDataList();
 
-                                product_code = reader["product_code"].ToString(),
+                            d.guid = reader["guid"].ToString();
+                            d.customer_code = reader["customer_code"].ToString();
+                            d.branch_code = reader["branch_code"].ToString();
+                            d.touch_point = reader["touch_point"].ToString();
 
-                                description = reader["description"].ToString(),
-                                startdate = reader.IsDBNull(reader.GetOrdinal("startdate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("startdate")),
-                                duedate = reader.IsDBNull(reader.GetOrdinal("duedate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("duedate")),
-                                reminder_duedate = reader.IsDBNull(reader.GetOrdinal("reminder_duedate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("reminder_duedate")),
-                                assign_work = reader["assign_work"].ToString(),
-                                assign_work_type = reader["assign_work_type"].ToString(),
-                                allowagent = reader.IsDBNull(reader.GetOrdinal("allowagent")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("allowagent")),
-                              
+                            d.customer_name = reader["customer_name"].ToString();
+                            d.customer_phone = reader["customer_phone"].ToString();
+                            d.customer_province = reader["customer_province"].ToString();
 
-                                created_by = reader["created_by"].ToString(),
-                                created_date = reader.GetDateTime(reader.GetOrdinal("created_date")),
-                                modified_by = reader.IsDBNull(reader.GetOrdinal("modified_by")) ? null : reader["modified_by"].ToString(),
-                                modified_date = reader.IsDBNull(reader.GetOrdinal("modified_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("modified_date")),
+                            d.product_code = reader["product_code"].ToString();
 
-                                act_status = reader["status"].ToString(),
-                                call_status = reader["call_status"].ToString(),
-                                call_action = reader["call_action"].ToString(),
+                            d.description = reader["description"].ToString();
+                            d.startdate = reader.IsDBNull(reader.GetOrdinal("startdate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("startdate"));
+                            d.duedate = reader.IsDBNull(reader.GetOrdinal("duedate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("duedate"));
+                            d.reminder_duedate = reader.IsDBNull(reader.GetOrdinal("reminder_duedate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("reminder_duedate"));
+                            d.assign_work = reader["assign_work"].ToString();
+                            d.assign_work_type = reader["assign_work_type"].ToString();
+                            d.allowagent = reader.IsDBNull(reader.GetOrdinal("allowagent")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("allowagent"));
 
-                                activitys_code = reader["activitys_code"].ToString(),
-                                progress = reader["activitys_code"].ToString(),
-                                succeed = reader.IsDBNull(reader.GetOrdinal("succeed")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("succeed")),
-                                progress_total = reader.IsDBNull(reader.GetOrdinal("progress_total")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("progress_total"))
-                            };
 
-                            activitys.Add(dataList);
-                        }
+                            d.created_by = reader["created_by"].ToString();
+                            d.created_date = reader.GetDateTime(reader.GetOrdinal("created_date"));
+                            d.modified_by = reader.IsDBNull(reader.GetOrdinal("modified_by")) ? null : reader["modified_by"].ToString();
+                            d.modified_date = reader.IsDBNull(reader.GetOrdinal("modified_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("modified_date"));
+
+                            d.act_status = reader["status"].ToString();
+                            d.call_status = reader["call_status"].ToString();
+                            d.call_action = reader["call_action"].ToString();
+
+                            d.activitys_code = reader["activitys_code"].ToString();
+                            d.progress = reader["activitys_code"].ToString();
+                            d.succeed = reader.IsDBNull(reader.GetOrdinal("succeed")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("succeed"));
+                            d.progress_total = reader.IsDBNull(reader.GetOrdinal("progress_total")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("progress_total"));
+                            d.remark = reader["remark"].ToString();
+                            d.contact_result2= reader["contact_result2"].ToString();
+                            d.contact_created_by = reader["contact_created_by"].ToString();
+                            d.contact_created_at =reader.IsDBNull(reader.GetOrdinal("contact_created_at")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("contact_created_at"));
+
+                            activitys.Add(d);
+                        };
+
                     }
                 }
             }
-
             return Ok(activitys);
         }
 
-        [HttpPost("GetJobDataByID")]
-        public async Task<IActionResult> GetJobDataByID([FromBody] SearchCriteriaByID searchCriteria)
+            
+
+
+    [HttpPost("GetJobDataByID")]
+    public async Task<IActionResult> GetJobDataByID([FromBody] SearchCriteriaByID searchCriteria)
+    {
+
+        if (searchCriteria?.guid == null || string.IsNullOrEmpty(searchCriteria.guid))
         {
+            return BadRequest();
+        }
 
-            if (searchCriteria?.guid == null || string.IsNullOrEmpty(searchCriteria.guid))
-            {
-                return BadRequest();
-            }
+        var activitys = new List<JobDataList>();
 
-            var activitys = new List<JobDataList>();
-
-            using (var connection = new MySqlConnection(_connectionString))
-            {
-                await connection.OpenAsync();
+        using (var connection = new MySqlConnection(_connectionString))
+        {
+            await connection.OpenAsync();
 
 
-               string query = @"SELECT ca.guid, ca.customer_code, ca.branch_code, ca.touch_point, ca.name, ca.description, ca.startdate, ca.duedate, ca.reminder_duedate,            
+            string query = @"SELECT ca.guid, ca.customer_code, ca.branch_code, ca.touch_point, ca.name, ca.description, ca.startdate, ca.duedate, ca.reminder_duedate,            
                     ca.assign_work, ca.assign_work_type, ca.allowagent, ca.record_status, ca.created_by, ca.created_date, ca.modified_by, ca.modified_date,     
                     '' as activitys_code,'' as progress,0 as succeed, 0 as progress_total ,ca.status ,
                     mc.name as customer_name ,'' as product_code ,ca.call_status ,ca.call_action, 
@@ -171,96 +253,155 @@ namespace BlazorApp_TeleCRM.Controller
                     where ca.guid = @guid
                     ";
 
-                using (var cmd = new MySqlCommand(query, connection))
+            using (var cmd = new MySqlCommand(query, connection))
+            {
+                var guid = searchCriteria.guid ?? "";
+                cmd.Parameters.AddWithValue("@guid", guid);
+
+                using (var reader = await cmd.ExecuteReaderAsync())
                 {
-                    var guid = searchCriteria.guid ?? "";
-                    cmd.Parameters.AddWithValue("@guid", guid);
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
+                    while (await reader.ReadAsync())
                     {
-                        while (await reader.ReadAsync())
+                        var activitysData = new JobDataList
                         {
-                            var  activitysData = new JobDataList
-                            {
-                                guid = reader["guid"].ToString(),
-                                act_guid=  reader["guid"].ToString(),
-                                customer_code = reader["customer_code"].ToString(),
-                                branch_code = reader["branch_code"].ToString(),
-                                touch_point = reader["touch_point"].ToString(),
-                                act_name = reader["name"].ToString(),
-                                remark  = reader["remark"].ToString(),
-                                sale_order_no = reader["sale_order_no"].ToString(),
-                                statusparticipation = reader.IsDBNull(reader.GetOrdinal("statusparticipation")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("statusparticipation")),
+                            guid = reader["guid"].ToString(),
+                            act_guid = reader["guid"].ToString(),
+                            customer_code = reader["customer_code"].ToString(),
+                            branch_code = reader["branch_code"].ToString(),
+                            touch_point = reader["touch_point"].ToString(),
+                            act_name = reader["name"].ToString(),
+                            remark = reader["remark"].ToString(),
+                            sale_order_no = reader["sale_order_no"].ToString(),
+                            statusparticipation = reader.IsDBNull(reader.GetOrdinal("statusparticipation")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("statusparticipation")),
 
 
-                                product_code = reader["product_code"].ToString(),
+                            product_code = reader["product_code"].ToString(),
 
-                                description = reader["description"].ToString(),
-                                startdate = reader.IsDBNull(reader.GetOrdinal("startdate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("startdate")),
-                                duedate = reader.IsDBNull(reader.GetOrdinal("duedate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("duedate")),
-                                reminder_duedate = reader.IsDBNull(reader.GetOrdinal("reminder_duedate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("reminder_duedate")),
-                                assign_work = reader["assign_work"].ToString(),
-                                assign_work_type = reader["assign_work_type"].ToString(),
-                                allowagent = reader.IsDBNull(reader.GetOrdinal("allowagent")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("allowagent")),
-
-
-                                created_by = reader["created_by"].ToString(),
-                                created_date = reader.GetDateTime(reader.GetOrdinal("created_date")),
-                                modified_by = reader.IsDBNull(reader.GetOrdinal("modified_by")) ? null : reader["modified_by"].ToString(),
-                                modified_date = reader.IsDBNull(reader.GetOrdinal("modified_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("modified_date")),
+                            description = reader["description"].ToString(),
+                            startdate = reader.IsDBNull(reader.GetOrdinal("startdate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("startdate")),
+                            duedate = reader.IsDBNull(reader.GetOrdinal("duedate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("duedate")),
+                            reminder_duedate = reader.IsDBNull(reader.GetOrdinal("reminder_duedate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("reminder_duedate")),
+                            assign_work = reader["assign_work"].ToString(),
+                            assign_work_type = reader["assign_work_type"].ToString(),
+                            allowagent = reader.IsDBNull(reader.GetOrdinal("allowagent")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("allowagent")),
 
 
-                                contact_by = reader["contact_by"].ToString(),
-                                contact_date = reader.IsDBNull(reader.GetOrdinal("contact_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("contact_date")),
-                                contact_use_phone = reader["contact_use_phone"].ToString(),
-                                new_activity_ref_guid = reader["new_activity_ref_guid"].ToString(),
-                                appointment_date = reader.IsDBNull(reader.GetOrdinal("appointment_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("appointment_date")),
-                                old_activity_guid = reader["old_activity_guid"].ToString(),
-                                re_activity = reader.IsDBNull(reader.GetOrdinal("re_activity")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("re_activity")),
+                            created_by = reader["created_by"].ToString(),
+                            created_date = reader.GetDateTime(reader.GetOrdinal("created_date")),
+                            modified_by = reader.IsDBNull(reader.GetOrdinal("modified_by")) ? null : reader["modified_by"].ToString(),
+                            modified_date = reader.IsDBNull(reader.GetOrdinal("modified_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("modified_date")),
 
 
-                                act_status = reader["status"].ToString(),
-                                call_status = reader["call_status"].ToString(),
-                                call_action = reader["call_action"].ToString(),
+                            contact_by = reader["contact_by"].ToString(),
+                            contact_date = reader.IsDBNull(reader.GetOrdinal("contact_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("contact_date")),
+                            contact_use_phone = reader["contact_use_phone"].ToString(),
+                            new_activity_ref_guid = reader["new_activity_ref_guid"].ToString(),
+                            appointment_date = reader.IsDBNull(reader.GetOrdinal("appointment_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("appointment_date")),
+                            old_activity_guid = reader["old_activity_guid"].ToString(),
+                            re_activity = reader.IsDBNull(reader.GetOrdinal("re_activity")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("re_activity")),
 
-                                activitys_code = reader["activitys_code"].ToString(),
-                                progress = reader["activitys_code"].ToString(),
-                                succeed = reader.IsDBNull(reader.GetOrdinal("succeed")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("succeed")),
-                                progress_total = reader.IsDBNull(reader.GetOrdinal("progress_total")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("progress_total")),
 
-                                customer_name = reader["customer_name"].ToString(),
-                                customer_phone = reader["customer_phone"].ToString(),
-                                customer_address1 = reader["customer_address1"].ToString(),
-                                customer_sub_district = reader["customer_sub_district"].ToString(),
-                                customer_district = reader["customer_district"].ToString(),
-                                customer_province = reader["customer_province"].ToString(),
-                                customer_zipcode = reader["customer_zipcode"].ToString()
+                            act_status = reader["status"].ToString(),
+                            call_status = reader["call_status"].ToString(),
+                            call_action = reader["call_action"].ToString(),
 
-                            };
+                            activitys_code = reader["activitys_code"].ToString(),
+                            progress = reader["activitys_code"].ToString(),
+                            succeed = reader.IsDBNull(reader.GetOrdinal("succeed")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("succeed")),
+                            progress_total = reader.IsDBNull(reader.GetOrdinal("progress_total")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("progress_total")),
 
-                            activitys.Add(activitysData);
-                        }
+                            customer_name = reader["customer_name"].ToString(),
+                            customer_phone = reader["customer_phone"].ToString(),
+                            customer_address1 = reader["customer_address1"].ToString(),
+                            customer_sub_district = reader["customer_sub_district"].ToString(),
+                            customer_district = reader["customer_district"].ToString(),
+                            customer_province = reader["customer_province"].ToString(),
+                            customer_zipcode = reader["customer_zipcode"].ToString()
+
+                        };
+
+                        activitys.Add(activitysData);
                     }
                 }
             }
-
-            return Ok(activitys);
         }
 
-
-        public class SearchCriteria
-        {
-            public DateTime? fdate { get; set; }
-            public DateTime? ldate { get; set; }
-            public string? branch_code { get; set; }
-            public string? assign_work { get; set; }
-        }
-
-
-        public class SearchCriteriaByID
-        {
-            public string? guid { get; set; }
-        }
-
+        return Ok(activitys);
     }
+
+    [HttpPost("GetCrmContactLogDataByID")]
+    public async Task<IActionResult> GetCrmContactLogDataByID([FromBody] SearchCriteriaByID searchCriteria)
+    {
+
+        if (searchCriteria?.guid == null || string.IsNullOrEmpty(searchCriteria.guid))
+        {
+            return BadRequest();
+        }
+
+        var Datas = new List<CrmContactLog>();
+
+        using (var connection = new MySqlConnection(_connectionString))
+        {
+            await connection.OpenAsync();
+
+
+            string query = @"SELECT log_id, activity_id, customer_id, contact_date, contact_method, contact_result, contact_remark, 
+                    branch_code, created_by, created_at ,statusparticipation ,
+                    contact_result2
+                    FROM crm_contact_logs 
+                    where customer_id = @guid
+                    order by created_at desc  ";
+
+            using (var cmd = new MySqlCommand(query, connection))
+            {
+                var guid = searchCriteria.guid ?? "";
+                cmd.Parameters.AddWithValue("@guid", guid);
+
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        var Data = new CrmContactLog
+                        {
+                            log_id = reader.GetInt32("log_id"),
+                            activity_id = reader.GetString("activity_id"),
+                            customer_id = reader.GetString("customer_id"),
+                            contact_date = reader.GetDateTime("contact_date"),
+                            contact_method = reader.GetString("contact_method"),
+                            contact_result = reader.GetString("contact_result"),
+                            contact_result2 = reader.GetString("contact_result2"),
+                            contact_remark = reader.GetString("contact_remark"),
+                            branch_code = reader.GetString("branch_code"),
+                            created_by = reader.GetString("created_by"),
+                            created_at = reader.GetDateTime("created_at"),
+                            statusparticipation = reader.GetInt32("statusparticipation")
+
+                        };
+
+                        Datas.Add(Data);
+                    }
+                }
+            }
+        }
+
+        return Ok(Datas);
+    }
+
+
+
+    public class SearchCriteria
+    {
+        public DateTime? fdate { get; set; }
+        public DateTime? ldate { get; set; }
+        public string? branch_code { get; set; }
+        public string? assign_work { get; set; }
+    }
+
+
+    public class SearchCriteriaByID
+    {
+        public string? guid { get; set; }
+    }
+
+}
 }
