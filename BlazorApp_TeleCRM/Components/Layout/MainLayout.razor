@@ -56,8 +56,9 @@
                 <RadzenPanelMenu DisplayStyle="@(sidebarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="true">
                     <RadzenPanelMenuItem Text="Overview Team" Icon="home" Click="@(() => GoToPage("/home"))" Selected="@IsMenuItemSelected("/home")" />
                     <RadzenPanelMenuItem Text="งานของฉัน" Icon="assignment" Click="@(() => GoToPage("/job"))" Selected="@IsMenuItemSelected("/job")" />
-                    <RadzenPanelMenuItem Text="รายชื่อลูกค้า" Icon="person" Click="@(() => GoToPage("/admincustomer"))" Selected="@IsMenuItemSelected("/admincustomer")" />
-
+                    <RadzenPanelMenuItem Text="ปฏิทินของฉัน" Icon="calendar_month" Click="@(() => GoToPage("/job-calendar"))" Selected="@IsMenuItemSelected("/job-calendar")" />
+                  @*   <RadzenPanelMenuItem Text="รายชื่อลูกค้า" Icon="person" Click="@(() => GoToPage("/admincustomer"))" Selected="@IsMenuItemSelected("/admincustomer")" />
+ *@
                     <AuthorizeView Roles="Admin,Manager,Supervisor">
                         <RadzenPanelMenuItem Text="CRM - Admin" Icon="work" Expanded="@((IsMenuItemSelected("/admincustomer") || IsMenuItemSelected("/adminactivity")))">
                             <RadzenPanelMenuItem Text="1. ข้อมูลลูกค้า" Icon="person" Click="@(() => GoToPage("/admincustomer"))" Selected="@IsMenuItemSelected("/admincustomer")" />

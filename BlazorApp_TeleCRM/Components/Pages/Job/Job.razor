@@ -26,7 +26,7 @@
         <RadzenRow Gap="1rem" JustifyContent="JustifyContent.Start" Class="rz-mt-2">
             <RadzenColumn>
                 <RadzenLabel Text="งานวันที่ " Component="RadzenDatePickerBindValue" />
-                <RadzenDatePicker @bind-Value="CreateDateFrom" Name="CreateDateFrom" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
+                <RadzenDatePicker @bind-Value="CreateDateFrom" Name="CreateDateFrom"  DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
             </RadzenColumn>
             <RadzenColumn>
                 <RadzenLabel Text="ถึงวันที่ " Component="RadzenDatePickerBindValue" />
@@ -214,10 +214,10 @@
 
     private async Task OnClear()
     {
-        // Reset all filters
-        CreateDateFrom = null;
-        CreateDateTo = null;
-        // grid.Reset();
+       // CreateDateFrom = null;
+       // CreateDateTo = null;
+        CreateDateFrom = DateTime.Now.Date;
+        CreateDateTo = DateTime.Now.Date;
 
         act_data = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo);
 
@@ -242,9 +242,6 @@
         // บังคับให้ UI อัปเดตใหม่
         StateHasChanged();
     }
-
-
-
 
 
     async Task OpenSideDialog(string orderId)
@@ -276,6 +273,10 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+
+
+        CreateDateFrom = DateTime.Now.Date;
+        CreateDateTo = DateTime.Now.Date;
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;

@@ -1,0 +1,278 @@
+﻿@page "/job-calendar"
+@using BlazorApp_TeleCRM.Data
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IConfiguration Configuration
+@inject HttpClient Http
+@inject DialogService DialogService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+
+<PageTitle>ปฏิทินของฉัน</PageTitle>
+
+<div class="rz-6">
+    <RadzenBreadCrumb>
+        <RadzenBreadCrumbItem Path="/mydashboard" Text="My Dashboard" />
+        <RadzenBreadCrumbItem Path="/job-calendar" Text="ปฏิทินของฉัน" />
+    </RadzenBreadCrumb>
+    <RadzenText TextStyle="TextStyle.DisplayH5">งานของคุณ</RadzenText>
+</div>
+
+
+@* <div class="rz-col-12">
+
+    <RadzenCard Variant="Variant.Outlined" class="rz-info rz-shade-lighte" Style="padding: 1rem;">
+        <strong>ค้นหา</strong>
+        <RadzenRow Gap="1rem" JustifyContent="JustifyContent.Start" Class="rz-mt-2">
+            <RadzenColumn>
+                <RadzenLabel Text="งานวันที่ " Component="RadzenDatePickerBindValue" />
+                <RadzenDatePicker @bind-Value="CreateDateFrom" Name="CreateDateFrom" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenLabel Text="ถึงวันที่ " Component="RadzenDatePickerBindValue" />
+                <RadzenDatePicker @bind-Value="CreateDateTo" Name="CreateDateTo" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
+            </RadzenColumn>
+            <RadzenColumn Size="3">
+                <br />
+                <RadzenButton Text="ค้นหา" Icon="search" Variant="Variant.Flat" Style="width: 100px; margin-right: 0.5rem;" Click="@OnSearch" />
+                <RadzenButton Text="ล้าง" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Secondary" Style="width: 100px;" Click="@OnClear" />
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenCard>
+
+
+</div> *@
+
+
+
+@*
+    <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" class="rz-p-1" Gap="2rem">
+    <RadzenButton ButtonStyle="ButtonStyle.Primary" Click=@(() => OnSearch_Touch_point("Up-Sale"))>
+        Up-Sale
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="@count_UpSale.ToString()" class="rz-ms-2" />
+    </RadzenButton>
+
+    <RadzenButton ButtonStyle="ButtonStyle.Secondary" Click=@(() => OnSearch_Touch_point("Re-Sale"))>
+        Re-Sale
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="@count_ReSale.ToString()" class="rz-ms-2" />
+    </RadzenButton>
+
+    <RadzenButton ButtonStyle="ButtonStyle.Base" Click=@(() => OnSearch_Touch_point("ลูกค้าขุด"))>
+        ลูกค้าขุด
+        <RadzenBadge Variant="Variant.Outlined" Text="@count_x.ToString()" class="rz-ms-2" />
+    </RadzenButton>
+
+    <RadzenButton ButtonStyle="ButtonStyle.Info" Click=@(() => OnSearch_JobCompleted())>
+        จัดการแล้ว
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="@count_completed.ToString()" class="rz-ms-2" />
+    </RadzenButton>
+
+</RadzenStack>
+ *@
+<RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+    <Template>โหลด</Template>
+</RadzenProgressBarCircular>
+
+<RadzenScheduler @ref=@scheduler SlotRender=@OnSlotRender style="height: 768px;" TItem="Appointment" Data=@appointments StartProperty="Start" EndProperty="End"
+                 TextProperty="Text" SelectedIndex="0"
+                 SlotSelect=@OnSlotSelect AppointmentSelect=@OnAppointmentSelect AppointmentRender=@OnAppointmentRender
+                 AppointmentMove=@OnAppointmentMove  >
+
+@*     <RadzenDayView   />
+    <RadzenWeekView /> *@
+    <RadzenMonthView />
+</RadzenScheduler>
+
+@code {
+
+    RadzenScheduler<Appointment> scheduler;
+    Dictionary<DateTime, string> events = new Dictionary<DateTime, string>();
+    private IEnumerable<Appointment> appointments;
+
+
+    void OnSlotRender(SchedulerSlotRenderEventArgs args)
+    {
+        // Highlight today in month view
+        if (args.View.Text == "Month" && args.Start.Date == DateTime.Today)
+        {
+            args.Attributes["style"] = "background: var(--rz-scheduler-highlight-background-color, rgba(255,220,40,.2));";
+        }
+
+        // Highlight working hours (9-18)
+        if ((args.View.Text == "Week" || args.View.Text == "Day") && args.Start.Hour > 8 && args.Start.Hour < 19)
+        {
+            args.Attributes["style"] = "background: var(--rz-scheduler-highlight-background-color, rgba(255,220,40,.2));";
+        }
+    }
+
+    async Task OnSlotSelect(SchedulerSlotSelectEventArgs args)
+    {
+
+    }
+
+    async Task OnAppointmentSelect(SchedulerAppointmentSelectEventArgs<Appointment> args)
+    {
+
+        var copy = new Appointment
+            {
+                Start = args.Data.Start,
+                End = args.Data.End,
+                Text = args.Data.Text
+            };
+
+
+
+        await scheduler.Reload();
+    }
+
+    void OnAppointmentRender(SchedulerAppointmentRenderEventArgs<Appointment> args)
+    {
+
+        if (args.Data.Text == "Birthday")
+        {
+            args.Attributes["style"] = "background: red";
+        }else if (args.Data.Text.Contains("รอดำเนินการ"))
+        {
+            args.Attributes["style"] = "background: #ff9800";
+        }
+        else if (args.Data.Text.Contains("สำเร็จ"))
+        {
+            args.Attributes["style"] = "background:#2196f3";
+        }
+
+    }
+
+    async Task OnAppointmentMove(SchedulerAppointmentMoveEventArgs args)
+    {
+        var draggedAppointment = appointments.FirstOrDefault(x => x == args.Appointment.Data);
+
+        if (draggedAppointment != null)
+        {
+            draggedAppointment.Start = draggedAppointment.Start + args.TimeSpan;
+
+            draggedAppointment.End = draggedAppointment.End + args.TimeSpan;
+
+            await scheduler.Reload();
+        }
+    }
+
+
+
+    bool runProcess_wait = false;
+    bool isDialogOpen = false;
+    DateTime? value = DateTime.Now;
+    private DateTime? CreateDateFrom { get; set; }
+    private DateTime? CreateDateTo { get; set; }
+
+    private string username;
+    private IEnumerable<string> roles;
+
+    private string BranchCode { get; set; }
+    private IEnumerable<string> _BranchCode;
+
+
+
+
+
+    private async Task OnSearch()
+    {
+        // act_data = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo);
+
+        // if (act_data != null && act_data.Any())
+        // {
+        //     selectedAct = new List<JobDataList>() { act_data.FirstOrDefault() };
+        // }
+
+        StateHasChanged();
+    }
+
+
+
+
+    private async Task OnClear()
+    {
+        CreateDateFrom = null;
+        CreateDateTo = null;
+
+        StateHasChanged();
+    }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            username = user.Identity.Name;
+            roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+
+        }
+        else
+        {
+            username = "Not authenticated";
+            roles = Enumerable.Empty<string>();
+            BranchCode = "";
+        }
+
+        // เรียกใช้เมธอด FetchCustomerDataAsync เพื่อดึงข้อมูล
+        appointments = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo);
+
+    }
+
+
+
+
+
+    public async Task<IEnumerable<Appointment>> FetchJobDataAsync(DateTime? fdate, DateTime? ldate)
+    {
+        try
+        {
+
+            // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
+            runProcess_wait = true;
+            StateHasChanged(); // บังคับ UI อัปเดต
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+            var searchCriteria = new
+            {
+                fdate = fdate,
+                ldate = ldate,
+                branch_code = BranchCode,
+                assign_work = username
+            };
+
+            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/Job/GetjobCalendar", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                
+
+                var jobDataList = await response.Content.ReadFromJsonAsync<IEnumerable<Appointment>>();
+                
+                return jobDataList;
+            }
+            else
+            {
+                Console.WriteLine("Error fetching Job Data.");
+                return Enumerable.Empty<Appointment>();
+            }
+        }
+        finally
+        {
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
+    }
+
+}

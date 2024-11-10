@@ -4,6 +4,7 @@ using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualBasic;
 using MySql.Data.MySqlClient;
 using Radzen.Blazor;
 using System.Data;
@@ -27,7 +28,7 @@ namespace BlazorApp_TeleCRM.Controller
 
 
         [HttpPost("GetJobData")]
-        public async Task<IActionResult> GetJobData([FromBody] SearchCriteria searchCriteria)
+    public async Task<IActionResult> GetJobData([FromBody] SearchCriteria searchCriteria)
         {
 
             DateTime today = DateTime.Now;
@@ -218,9 +219,6 @@ LEFT JOIN
             return Ok(activitys);
         }
 
-            
-
-
     [HttpPost("GetJobDataByID")]
     public async Task<IActionResult> GetJobDataByID([FromBody] SearchCriteriaByID searchCriteria)
     {
@@ -387,9 +385,135 @@ LEFT JOIN
         return Ok(Datas);
     }
 
+   [HttpPost("GetjobCalendar")]
+   public async Task<IActionResult> GetjobCalendar([FromBody] SearchCriteria searchCriteria)
+        {
+
+            DateTime today = DateTime.Now;
+
+            var appointments = new List<Appointment>();
+
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
 
 
-    public class SearchCriteria
+                var query = "";
+
+                if (searchCriteria.fdate == null || searchCriteria.ldate == null)
+                {
+                    query = @"SELECT 
+    ca.touch_point,
+    DATE(ca.startdate) AS startdate, 
+    IFNULL(ca.status, 'รอดำเนินการ') AS status,
+    COUNT(*) AS count
+FROM 
+    crm_activitys ca
+WHERE 
+    ca.branch_code = @branch_code 
+    AND ca.assign_work = @assign_work
+GROUP BY 
+    ca.touch_point, 
+    IFNULL(ca.status, 'รอดำเนินการ'),
+    DATE(ca.startdate) 
+";
+                    //AND ca.startdate <= NOW()
+                  //  AND ca.duedate >= NOW()
+
+
+                    searchCriteria.fdate = today;
+                    searchCriteria.ldate = today;
+                }
+                else
+                {
+                    query = @"SELECT 
+    ca.guid, 
+    ca.customer_code, 
+    ca.branch_code, 
+    ca.touch_point, 
+    ca.name, 
+    ca.description, 
+    ca.startdate, 
+    ca.duedate, 
+    ca.reminder_duedate,            
+    ca.assign_work, 
+    ca.assign_work_type, 
+    ca.allowagent, 
+    ca.record_status, 
+    ca.created_by , 
+    ca.created_date , 
+    ca.modified_by, 
+    ca.modified_date,     
+    '' AS activitys_code, 
+    '' AS progress, 
+    0 AS succeed, 
+    0 AS progress_total,
+    ca.status,
+    mc.name AS customer_name,
+    '' AS product_code,
+    ca.call_status, 
+    ca.call_action, 
+    mc.phone AS customer_phone, 
+    mc.province AS customer_province, 
+    ca.remark,
+    cl.contact_result2,
+    cl.created_by AS contact_created_by,
+    cl.created_at AS contact_created_at
+FROM 
+    crm_activitys ca
+INNER JOIN 
+    mas_customers mc ON mc.guid = ca.customer_code
+LEFT JOIN 
+    (SELECT customer_id, contact_result2, created_by, created_at,
+            ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY created_at DESC) AS rn
+     FROM crm_contact_logs) cl ON cl.customer_id = ca.customer_code AND cl.rn = 1
+                    WHERE ca.branch_code = @branch_code
+                    AND  ca.startdate >= @FromDate 
+                    AND ca.assign_work = @assign_work
+                    AND  ca.startdate <= @ToDate
+                    AND ca.assign_work = @assign_work 
+                    ORDER BY ca.startdate";
+
+                }
+
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    // กำหนดค่าช่วงเวลาของ FromDate เป็นเริ่มต้นของวัน
+                    var fromDate = searchCriteria.fdate?.Date ?? DateTime.MinValue.Date;
+                    cmd.Parameters.AddWithValue("@FromDate", fromDate);
+
+                    // กำหนดค่าช่วงเวลาของ ToDate เป็นสิ้นสุดของวัน
+                    var toDate = (searchCriteria.ldate?.Date ?? DateTime.MaxValue.Date).AddDays(1).AddTicks(-1);
+                    cmd.Parameters.AddWithValue("@ToDate", toDate);
+
+                    var branch_code = searchCriteria.branch_code ?? "";
+                    cmd.Parameters.AddWithValue("@branch_code", branch_code);
+
+                    var assign_work = searchCriteria.assign_work ?? "";
+                    cmd.Parameters.AddWithValue("@assign_work", assign_work);
+
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            Appointment d = new Appointment();
+
+                            d.Text = reader["touch_point"].ToString() + "-["+ reader["status"].ToString() +" (" + reader["count"].ToString() + ")]";
+                            d.Start = reader.IsDBNull(reader.GetOrdinal("startdate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("startdate"));
+                            d.End = reader.IsDBNull(reader.GetOrdinal("startdate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("startdate"));
+
+                            appointments.Add(d);
+                        };
+
+                    }
+                }
+            }
+            return Ok(appointments);
+        }
+
+
+        public class SearchCriteria
     {
         public DateTime? fdate { get; set; }
         public DateTime? ldate { get; set; }
