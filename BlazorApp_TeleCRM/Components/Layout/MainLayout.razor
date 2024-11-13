@@ -172,7 +172,18 @@
             catch { }
         }
 
-        branches = allseed_Db.MasBranches.ToList();
+        if (organization_code == "000000")
+        {
+            branches = allseed_Db.MasBranches.ToList();
+        }
+        else
+        {
+            branches = allseed_Db.MasBranches.Where(o => o.code == organization_code).ToList();
+        }
+
+      
+
+
     }
 
 

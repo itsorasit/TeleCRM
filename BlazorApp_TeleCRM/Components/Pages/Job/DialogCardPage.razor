@@ -104,9 +104,9 @@
                                         {
                                             <RadzenRow AlignItems="AlignItems.Start">
                                                 <RadzenColumn Size="12">
-                                                <RadzenButton Disabled="@btnDisable" ButtonType="ButtonType.Submit" Text="บันทึก" Style="margin-top: 5px;" />
-                                            </RadzenColumn>
-                                        </RadzenRow>
+                                                    <RadzenButton Disabled="@btnDisable" ButtonType="ButtonType.Submit" Text="บันทึก" Style="margin-top: 5px;" />
+                                                </RadzenColumn>
+                                            </RadzenRow>
                                         }
 
 
@@ -313,7 +313,50 @@
                         </RadzenDataGrid>
                     </RadzenStack>
                 </RadzenTabsItem>
-                
+
+                <RadzenTabsItem Text="Note">
+
+                    <RadzenTemplateForm TItem="Model2" Data=@model2 Submit="@OnSubmit2" InvalidSubmit="@OnInvalidSubmit2">
+                        <RadzenStack class="rz-12">
+
+
+                            <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                <RadzenColumn Size="6" SizeMD="6">
+                                    <RadzenLabel Text="Note" TextStyle="TextStyle.Subtitle2" Component="remark" />
+                                    <RadzenTextArea Placeholder="" Name="remark" @bind-Value="@model2.note" class="w-100" />
+                                    <RadzenRequiredValidator Component="remark" Text="กรอกข้อความ"  />
+                                </RadzenColumn>
+                             
+                            </RadzenRow>
+
+                            <RadzenRow AlignItems="AlignItems.Start">
+                                <RadzenColumn Size="12">
+                                    <RadzenButton  ButtonType="ButtonType.Submit" Text="บันทึก" Style="margin-top: 5px;" />
+                                </RadzenColumn>
+                            </RadzenRow>
+
+                        </RadzenStack>
+                    </RadzenTemplateForm>
+                    <hr />
+
+                    <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Start" Gap="1rem" class="rz-12" Style="width%90">
+
+
+
+                        <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
+                                        FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                        @bind-Value=@selectenote
+                                        Data="@notes" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
+                                        PagerPosition="PagerPosition.Bottom"
+                                        AllowAlternatingRows="false">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="CrmNote" Property="@nameof(CrmNote.created_by)" Width="120px" Title="ผู้ลงบันทึก" />
+                                <RadzenDataGridColumn TItem="CrmNote" Property="@nameof(CrmNote.created_at)" Width="150px" Title="วันที่ลงบันทึก" />
+                                <RadzenDataGridColumn TItem="CrmNote" Property="@nameof(CrmNote.note)" Width="400px" Title="Note" />
+                            </Columns>
+                        </RadzenDataGrid>
+                    </RadzenStack>
+                </RadzenTabsItem>
                 @*
 
 
@@ -444,7 +487,7 @@
 
 
                 </RadzenTabsItem>
-                
+
                 <RadzenTabsItem Text="ประวัติการซื้อ">
                 <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Start" Gap="1rem" class="rz-12" Style="max-width:800px">
 
@@ -559,6 +602,8 @@
     private IEnumerable<CrmContactLog> contacts;
     IList<CrmContactLog> selecteContact;
 
+    private IEnumerable<CrmNote> notes;
+    IList<CrmNote> selectenote;
 
 
     //from data
@@ -604,7 +649,14 @@
 
     }
 
+    class Model2
+    {
+        public string? note { get; set; }
+    }
+
+
     Model model = new Model();
+    Model2 model2 = new Model2();
 
 
 
@@ -709,8 +761,11 @@
                 }
 
             }
-            contacts =  await FetchCrmContactLogDataAsync(selectedAct.customer_code);
+            contacts = await FetchCrmContactLogDataAsync(selectedAct.customer_code);
             selecteContact = new List<CrmContactLog>() { contacts.FirstOrDefault() };
+
+            notes = await FetchCrmNotesDataAsync(selectedAct.customer_code);
+            selectenote = new List<CrmNote>() { notes.FirstOrDefault() };
         }
 
     }
@@ -859,10 +914,54 @@
         }
     }
 
+    public async Task<IEnumerable<CrmNote>> FetchCrmNotesDataAsync(string Guid)
+    {
+        try
+        {
+
+            // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
+            runProcess_wait = true;
+            StateHasChanged(); // บังคับ UI อัปเดต
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+            var searchCriteria = new
+            {
+                guid = Guid
+            };
+
+            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/Job/GetCrmNoteDataByID", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var notes = await response.Content.ReadFromJsonAsync<IEnumerable<CrmNote>>();
+                return notes;
+            }
+            else
+            {
+                Console.WriteLine("Error fetching NoteLogData Data.");
+                return Enumerable.Empty<CrmNote>();
+            }
+        }
+        finally
+        {
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
+    }
+
 
 
 
     private void OnInvalidSubmit()
+    {
+
+    }
+
+    private void OnInvalidSubmit2()
     {
 
     }
@@ -879,6 +978,15 @@
         btnDisable = true;
         await ConfirmSubmit();
     }
+
+    private async Task OnSubmit2()
+    {
+        await UpdateNote();
+        notes = await FetchCrmNotesDataAsync(selectedAct.customer_code);
+        selectenote = new List<CrmNote>() { notes.FirstOrDefault() };
+    }
+
+
 
     private async Task ConfirmSubmit()
     {
@@ -1027,6 +1135,51 @@
         }
     }
 
+    private async Task UpdateNote()
+    {
+
+
+        DateTime today = DateTime.Now;
+
+        await MySqlConnection.OpenAsync();
+        using var transaction = await MySqlConnection.BeginTransactionAsync();
+
+        try
+        {
+            var query = @"INSERT INTO crm_notes (guid, activity_id, customer_id, branch_code, created_by, created_at , note)
+            VALUES (@guid, @activity_id ,@customer_code, @branch_code, @created_by, @created_date ,@note)";
+            using var command = new MySqlCommand(query, MySqlConnection, transaction);
+
+
+            command.Parameters.AddWithValue("@guid", Guid.NewGuid().ToString()); // ใช้ GUID ที่มีอยู่
+            command.Parameters.AddWithValue("@activity_id", model.activities_id);
+            command.Parameters.AddWithValue("@customer_code", selectedAct.customer_code);
+            command.Parameters.AddWithValue("@branch_code", BranchCode ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@created_by", username);
+            command.Parameters.AddWithValue("@created_date", today);
+            command.Parameters.AddWithValue("@note", model2.note);
+
+            await command.ExecuteNonQueryAsync();
+
+            // Commit transaction
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            // Rollback transaction in case of an error
+            await transaction.RollbackAsync();
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+
+            NotificationService.Notify(NotificationSeverity.Success, "สำเร็จ", "อัปเดตข้อมูลสำเร็จ");
+            StateHasChanged();
+            model2.note = "";
+        }
+    }
+
+
 
     private async Task SaveBatchToDatabaseWithTransaction(string new_activity_ref_guid, string old_activity_guid)
     {
@@ -1101,9 +1254,9 @@
             command.Parameters.AddWithValue("@activity_id", model.activities_id);
             command.Parameters.AddWithValue("@customer_id", selectedAct.customer_code);
             command.Parameters.AddWithValue("@contact_date", DateTime.Now.Date);
-            command.Parameters.AddWithValue("@contact_method", "โทร") ;
+            command.Parameters.AddWithValue("@contact_method", "โทร");
             command.Parameters.AddWithValue("@contact_result", model.status ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("@contact_result2",  model.call_status +"/"+model.call_action) ;
+            command.Parameters.AddWithValue("@contact_result2", model.call_status + "/" + model.call_action);
             command.Parameters.AddWithValue("@contact_remark", model.remark ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@branch_code", BranchCode);
             command.Parameters.AddWithValue("@created_by", username);

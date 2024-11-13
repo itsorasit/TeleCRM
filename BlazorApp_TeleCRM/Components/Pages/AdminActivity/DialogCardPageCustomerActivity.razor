@@ -2,6 +2,7 @@
 @using System.ComponentModel.DataAnnotations
 @using BlazorApp_TeleCRM.Data
 @using BlazorApp_TeleCRM.Helper
+@using BlazorApp_TeleCRM.Models
 @using BlazorApp_TeleCRM.Service
 @using Microsoft.AspNetCore.Components.Authorization
 @using MySql.Data.MySqlClient
@@ -203,7 +204,7 @@
                             </RadzenCard>
                         </RadzenColumn>
                         <RadzenColumn Size="12">
-                            <RadzenText TextStyle="TextStyle.Body2">ประวัติการติดตาม</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2">ประวัติการติดต่อ</RadzenText>
                             <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
                                             FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                             @bind-Value=@selecteContact
@@ -211,9 +212,12 @@
                                             PagerPosition="PagerPosition.Bottom"
                                             AllowAlternatingRows="false">
                                 <Columns>
-                                    <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_By" Width="150px" Title="ผู้ติดต่อ" />
-                                    <RadzenDataGridColumn TItem="WeatherForecast" Property="Contact_Date" Width="150px" Title="วันที่ติดต่อลูกค้า" />
-                                    <RadzenDataGridColumn TItem="WeatherForecast" Property="Last_Contact_Action" Width="120px" Title="ผลตอบรับครั้งก่อน" />
+                                    <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.created_by)" Width="120px" Title="ผู้ติดต่อ" />
+                                    <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.created_at)" Width="150px" Title="วันที่ติดต่อลูกค้า" />
+                                    <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_result)" Width="120px" Title="ความคืบหน้า" />
+                                    <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_result2)" Width="120px" Title="ผลตอบรับครั้งก่อน" />
+                                    <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_remark)" Width="150px" Title="หมายเหตุ" />
+                                    <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.statusparticipation)" Width="150px" Title="คะแนนการมีส่วนร่วม" />
                                 </Columns>
                             </RadzenDataGrid>
                         </RadzenColumn>
@@ -353,8 +357,9 @@
 
 
     //
-    private IEnumerable<WeatherForecast> contacts;
-    IList<WeatherForecast> selecteContact;
+    private IEnumerable<CrmContactLog> contacts;
+    IList<CrmContactLog> selecteContact;
+
     private string qrCodeImage;
 
     private IEnumerable<ActivitysDataList> act_data;
@@ -735,18 +740,13 @@
         }
 
 
-     
-
-
         countcustomer = "1";
         datevalue = DateTime.Now.Date;
 
-        var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
         // Use the BaseApiUrl to call the API
-        var _contacts = await Http.GetFromJsonAsync<IEnumerable<WeatherForecast>>($"{baseApiUrl}/api/weatherforecast");
-
-        contacts = _contacts.Take(5).ToList();
-        selecteContact = new List<WeatherForecast>() { contacts.FirstOrDefault() };
+      
+        contacts = await FetchCrmContactLogDataAsync(selectedAct.customer_code);
+        selecteContact = new List<CrmContactLog>() { contacts.FirstOrDefault() };
 
         List<Products> prders = new List<Products>
         {
@@ -760,6 +760,47 @@
 
 
     }
+
+    public async Task<IEnumerable<CrmContactLog>> FetchCrmContactLogDataAsync(string Guid)
+    {
+        try
+        {
+
+            // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
+            runProcess_wait = true;
+            StateHasChanged(); // บังคับ UI อัปเดต
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+            var searchCriteria = new
+            {
+                guid = Guid
+            };
+
+            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/Job/GetCrmContactLogDataByID", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var contacts = await response.Content.ReadFromJsonAsync<IEnumerable<CrmContactLog>>();
+                return contacts;
+            }
+            else
+            {
+                Console.WriteLine("Error fetching ContactLogData Data.");
+                return Enumerable.Empty<CrmContactLog>();
+            }
+        }
+        finally
+        {
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
+    }
+
+
 
     public async Task<IEnumerable<ActivitysDataList>> FetchCustomerDataAsync(string Guid)
     {
