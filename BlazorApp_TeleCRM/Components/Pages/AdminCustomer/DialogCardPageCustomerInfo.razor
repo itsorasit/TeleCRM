@@ -1,0 +1,350 @@
+﻿@page "/DialogCardPageCustomerInfo/{CustomerId}"
+@using System.ComponentModel.DataAnnotations
+@using BlazorApp_TeleCRM.Data
+@using BlazorApp_TeleCRM.Helper
+@using BlazorApp_TeleCRM.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using static BlazorApp_TeleCRM.Components.Pages.AdminCustomer.AdminCustomer
+@inject IConfiguration Configuration
+@inject Radzen.DialogService dialogService
+@inject HttpClient Http
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UtilityConvet utility ;
+
+
+<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+    <RadzenStack>
+        <RadzenRow>
+            <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                <RadzenRow Gap="0">
+                    <RadzenColumn>
+                        <RadzenText TextStyle="TextStyle.Subtitle1">ข้อมูล</RadzenText>
+                    </RadzenColumn>
+                </RadzenRow>
+
+                <RadzenRow Gap="0">
+
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                        <RadzenStack Gap="0">
+                            <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">เบอร์ติดต่อลูกค้า</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body1"><b><a href="tel:@utility.FormatPhoneNumberWithCountryCode(model.customer_phone)"><RadzenIcon Icon="smartphone" /> @utility.FormatPhoneNumber(model.customer_phone) </a></b></RadzenText>
+                            <img width="150px" style="margin-top:20px" src="data:image/png;base64,@qrCodeImage" alt="QR Code" />
+                        </RadzenStack>
+                        <RadzenStack Gap="0">
+                            <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ชื่อลูกค้า</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@model.customer_name</b></RadzenText>
+                            <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ที่อยู่</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Caption"><b>@model.customer_address1 @model.customer_sub_district @model.customer_district @model.customer_province @model.customer_zipcode</b></RadzenText>
+                        </RadzenStack>
+                    </RadzenStack>
+
+                </RadzenRow>
+
+
+            </RadzenColumn>
+        </RadzenRow>
+
+
+        <RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnChange>
+            <Tabs>
+                <RadzenTabsItem Text="ประวัติการติดต่อ">
+                    <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
+                                    FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                    @bind-Value=@selecteContact
+                                    Data="@contacts" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
+                                    PagerPosition="PagerPosition.Bottom"
+                                    AllowAlternatingRows="false">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.created_by)" Width="120px" Title="ผู้ติดต่อ" />
+                            <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.created_at)" Width="150px" Title="วันที่ติดต่อลูกค้า" />
+                            <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_result)" Width="120px" Title="ความคืบหน้า" />
+                            <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_result2)" Width="120px" Title="ผลตอบรับครั้งก่อน" />
+                            <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_remark)" Width="150px" Title="หมายเหตุ" />
+                            <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.statusparticipation)" Width="150px" Title="คะแนนการมีส่วนร่วม" />
+                        </Columns>
+                    </RadzenDataGrid>
+                </RadzenTabsItem>
+            </Tabs>
+        </RadzenTabs>
+
+    </RadzenStack>
+
+</RadzenStack>
+@code {
+    [Parameter] public string CustomerId { get; set; }
+
+    int selectedIndex = 0;
+
+    private string? qrCodeImage = "";
+    bool runProcess_wait = false;
+
+    Model model = new Model();
+
+    private string? username;
+    private string? BranchCode { get; set; }
+    private IEnumerable<string>? _BranchCode;
+
+    private IEnumerable<CustomerDataList>? cus_data;
+    CustomerDataList selectedCus;
+
+    private IEnumerable<CrmContactLog> contacts;
+    IList<CrmContactLog> selecteContact;
+
+    private IEnumerable<CrmNote> notes;
+    IList<CrmNote> selectenote;
+
+
+    class Model
+    {
+        public string? activities_id { get; set; }
+        public string? activities_name { get; set; }
+        public string? activities_touch_point { get; set; }
+        public string? activities_description { get; set; }
+        public string? activities_created_by { get; set; }
+
+        public DateTime? activities_startdate { get; set; }
+        public DateTime? activities_duedate { get; set; }
+        public DateTime? activities_reminder_duedate { get; set; }
+        public string? activities_assign_work { get; set; }
+        public bool? allowagent { get; set; } = false;
+
+        public string? status { get; set; }
+        public string? call_status { get; set; }
+        public string? call_action { get; set; }
+        public string? sale_order_no { get; set; }
+        public string? code { get; set; }
+        public int statusparticipation { get; set; }
+        public string? remark { get; set; }
+
+
+        public string? customer_name { get; set; }
+        public string? customer_phone { get; set; }
+        public string? customer_province { get; set; }
+        public string? customer_address1 { get; set; }
+        public string? customer_sub_district { get; set; }
+        public string? customer_district { get; set; }
+        public string? customer_zipcode { get; set; }
+
+
+        public string? contact_by { get; set; }
+        public DateTime? contact_date { get; set; }
+        public string? contact_use_phone { get; set; }
+        public string? new_activity_ref_guid { get; set; }
+        public DateTime? appointment_date { get; set; }
+        public string? old_activity_guid { get; set; }
+        public bool? re_activity { get; set; }
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            username = user.Identity.Name;
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+        }
+        else
+        {
+            username = "";
+            BranchCode = "";
+        }
+
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        cus_data = await FetchCustomerDataAsync(this.CustomerId);
+        if (cus_data != null && cus_data.Any())
+        {
+            selectedCus = cus_data.FirstOrDefault();
+
+            if (selectedCus != null)
+            {
+                model.activities_id = selectedCus.guid;
+                // model.activities_touch_point = selectedAct.touch_point;
+                // model.activities_name = selectedAct.act_name;
+                // model.activities_created_by = selectedAct.created_by;
+                // model.activities_description = selectedAct.description;
+                // model.activities_startdate = selectedAct.startdate;
+                // model.activities_duedate = selectedAct.duedate;
+                // model.activities_reminder_duedate = selectedAct.reminder_duedate;
+                // model.activities_assign_work = selectedAct.assign_work;
+                // model.allowagent = selectedAct.allowagent;
+                // model.status = selectedAct.act_status;
+                // model.call_action = selectedAct.call_action;
+                // model.call_status = selectedAct.call_status;
+                // model.sale_order_no = selectedAct.sale_order_no;
+                // model.remark = selectedAct.remark;
+                // model.statusparticipation = selectedAct.statusparticipation.Value;
+
+                model.customer_name = selectedCus.name;
+                model.customer_phone = selectedCus.phone;
+                model.customer_province = selectedCus.province;
+                model.customer_address1 = selectedCus.address1;
+                model.customer_sub_district = selectedCus.sub_district;
+                model.customer_district = selectedCus.district;
+                model.customer_zipcode = selectedCus.zipcode;
+
+                // model.contact_by = selectedAct.contact_by;
+                // model.contact_date = selectedAct.contact_date;
+                // model.contact_use_phone = selectedAct.contact_use_phone;
+                // model.new_activity_ref_guid = selectedAct.new_activity_ref_guid;
+                // model.appointment_date = selectedAct.appointment_date;
+                // model.old_activity_guid = selectedAct.old_activity_guid;
+                // model.re_activity = selectedAct.re_activity;
+
+                string phoneNumber = "tel:" + @utility.FormatPhoneNumberWithCountryCode(selectedCus.phone);
+
+                // สร้าง QR Code
+                using (var qrGenerator = new QRCoder.QRCodeGenerator())
+                {
+                    var qrCodeData = qrGenerator.CreateQrCode(phoneNumber, QRCoder.QRCodeGenerator.ECCLevel.Q);
+                    var qrCode = new QRCoder.PngByteQRCode(qrCodeData);
+                    var qrCodeBytes = qrCode.GetGraphic(20);
+
+                    // แปลงเป็น base64 เพื่อแสดงเป็นรูปภาพใน img tag
+                    qrCodeImage = Convert.ToBase64String(qrCodeBytes);
+                }
+
+            }
+            contacts = await FetchCrmContactLogDataAsync(selectedCus.guid);
+            selecteContact = new List<CrmContactLog>() { contacts.FirstOrDefault() };
+
+            notes = await FetchCrmNotesDataAsync(selectedCus.guid);
+            selectenote = new List<CrmNote>() { notes.FirstOrDefault() };
+        }
+
+    }
+
+    void OnChange(int index)
+    {
+
+    }
+
+    public async Task<IEnumerable<CustomerDataList>> FetchCustomerDataAsync(string Guid)
+    {
+        runProcess_wait = true;
+        try
+        {
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+            var searchCriteria = new
+            {
+                guid = Guid,
+                branch_code = BranchCode
+            };
+
+            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/CustomerAdmin/GetCustomerDataById", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var dataLists = await response.Content.ReadFromJsonAsync<IEnumerable<CustomerDataList>>();
+                return dataLists;
+            }
+            else
+            {
+                Console.WriteLine("Error fetching Customer Data.");
+                return Enumerable.Empty<CustomerDataList>();
+            }
+        }
+        finally
+        {
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
+    }
+
+    public async Task<IEnumerable<CrmContactLog>> FetchCrmContactLogDataAsync(string Guid)
+    {
+        try
+        {
+
+            // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
+            runProcess_wait = true;
+            StateHasChanged(); // บังคับ UI อัปเดต
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+            var searchCriteria = new
+            {
+                guid = Guid
+            };
+
+            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/Job/GetCrmContactLogDataByID", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var contacts = await response.Content.ReadFromJsonAsync<IEnumerable<CrmContactLog>>();
+                return contacts;
+            }
+            else
+            {
+                Console.WriteLine("Error fetching ContactLogData Data.");
+                return Enumerable.Empty<CrmContactLog>();
+            }
+        }
+        finally
+        {
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
+    }
+
+    public async Task<IEnumerable<CrmNote>> FetchCrmNotesDataAsync(string Guid)
+    {
+        try
+        {
+
+            // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
+            runProcess_wait = true;
+            StateHasChanged(); // บังคับ UI อัปเดต
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+            var searchCriteria = new
+            {
+                guid = Guid
+            };
+
+            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/Job/GetCrmNoteDataByID", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var notes = await response.Content.ReadFromJsonAsync<IEnumerable<CrmNote>>();
+                return notes;
+            }
+            else
+            {
+                Console.WriteLine("Error fetching NoteLogData Data.");
+                return Enumerable.Empty<CrmNote>();
+            }
+        }
+        finally
+        {
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
+    }
+
+
+
+}

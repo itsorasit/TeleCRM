@@ -121,7 +121,8 @@
                     </RadzenRow>
                     </RadzenTemplateForm>
                 </RadzenTabsItem>
-                <RadzenTabsItem Text="ขายสินค้า">
+
+               @*  <RadzenTabsItem Text="ขายสินค้า">
                     <RadzenRow Gap="1rem">
 
 
@@ -156,7 +157,7 @@
                                         <RadzenRequiredValidator Text="ราคาขาย" Component="ProductSalePrice" Popup="true" />
                                     </EditTemplate>
                                 </RadzenDataGridColumn>
-                              @*   <RadzenDataGridColumn Property="@nameof(Order.ShipCountry)" Title="ShipCountry">
+                               <RadzenDataGridColumn Property="@nameof(Order.ShipCountry)" Title="ShipCountry">
                                     <EditTemplate Context="order">
                                         <RadzenTextBox @bind-Value="order.ShipCountry" Style="width:200px; display: block" Name="ShipCountry" aria-label="Enter ship country" />
                                         <RadzenRequiredValidator Text="ShipCountry is required" Component="ShipCountry" Popup="true" />
@@ -167,7 +168,7 @@
                                         <RadzenTextBox @bind-Value="order.ShipCity" Style="width:200px; display: block" Name="ShipCity" aria-label="Enter ship city" />
                                         <RadzenRequiredValidator Text="ShipCity is required" Component="ShipCity" Popup="true" />
                                     </EditTemplate>
-                                </RadzenDataGridColumn> *@
+                                </RadzenDataGridColumn> 
                                 <RadzenDataGridColumn Context="order" Width="150px" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
                                     <Template Context="order">
                                         <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(order))" @onclick:stopPropagation="true">
@@ -188,7 +189,8 @@
                         </RadzenDataGrid>
 
                     </RadzenRow>
-                </RadzenTabsItem>
+                </RadzenTabsItem> *@
+           
             </Tabs>
         </RadzenTabs>
 

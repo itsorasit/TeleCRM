@@ -105,7 +105,7 @@
 
         <RadzenDataGridColumn Width="60px" Filterable="false" Property="@nameof(CustomerDataList.guid)" >
             <Template Context="data">
-                <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" />
+                    <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" Click=@(() => OpenSideDialogInfo(data.guid)) />
             </Template>
         </RadzenDataGridColumn>
 
@@ -132,7 +132,7 @@
     bool runProcess_wait = false;
 
     bool isDialogOpen = false;
-    bool allowRowSelectOnRowClick = true;
+    bool allowRowSelectOnRowClick = false;
     DateTime? value = DateTime.Now;
 
     bool value1 = false;
@@ -305,6 +305,31 @@
 
 
     }
+
+    async Task OpenSideDialogInfo(string CustomerId)
+    {
+        if (isDialogOpen)
+        {
+            DialogService.Close();
+            // await Task.Delay(200);
+        }
+        StateHasChanged();
+        await DialogService.OpenSideAsync<DialogCardPageCustomerInfo>(
+            "ข้อมูลลูกค้า",
+            new Dictionary<string, object>() { { "CustomerId", CustomerId } },
+            new SideDialogOptions
+                {
+                    CloseDialogOnOverlayClick = true,
+                    Position = DialogPosition.Right,
+                    ShowMask = false,
+                    Width = "60%"
+                });
+
+        isDialogOpen = true;
+
+    }
+
+
 
 
     protected override async Task OnInitializedAsync()
