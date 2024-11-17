@@ -1,0 +1,357 @@
+﻿@page "/DialogCardPageStore/{StoreId}"
+@using System.ComponentModel.DataAnnotations
+@using Azure.Storage.Blobs
+@using BlazorApp_TeleCRM.Data
+@using BlazorApp_TeleCRM.Helper
+@using BlazorApp_TeleCRM.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using MySql.Data.MySqlClient
+@using static BlazorApp_TeleCRM.Components.Pages.Console.Console
+@inject IConfiguration Configuration
+@inject Radzen.DialogService dialogService
+@inject HttpClient Http
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UtilityConvet utility;
+@inject NotificationService NotificationService
+@inject MySqlConnection MySqlConnection
+
+<RadzenTemplateForm TItem="Branch" Data="@branch" Submit="@HandleValidSubmit">
+  
+
+    <div style="margin-top:20px ;text-align: center;">
+        @if (string.IsNullOrEmpty(branch.imageurl))
+        {
+            <img src="image/system/store.png" width="150px" />
+        }
+        else
+        {
+            <img src="@branch.imageurl" width="150px" />
+        }
+    </div>
+    <div style="margin-top:20px">
+        <RadzenLabel Text="รหัสร้านค้า" />
+        <RadzenTextBox style="display: block;width: 100%" @bind-Value="branch.code" Name="code" Disabled="true" />
+    </div>
+    <div style="margin-top:20px">
+        <RadzenLabel Text="ชื่อร้านค้า" />
+        <RadzenTextBox style="display: block;width: 100%" @bind-Value="branch.name" Name="name" class="w-100" />
+        <RadzenRequiredValidator Component="name" Text="ใส่ชื่อร้านค้า" Style="position: absolute" />
+    </div>
+    <div style="margin-top:20px">
+        <RadzenLabel Text="อัปโหลดรูปภาพร้านค้า" />
+        <InputFile OnChange="@UploadFile" />
+    </div>
+    <div style="margin-top:20px">
+    <RadzenButton Text="บันทึก" Style="margin-top: 10px;" ButtonType="ButtonType.Submit" />
+    </div>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter] public string StoreId { get; set; }
+
+    private string? username;
+    bool isEdit = false;
+    private string? BranchCode { get; set; }
+    private IEnumerable<string>? _BranchCode;
+    private string UploadedFileUrl;
+
+
+    private Branch branch = new Branch();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            username = user.Identity.Name;
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+        }
+        else
+        {
+            username = "";
+            BranchCode = "";
+        }
+
+    }
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        if (!string.IsNullOrEmpty(StoreId))
+        {
+            isEdit = true;
+            branch.code = StoreId;
+
+            var b= await LoadData(StoreId);
+            branch.name = b.name;
+            branch.imageurl = b.imageurl;
+            branch.parent_code = b.parent_code;
+            branch.level = b.level;
+        }
+
+    }
+
+
+
+
+    private async Task HandleValidSubmit()
+    {
+        // Generate running code
+        branch.level = 1;
+        branch.parent_code = "000000";
+
+        // บันทึกรูปภาพที่อัปโหลดในฐานข้อมูล
+        branch.imageurl = UploadedFileUrl;
+
+        if (string.IsNullOrEmpty(StoreId))
+        {
+
+            await SaveBranchAsync(branch);
+            branch = new Branch();
+        }
+        else
+        {
+            await UpdateBranchAsync(branch);
+        }
+        // Save branch to database
+       
+      
+    }
+
+
+    private async Task<string> GenerateRunningCode()
+    {
+        string runningCode = "06"; // Default starting code (ถ้าข้อมูลไม่พบจะคืนค่ากำหนดเอง)
+
+        try
+        {
+            await MySqlConnection.OpenAsync();
+
+            using var command = new MySqlCommand(
+                            @"SELECT CONCAT('00', LPAD(COALESCE(MAX(CAST(SUBSTRING(code, 3, 2) AS UNSIGNED)), 0) + 1, 2, '0'), '00') AS new_code
+FROM mas_branches
+WHERE parent_code = @parent_code AND level = @level
+AND CAST(SUBSTRING(code, 3, 2) AS UNSIGNED) BETWEEN 1 AND 99;",
+                MySqlConnection);
+
+            command.Parameters.AddWithValue("@parent_code", BranchCode);
+            command.Parameters.AddWithValue("@level", 1);
+
+            var result = await command.ExecuteScalarAsync();
+            if (result != null && result != DBNull.Value)
+            {
+                runningCode = result.ToString();
+            }
+        }
+        catch
+        {
+            runningCode = "06";
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+
+        return runningCode;
+    }
+
+
+    private async Task SaveBranchAsync(Branch branch)
+    {
+        try
+        {
+            string genid = await GenerateRunningCode();
+            genid = genid.Substring(2, 2);
+
+            branch.code = "00" + genid + "00";
+
+            if (string.IsNullOrEmpty(branch.imageurl))
+            {
+                branch.imageurl = "image/system/store.png";
+            }
+
+
+            await MySqlConnection.OpenAsync();
+
+            using var command = new MySqlCommand(
+                                @"INSERT INTO mas_branches (code, name, level, parent_code, created_by, created_date,imageurl)
+                  VALUES (@code, @name, @level, @parent_code, @created_by, @created_date ,@imageurl)",
+                MySqlConnection);
+
+            command.Parameters.AddWithValue("@code", branch.code);
+            command.Parameters.AddWithValue("@name", branch.name);
+            command.Parameters.AddWithValue("@level", branch.level);
+            command.Parameters.AddWithValue("@parent_code", BranchCode);
+            command.Parameters.AddWithValue("@imageurl", branch.imageurl);
+            command.Parameters.AddWithValue("@created_by", username);
+            command.Parameters.AddWithValue("@created_date", DateTime.Now);
+
+            await command.ExecuteNonQueryAsync();
+
+            NotificationService.Notify(NotificationSeverity.Success, "สำเร็จ", "อัปเดตข้อมูลสำเร็จ");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Error saving branch: {ex.Message}");
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+    }
+
+    private async Task UpdateBranchAsync(Branch branch)
+    {
+        try
+        {
+          
+            if (string.IsNullOrEmpty(branch.imageurl))
+            {
+                branch.imageurl = "image/system/store.png";
+            }
+
+
+            await MySqlConnection.OpenAsync();
+
+            using var command = new MySqlCommand(
+                                        @"UPDATE mas_branches
+SET name=@name , modified_by = @modified_by, modified_date = @modified_date, imageurl = @imageurl 
+WHERE code=@code",
+                MySqlConnection);
+
+            command.Parameters.AddWithValue("@code", branch.code);
+            command.Parameters.AddWithValue("@name", branch.name);
+            command.Parameters.AddWithValue("@level", branch.level);
+            command.Parameters.AddWithValue("@parent_code", BranchCode);
+            command.Parameters.AddWithValue("@imageurl", branch.imageurl);
+            command.Parameters.AddWithValue("@modified_by", username);
+            command.Parameters.AddWithValue("@modified_date", DateTime.Now);
+
+            await command.ExecuteNonQueryAsync();
+
+            NotificationService.Notify(NotificationSeverity.Success, "สำเร็จ", "อัปเดตข้อมูลสำเร็จ");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Error saving branch: {ex.Message}");
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+    }
+
+
+    private async Task UploadFile(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+
+        // ตรวจสอบขนาดไฟล์
+        if (file.Size > 5 * 1024 * 1024) // 5MB
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "ไฟล์ใหญ่เกินไป");
+            return;
+        }
+
+        try
+        {
+            // ดึง Connection String และ Container Name จาก Configuration
+            string connectionString = Configuration["AzureBlobStorage:ConnectionString"];
+            string containerName = Configuration["AzureBlobStorage:ContainerName"];
+            string fileName = $"{Guid.NewGuid()}-{file.Name}";
+
+            // สร้าง Blob Service Client ด้วย Connection String
+            var blobServiceClient = new BlobServiceClient(connectionString);
+            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+
+            // ตรวจสอบว่ามี Container อยู่แล้วหรือไม่ (ถ้าไม่มีจะสร้างใหม่)
+            await containerClient.CreateIfNotExistsAsync();
+
+            // อัปโหลดไฟล์ไปยัง Blob Storage
+            using var stream = file.OpenReadStream();
+            var blobClient = containerClient.GetBlobClient(fileName);
+            await blobClient.UploadAsync(stream, true);
+
+            // บันทึก URL ของไฟล์
+            UploadedFileUrl = blobClient.Uri.ToString();
+            // NotificationService.Notify(NotificationSeverity.Success, "สำเร็จ", "อัปโหลดรูปภาพสำเร็จ");
+
+            branch.imageurl = UploadedFileUrl;
+
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"เกิดข้อผิดพลาดในการอัปโหลดไฟล์: {ex.Message}");
+        }
+    }
+
+
+    public async Task<Branch> LoadData(string code)
+    {
+       
+        // คำสั่ง SQL ที่จะดำเนินการ
+        string query = @"
+        SELECT code, name, `level`, parent_code, created_by, created_date, modified_by, modified_date, imageurl
+        FROM mas_branches
+        WHERE code = @code;
+    ";
+
+        // สร้างออบเจ็กต์ Branch เพื่อเก็บผลลัพธ์
+        Branch branch = null;
+
+        try
+        {
+            await MySqlConnection.OpenAsync();
+            // สร้างการเชื่อมต่อกับฐานข้อมูล
+            using (var command = new MySqlCommand(query, MySqlConnection))
+            {
+                // เพิ่มพารามิเตอร์ @code
+                command.Parameters.AddWithValue("@code", code);
+
+                // ดำเนินการอ่านข้อมูล
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    if (await reader.ReadAsync())
+                    {
+                        branch = new Branch
+                            {
+                                code = reader["code"].ToString(),
+                                name = reader["name"].ToString(),
+                                level = reader.GetInt32(reader.GetOrdinal("level")), // ใช้ GetInt32 แบบระบุคอลัมน์ที่เป็น INT
+                                parent_code = reader["parent_code"].ToString(),
+                                imageurl = reader["imageurl"].ToString()
+                            };
+                    }
+                }
+
+                await MySqlConnection.CloseAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            await MySqlConnection.CloseAsync();
+        }
+
+        return branch;
+    }
+
+    public class Branch
+    {
+        public string? code { get; set; }
+        public string? name { get; set; }
+        public int? level { get; set; }
+        public string? parent_code { get; set; }
+        public string? created_by { get; set; }
+        public string? imageurl { get; set; }
+        public DateTime? created_date { get; set; }
+    }
+}

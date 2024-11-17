@@ -20,91 +20,6 @@ namespace BlazorApp_TeleCRM.Controller
         }
 
 
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
-
-        private static readonly string[] Admin = new[]
-        {
-            "Admin A", "Admin B", "Admin C"
-        };
-
-        private static readonly string[] CustomerPhone = new[]
-        {
-            "086-0981-015", "085-0931-122", "096-0981-013", "067-0981-015"
-        };
-
-        private static readonly string[] ActivityProgress = new[]
-        {
-            "รอดำเนินการ", "สำเร็จ", "ติดตาม" , "เกินกำหนด"
-        };
-
-        private static readonly string[] CustomerAction = new[]
-        {
-             "สั่งสินค้า","ขอคิดดูก่อน","สำเร็จ", "", "ติดต่อไม่ได้", "ปฎิเสธ"
-        };
-
-        private static readonly string[] Channel = new[]
-        {
-             "กิจกรรม","แคมเปญ"
-        };
-
-        private static readonly string[] Tag = new[]
-         {
-             "Up-Sale","Re-Sale","ลูกค้าขุด"
-        };
-
-
-        private static readonly string[] ActivityName = new[]
-      {
-            "Activity A", "Activity B", "Activity C", "Activity D"
-        };
-
-
-        private static readonly string[] ContactBy = new[]
-        {
-            "พนักงาน A", "พนักงาน B", "พนักงาน C", "พนักงาน D"
-        };
-
-        [HttpGet]
-        public IEnumerable<ActivityData> Get()
-        {
-            return Enumerable.Range(1, 50).Select(index => new ActivityData
-            {
-                Activity_ID = index,
-                Activity_Name = ActivityName[Random.Shared.Next(ActivityName.Length)],
-                Activity_Type = Channel[Random.Shared.Next(Channel.Length)],
-                Activity_Progress = ActivityProgress[Random.Shared.Next(ActivityProgress.Length)],
-                Activity_Duedate = DateTime.Now.AddDays(index),
-                Activity_Assign = ContactBy[Random.Shared.Next(ContactBy.Length)],
-                CountActivity_Succeed = Random.Shared.Next(0, 50),
-                CountActivity_ALL = (Random.Shared.Next(50, 100)) ,
-                Activity_Status = Tag[Random.Shared.Next(Tag.Length)],
-
-            })
-            .ToArray();
-        }
-
-        public class ActivityData
-        {
-            public int Activity_ID { get; set; }
-            public string Activity_Name { get; set; }
-            public string Activity_Type { get; set; }
-            public string Activity_Progress { get; set; }
-            public string Activity_Assign { get; set; }
-            public DateTime Activity_Duedate { get; set; }
-            public int CountActivity_Succeed { get; set; }
-            public int CountActivity_ALL { get; set; }
-            public string Activity_Status { get; set; }
-            public string Create_By { get; set; }
-            public DateTime? Create_Date { get; set; }
-            public string UpDate_By { get; set; }
-            public DateTime? UpDate_Date { get; set; }
-             
-        }
-
-
         [HttpPost("GetActivitysData")]
         public async Task<IActionResult> GetActivitysData([FromBody] SearchCriteria searchCriteria)
         {
@@ -278,6 +193,83 @@ namespace BlazorApp_TeleCRM.Controller
 
             return Ok(activitys);
         }
+
+        [HttpPost("GetActivitysByCustomer")]
+        public async Task<IActionResult> GetActivitysByCustomer([FromBody] SearchCriteriaByID searchCriteria)
+        {
+
+            DateTime today = DateTime.Now;
+
+            var activitys = new List<ActivitysDataList>();
+
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+
+                var query = @"SELECT guid, customer_code, branch_code, touch_point, name, description, startdate, duedate, reminder_duedate, 
+                    assign_work, assign_work_type, allowagent, record_status, created_by, created_date, modified_by, modified_date,
+                    '' as activitys_code,'' as progress,0 as succeed, 0 as progress_total ,status ,call_status ,call_action, sale_order_no 
+                    FROM crm_activitys ca
+                    where ca.customer_code = @customer_code
+                    ORDER BY ca.created_date";
+
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    
+                    var customer_code = searchCriteria.guid ?? "";
+                    cmd.Parameters.AddWithValue("@customer_code", customer_code);
+
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var dataList = new ActivitysDataList
+                            {
+                                guid = reader["guid"].ToString(),
+                                customer_code = reader["customer_code"].ToString(),
+                                branch_code = reader["branch_code"].ToString(),
+                                touch_point = reader["touch_point"].ToString(),
+                                name = reader["name"].ToString(),
+                                description = reader["description"].ToString(),
+                                startdate = reader.IsDBNull(reader.GetOrdinal("startdate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("startdate")),
+                                duedate = reader.IsDBNull(reader.GetOrdinal("duedate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("duedate")),
+                                reminder_duedate = reader.IsDBNull(reader.GetOrdinal("reminder_duedate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("reminder_duedate")),
+                                assign_work = reader["assign_work"].ToString(),
+                                assign_work_type = reader["assign_work_type"].ToString(),
+                                allowagent = reader.IsDBNull(reader.GetOrdinal("allowagent")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("allowagent")),
+                                record_status = reader.IsDBNull(reader.GetOrdinal("record_status")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("record_status")),
+
+
+                                created_by = reader["created_by"].ToString(),
+                                created_date = reader.GetDateTime(reader.GetOrdinal("created_date")),
+                                modified_by = reader.IsDBNull(reader.GetOrdinal("modified_by")) ? null : reader["modified_by"].ToString(),
+                                modified_date = reader.IsDBNull(reader.GetOrdinal("modified_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("modified_date")),
+
+                                status = reader["status"].ToString(),
+
+                                activitys_code = reader["activitys_code"].ToString(),
+                                progress = reader["activitys_code"].ToString(),
+                                succeed = reader.IsDBNull(reader.GetOrdinal("succeed")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("succeed")),
+                                progress_total = reader.IsDBNull(reader.GetOrdinal("progress_total")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("progress_total")),
+
+
+                                call_status = reader["call_status"].ToString(),
+                                call_action = reader["call_action"].ToString(),
+                                sale_order_no = reader["sale_order_no"].ToString(),
+
+                            };
+
+                            activitys.Add(dataList);
+                        }
+                    }
+                }
+            }
+
+            return Ok(activitys);
+        }
+
 
 
         public class SearchCriteria

@@ -5,66 +5,156 @@
 @using BlazorApp_TeleCRM.Models
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
+@using MySql.Data.MySqlClient
 @using static BlazorApp_TeleCRM.Components.Pages.AdminCustomer.AdminCustomer
 @inject IConfiguration Configuration
 @inject Radzen.DialogService dialogService
 @inject HttpClient Http
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UtilityConvet utility ;
+@inject NotificationService NotificationService
+@inject MySqlConnection MySqlConnection
 
 
 <RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
     <RadzenStack>
-        <RadzenRow>
-            <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
-                <RadzenRow Gap="0">
-                    <RadzenColumn>
-                        <RadzenText TextStyle="TextStyle.Subtitle1">ข้อมูล</RadzenText>
-                    </RadzenColumn>
-                </RadzenRow>
 
-                <RadzenRow Gap="0">
-
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                        <RadzenStack Gap="0">
-                            <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">เบอร์ติดต่อลูกค้า</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body1"><b><a href="tel:@utility.FormatPhoneNumberWithCountryCode(model.customer_phone)"><RadzenIcon Icon="smartphone" /> @utility.FormatPhoneNumber(model.customer_phone) </a></b></RadzenText>
-                            <img width="150px" style="margin-top:20px" src="data:image/png;base64,@qrCodeImage" alt="QR Code" />
-                        </RadzenStack>
-                        <RadzenStack Gap="0">
-                            <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ชื่อลูกค้า</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@model.customer_name</b></RadzenText>
-                            <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ที่อยู่</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Caption"><b>@model.customer_address1 @model.customer_sub_district @model.customer_district @model.customer_province @model.customer_zipcode</b></RadzenText>
-                        </RadzenStack>
-                    </RadzenStack>
-
-                </RadzenRow>
-
-
-            </RadzenColumn>
-        </RadzenRow>
-
-
-        <RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnChange>
+        <RadzenTabs @bind-SelectedIndex=@selectedIndex2 >
             <Tabs>
-                <RadzenTabsItem Text="ประวัติการติดต่อ">
+                <RadzenTabsItem Text="ข้อมูลลูกค้า">
+                    <RadzenRow>
+                        <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                           
+                            <RadzenRow Gap="0">
+
+                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                                    <RadzenStack Gap="0">
+                                        <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">เบอร์ติดต่อลูกค้า</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Body1"><b><a href="tel:@utility.FormatPhoneNumberWithCountryCode(model.customer_phone)"><RadzenIcon Icon="smartphone" /> @utility.FormatPhoneNumber(model.customer_phone) </a></b></RadzenText>
+                                        <img width="150px" style="margin-top:20px" src="data:image/png;base64,@qrCodeImage" alt="QR Code" />
+                                    </RadzenStack>
+                                    <RadzenStack Gap="0">
+                                        <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ชื่อลูกค้า</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@model.customer_name</b></RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ที่อยู่</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Caption"><b>@model.customer_address1 @model.customer_sub_district @model.customer_district @model.customer_province @model.customer_zipcode</b></RadzenText>
+                                    </RadzenStack>
+                                </RadzenStack>
+
+                            </RadzenRow>
+
+
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnChange>
+                        <Tabs>
+                            <RadzenTabsItem Text="ประวัติการติดต่อ">
+                                <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
+                                                FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                @bind-Value=@selecteContact
+                                                Data="@contacts" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
+                                                PagerPosition="PagerPosition.Bottom"
+                                                AllowAlternatingRows="false">
+                                    <Columns>
+                                        <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.created_by)" Width="120px" Title="ผู้ติดต่อ" />
+                                        <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.created_at)" Width="150px" Title="วันที่ติดต่อลูกค้า" />
+                                        <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_result)" Width="120px" Title="ความคืบหน้า" />
+                                        <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_result2)" Width="120px" Title="ผลตอบรับครั้งก่อน" />
+                                        <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_remark)" Width="150px" Title="หมายเหตุ" />
+                                        <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.statusparticipation)" Width="150px" Title="คะแนนการมีส่วนร่วม" />
+                                    </Columns>
+                                </RadzenDataGrid>
+                            </RadzenTabsItem>
+                            <RadzenTabsItem Text="Note">
+
+                                <RadzenTemplateForm TItem="Model2" Data=@model2 Submit="@OnSubmit2" InvalidSubmit="@OnInvalidSubmit2">
+                                    <RadzenStack class="rz-12">
+
+
+                                        <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                            <RadzenColumn Size="6" SizeMD="6">
+                                                <RadzenLabel Text="Note" TextStyle="TextStyle.Subtitle2" Component="remark" />
+                                                <RadzenTextArea Placeholder="" Name="remark" @bind-Value="@model2.note" class="w-100" />
+                                                <RadzenRequiredValidator Component="remark" Text="กรอกข้อความ" />
+                                            </RadzenColumn>
+
+                                        </RadzenRow>
+
+                                        <RadzenRow AlignItems="AlignItems.Start">
+                                            <RadzenColumn Size="12">
+                                                <RadzenButton ButtonType="ButtonType.Submit" Text="บันทึก" Style="margin-top: 5px;" />
+                                            </RadzenColumn>
+                                        </RadzenRow>
+
+                                    </RadzenStack>
+                                </RadzenTemplateForm>
+                                <hr />
+
+                                <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Start" Gap="1rem" class="rz-12" Style="width%90">
+                                    <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
+                                                    FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                    @bind-Value=@selectenote
+                                                    Data="@notes" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
+                                                    PagerPosition="PagerPosition.Bottom"
+                                                    AllowAlternatingRows="false">
+                                        <Columns>
+                                            <RadzenDataGridColumn TItem="CrmNote" Property="@nameof(CrmNote.created_by)" Width="120px" Title="ผู้ลงบันทึก" />
+                                            <RadzenDataGridColumn TItem="CrmNote" Property="@nameof(CrmNote.created_at)" Width="150px" Title="วันที่ลงบันทึก" />
+                                            <RadzenDataGridColumn TItem="CrmNote" Property="@nameof(CrmNote.note)" Width="400px" Title="Note" />
+                                        </Columns>
+                                    </RadzenDataGrid>
+                                </RadzenStack>
+                            </RadzenTabsItem>
+                        </Tabs>
+                    </RadzenTabs>
+                </RadzenTabsItem>
+                   <RadzenTabsItem Text="ข้อมูลกิจกรรม">
                     <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
                                     FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                    @bind-Value=@selecteContact
-                                    Data="@contacts" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
+                                    @bind-Value=@selecteActivitys
+                                    Data="@activitys" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
                                     PagerPosition="PagerPosition.Bottom"
                                     AllowAlternatingRows="false">
                         <Columns>
-                            <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.created_by)" Width="120px" Title="ผู้ติดต่อ" />
-                            <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.created_at)" Width="150px" Title="วันที่ติดต่อลูกค้า" />
-                            <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_result)" Width="120px" Title="ความคืบหน้า" />
-                            <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_result2)" Width="120px" Title="ผลตอบรับครั้งก่อน" />
-                            <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_remark)" Width="150px" Title="หมายเหตุ" />
-                            <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.statusparticipation)" Width="150px" Title="คะแนนการมีส่วนร่วม" />
+                            <RadzenDataGridColumn Width="160px" Property="status" Title="ความคืบหน้า">
+                                <Template Context="data">
+
+                                    @if (data.status == "สำเร็จ")
+                                    {
+                                        <RadzenButton Text="สำเร็จ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                                    }
+                                    else if (data.status == "")
+                                    {
+                                        <RadzenButton Text="รอดำเนินการ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                                    }
+                                    else if (data.status == "ปิดการขาย")
+                                    {
+                                        <RadzenButton Text="ปิดการขาย" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                                    }
+                                    else if (data.status == "ไม่สำเร็จ")
+                                    {
+                                        <RadzenButton Text="ไม่สำเร็จ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                                    }
+                                    else
+                                    {
+                                        <RadzenButton Text="@data.status" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Dark" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                                    }
+
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.call_status)" Width="200px" Title="สถานะการโทร" />
+                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.call_action)" Width="200px" Title="สถานะการสนทนา" />
+                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.guid)" Width="200px" Title="เลขที่กิจกรรม" />
+                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.name)" Width="200px" Title="ชื่อกิจกรรม" />
+                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.assign_work_type)" Width="150px" Title="ประเภท" />
+                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.touch_point)" Width="150px" Title="Touch Point" />
+                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.assign_work)" Width="180px" Title="มอบหมายให้" />
+                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.created_by)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Width="180px" Title="วันที่สร้างกิจกรรม" />
+                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.startdate)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Width="180px" Title="วันที่เริ่มกิจกรรม" />
+                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.duedate)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Width="180px" Title="วันครบกำหนด" />
                         </Columns>
                     </RadzenDataGrid>
-                </RadzenTabsItem>
+                   </RadzenTabsItem>
             </Tabs>
         </RadzenTabs>
 
@@ -75,11 +165,13 @@
     [Parameter] public string CustomerId { get; set; }
 
     int selectedIndex = 0;
+    int selectedIndex2 = 0;
 
     private string? qrCodeImage = "";
     bool runProcess_wait = false;
 
     Model model = new Model();
+    Model2 model2 = new Model2();
 
     private string? username;
     private string? BranchCode { get; set; }
@@ -93,6 +185,10 @@
 
     private IEnumerable<CrmNote> notes;
     IList<CrmNote> selectenote;
+
+    private IEnumerable<ActivitysDataList> activitys;
+    IList<ActivitysDataList> selecteActivitys;
+
 
 
     class Model
@@ -136,6 +232,12 @@
         public bool? re_activity { get; set; }
 
     }
+
+    class Model2
+    {
+        public string? note { get; set; }
+    }
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -221,6 +323,11 @@
 
             notes = await FetchCrmNotesDataAsync(selectedCus.guid);
             selectenote = new List<CrmNote>() { notes.FirstOrDefault() };
+
+            activitys = await FetchActivitysDataAsync(selectedCus.guid);
+            selecteActivitys = new List<ActivitysDataList>() { activitys.FirstOrDefault() };
+
+
         }
 
     }
@@ -345,6 +452,100 @@
         }
     }
 
+    private async Task OnSubmit2()
+    {
+        await UpdateNote();
+        notes = await FetchCrmNotesDataAsync(selectedCus.guid);
+        selectenote = new List<CrmNote>() { notes.FirstOrDefault() };
+    }
+
+    private async Task UpdateNote()
+    {
+
+
+        DateTime today = DateTime.Now;
+
+        await MySqlConnection.OpenAsync();
+        using var transaction = await MySqlConnection.BeginTransactionAsync();
+
+        try
+        {
+            var query = @"INSERT INTO crm_notes (guid, activity_id, customer_id, branch_code, created_by, created_at , note)
+            VALUES (@guid, @activity_id ,@customer_code, @branch_code, @created_by, @created_date ,@note)";
+            using var command = new MySqlCommand(query, MySqlConnection, transaction);
+
+
+            command.Parameters.AddWithValue("@guid", Guid.NewGuid().ToString()); // ใช้ GUID ที่มีอยู่
+            command.Parameters.AddWithValue("@activity_id", "");
+            command.Parameters.AddWithValue("@customer_code", selectedCus.guid);
+            command.Parameters.AddWithValue("@branch_code", BranchCode ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@created_by", username);
+            command.Parameters.AddWithValue("@created_date", today);
+            command.Parameters.AddWithValue("@note", model2.note);
+
+            await command.ExecuteNonQueryAsync();
+
+            // Commit transaction
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            // Rollback transaction in case of an error
+            await transaction.RollbackAsync();
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+
+            NotificationService.Notify(NotificationSeverity.Success, "สำเร็จ", "อัปเดตข้อมูลสำเร็จ");
+            StateHasChanged();
+            model2.note = "";
+        }
+    }
+
+    private void OnInvalidSubmit2()
+    {
+
+    }
+
+    public async Task<IEnumerable<ActivitysDataList>> FetchActivitysDataAsync(string Guid)
+    {
+        try
+        {
+
+            // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
+            runProcess_wait = true;
+            StateHasChanged(); // บังคับ UI อัปเดต
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+            var searchCriteria = new
+            {
+                guid = Guid
+            };
+
+            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/ActivityAdmin/GetActivitysByCustomer", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var activitys = await response.Content.ReadFromJsonAsync<IEnumerable<ActivitysDataList>>();
+                return activitys;
+            }
+            else
+            {
+                Console.WriteLine("Error fetching NoteLogData Data.");
+                return Enumerable.Empty<ActivitysDataList>();
+            }
+        }
+        finally
+        {
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
+    }
 
 
 }

@@ -1,0 +1,222 @@
+﻿@page "/console"
+@using BlazorApp_TeleCRM.Data
+@using BlazorApp_TeleCRM.Models
+@using BlazorApp_TeleCRM.Service
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using MySql.Data.MySqlClient
+@using static BlazorApp_TeleCRM.Controller.CustomerAdminController
+@inject IConfiguration Configuration
+@inject HttpClient Http
+@inject DialogService DialogService
+@inject SharedStateService SharedState
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject MySqlConnection MySqlConnection
+@inject NotificationService NotificationService
+
+
+
+<style>
+
+    .card {
+        width: 300px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        overflow: hidden;
+        padding-top:10px;
+        padding-left: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+    .card-image {
+       /*  width: 100%; */
+        height: auto;
+    }
+
+    .card-content {
+        padding: 16px;
+    }
+
+    .card-title {
+        font-size: 1.5em;
+        margin: 0 0 10px;
+    }
+
+    .card-description {
+        font-size: 1em;
+        color: #666;
+        margin-bottom: 15px;
+    }
+
+    .card-button {
+        display: inline-block;
+        padding: 10px 15px;
+        background-color: #007bff;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+    }
+
+        .card-button:hover {
+            background-color: #0056b3;
+        }
+
+</style>
+
+<PageTitle>คอนโซล</PageTitle>
+
+<AuthorizeView Roles="Admin">
+
+    <div class="rz-12">
+        <RadzenBreadCrumb>
+            @*  <RadzenBreadCrumbItem Text="คอนโซล" /> *@
+            <RadzenBreadCrumbItem Icon="settings" Path="/console" Text="คอนโซล" />
+        </RadzenBreadCrumb>
+        <RadzenText TextStyle="TextStyle.DisplayH5"></RadzenText>
+    </div>
+
+
+    <div class="rz-display-flex rz-row rz-align-items-normal rz-justify-content-normal" style="margin-top:50px" id="components">
+        <div class="rz-col-12">
+          
+            <div class=" rz-card rz-variant-outlined rz-background-color-white   rz-display-flex rz-row rz-align-items-normal ">
+                <div class="rz-col-12 " style=""><h3 class="rz-text-h4">ร้านค้า</h3></div>
+                <div class="rz-col-12  components-list">
+
+                    <div class="rz-display-flex rz-row rz-align-items-normal rz-justify-content-normal" style="--rz-row-gap:1.5rem">
+                        <div class="rz-col-12 rz-col-xs-6 rz-col-sm-4 rz-col-lg-3">
+                            <RadzenButton Text="เพิ่มร้านค้า" Icon="store" Click="@OpenNewStore" />
+
+                        </div>
+                        @foreach (var branch in Branches)
+                        {
+                            <div class="card">
+                                <img src="@branch.imageurl" width="100px" alt="Card Image" class="card-image">
+                                <div class="card-content">
+                                    <h3 class="card-title">@branch.name</h3>
+                         @*            <p class="card-description">@branch.name</p> *@
+                                    <RadzenButton  Click=@(() => OpenEditStore(branch.code)) Variant="Variant.Outlined" Text="แก้ไข" ButtonStyle="ButtonStyle.Primary" />
+                                </div>
+                            </div>
+
+                         
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class=" rz-card rz-variant-outlined rz-background-color-white rz-display-flex rz-row rz-align-items-normal rz-justify-content-normal" style="margin-top:30px">
+                <div class="rz-col-12 rz-col-md-3 rz-col-lg-2 rz-col-xl-3">
+                    <h3 class="rz-text-h4">ผู้ใช้งาน</h3>
+                </div>
+                <div class="rz-col-12  components-list">
+                    <div class="rz-display-flex rz-row rz-align-items-normal rz-justify-content-normal" style="--rz-row-gap:1.5rem">
+
+                        <div class="rz-col-12 rz-col-xs-6 rz-col-sm-4 rz-col-lg-3">
+                            <RadzenLink Style="font-size:20px" Icon="person_add" Path="users" Text=" บัญชีผู้ใช้งาน" />
+                        </div>
+                        <div class="rz-col-12 rz-col-xs-6 rz-col-sm-4 rz-col-lg-3">
+                            <RadzenLink Style="font-size:20px" Icon="groups" Path="usergroups" Text=" กลุ่มผู้ใช้งาน" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+</AuthorizeView>
+
+@code{
+
+
+    private List<MasBranches> Branches = new();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        // เรียกข้อมูลจากฐานข้อมูล
+        Branches = await GetBranchesAsync();
+    }
+
+    // ดึงข้อมูลร้านค้าจากฐานข้อมูล
+    private async Task<List<MasBranches>> GetBranchesAsync()
+    {
+        var branches = new List<MasBranches>();
+
+        try
+        {
+            await MySqlConnection.OpenAsync();
+
+            string query = @"
+                SELECT code, name, `level`, parent_code, created_by, created_date, modified_by, modified_date,imageurl
+                FROM mas_branches
+                WHERE parent_code = '000000' AND level = 1";
+
+            using var command = new MySqlCommand(query, MySqlConnection);
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                branches.Add(new MasBranches
+                    {
+                        code = reader["code"].ToString(),
+                        name = reader["name"].ToString(),
+                        level = reader.GetInt32(reader.GetOrdinal("level")), // ใช้ GetInt32 แบบระบุคอลัมน์ที่เป็น INT
+                        parent_code = reader["parent_code"].ToString(),
+                        imageurl = reader["imageurl"].ToString()
+                        });
+            }
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Error  branch: {ex.Message}");
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+
+        return branches;
+    }
+
+
+
+
+    async Task OpenNewStore()
+    {
+        await DialogService.OpenAsync<DialogCardPageStore2>($"ร้านค้า",
+       new Dictionary<string, object>() { { "StoreId", "" } },
+       new DialogOptions()
+           {
+               Width = "600px",
+               Height = "600px",
+               CloseDialogOnOverlayClick = false,  // Disable closing on clicking outside
+               CloseDialogOnEsc = false,           // Disable closing by pressing ESC
+               ShowClose = true                   // Remove the "X" close button
+           });
+    }
+
+    async Task OpenEditStore(string code)
+    {
+        await DialogService.OpenAsync<DialogCardPageStore2>($"ร้านค้า",
+       new Dictionary<string, object>() { { "StoreId", code } },
+       new DialogOptions()
+           {
+               Width = "600px",
+               Height = "600px",
+               CloseDialogOnOverlayClick = false,  // Disable closing on clicking outside
+               CloseDialogOnEsc = false,           // Disable closing by pressing ESC
+               ShowClose = true                   // Remove the "X" close button
+           });
+
+    }
+
+}

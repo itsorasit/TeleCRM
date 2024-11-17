@@ -315,14 +315,14 @@
         }
         StateHasChanged();
         await DialogService.OpenSideAsync<DialogCardPageCustomerInfo>(
-            "ข้อมูลลูกค้า",
+            "รายชื่อลูกค้า",
             new Dictionary<string, object>() { { "CustomerId", CustomerId } },
             new SideDialogOptions
                 {
                     CloseDialogOnOverlayClick = true,
                     Position = DialogPosition.Right,
                     ShowMask = false,
-                    Width = "60%"
+                    Width = "50%"
                 });
 
         isDialogOpen = true;

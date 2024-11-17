@@ -43,7 +43,7 @@
                                 <RadzenAppearanceToggle />
 
                                 <AuthorizeView Roles="Admin,Manager">
-                                    <RadzenButton Variant="Variant.Flat" Icon="settings" ButtonStyle="ButtonStyle.Primary" class="rzi rz-display-flex rz-align-items-center" />
+                                    <RadzenButton Variant="Variant.Flat" Icon="settings" Click="@(() => GoToPage("/console"))" ButtonStyle="ButtonStyle.Primary" class="rzi rz-display-flex rz-align-items-center" />
                                 </AuthorizeView>
 
                             </div>
@@ -193,7 +193,9 @@
     { "/admincustomer", "ข้อมูลรายชื่อลูกค้า" },
     { "/adminactivity", "ข้อมูลกิจกรรม" },
     { "/home", "Overview Team" },
-    { "/adminproduct", "สินค้า" }
+    { "/adminproduct", "สินค้า" },
+     { "/console", "คอนโซล" }
+    
         };
 
     private void HandleLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
