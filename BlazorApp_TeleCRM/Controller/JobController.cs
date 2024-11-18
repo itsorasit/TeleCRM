@@ -142,7 +142,7 @@ LEFT JOIN
      FROM crm_contact_logs) cl ON cl.customer_id = ca.customer_code AND cl.rn = 1
                     WHERE ca.branch_code = @branch_code
                     AND ca.assign_work = @assign_work
-                    AND @FromDate between ca.startdate and ca.duedate 
+                    AND @ToDate between ca.startdate and ca.duedate 
                     AND ca.startdate <= @ToDate
                     AND ca.assign_work = @assign_work 
                     ORDER BY ca.startdate";
