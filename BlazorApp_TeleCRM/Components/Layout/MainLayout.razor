@@ -37,9 +37,30 @@
                                     @* <a href="#" class="rz-link rz-text-nowrap rz-mx-2 rz-mx-lg-4"><span class="rz-link-text">
                                     Shop : @organization_code </span>
                                     </a> *@
-                                    <RadzenDropDown AllowClear="true" @bind-Value=select_branch AllowVirtualization="true" Name="DropDownVirtualization"
-                                                    AllowFiltering="true" Data=@branches TextProperty="@nameof(MasBranches.name)" ValueProperty="@nameof(MasBranches.code)" Style="width: 100%; max-width: 400px;" />
-                                </div>
+                                   @*  <RadzenDropDown AllowClear="true" @bind-Value=select_branch AllowVirtualization="true" Name="DropDownVirtualization"
+                                                    AllowFiltering="true" Data=@branches TextProperty="@nameof(MasBranches.name)" ValueProperty="@nameof(MasBranches.code)" Style="width: 100%; max-width: 400px;" /> *@
+
+
+                                    <RadzenDropDown AllowClear="true"
+                                                    @bind-Value="select_branch"
+                                                    AllowVirtualization="true"
+                                                    Name="DropDownVirtualization"
+                                                    AllowFiltering="true"
+                                                    Data="@branches"
+                                                    TextProperty="@nameof(MasBranches.name)"
+                                                    ValueProperty="@nameof(MasBranches.code)"
+                                                    Style="width: 100%; max-width: 500px;"
+                                                    >
+                                        <Template Context="branch">
+                                            <img src="@branch.imageurl" width="40px">
+                                            @branch.name
+                                        </Template>
+                                    </RadzenDropDown>
+
+
+
+                                                
+                                                </div>
                                 <RadzenAppearanceToggle />
 
                                 <AuthorizeView Roles="Admin,Manager">
