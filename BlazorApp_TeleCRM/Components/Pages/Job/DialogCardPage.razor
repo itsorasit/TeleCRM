@@ -83,17 +83,14 @@
 
                                         <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
                                             <RadzenColumn Size="12" SizeMD="4">
-                                                <RadzenLabel Text="นัดโทรครั้งถัดไป" TextStyle="TextStyle.Subtitle2" Style="color:mediumseagreen" Component="appointment_date" />
+                                              @*   <RadzenLabel Text="นัดโทรครั้งถัดไป" TextStyle="TextStyle.Subtitle2" Style="color:mediumseagreen" Component="appointment_date" /> *@
+                                                <RadzenText TextStyle="TextStyle.Subtitle2" Component="appointment_date" Style="color:mediumseagreen" TagName="TagName.H3">นัดโทรครั้งถัดไป <span class="rz-messages-error">*</span> </RadzenText>
                                             </RadzenColumn>
                                             <RadzenColumn Size="12" SizeMD="8">
-                                                <RadzenDatePicker Disabled="@btnDisable_appointmentDate" @bind-Value=@model.appointment_date ShowTime="true" ShowSeconds="true"
+                                                <RadzenDatePicker  @bind-Value=@model.appointment_date ShowTime="true" ShowSeconds="true"
                                                                   HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm"
                                                                   Name="appointment_date" class="w-100" style="display:block;width:100%" />
-
-                                                @if (model.call_status == "เลื่อนการโทร")
-                                                {
                                                     <RadzenRequiredValidator Component="appointment_date" Text="เลือกวันที่นัดโทรครั้งถัดไป" Style="position: absolute" />
-                                                }
                                             </RadzenColumn>
                                         </RadzenRow>
 
@@ -669,11 +666,12 @@
         await base.OnInitializedAsync();
 
 
+        //    "เลื่อนการโทร"
+
         StatusTelData = new List<string>
 {
     "รับสาย",
-    "ไม่รับสาย",
-    "เลื่อนการโทร"
+    "ไม่รับสาย"
 };
 
         StatusConversationData = new List<string>
@@ -682,7 +680,8 @@
     "ไม่สะดวก",
     "ติดตาม",
     "ขายได้",
-    "ติดต่อไม่ได้"
+    "ไม่รับสาย",
+    "โทรไม่ติด"
 };
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -779,7 +778,8 @@
                  "ไม่สะดวก",
                  "ติดตาม",
                  "ขายได้",
-                 "ติดต่อไม่ได้"
+                 "ไม่รับสาย",
+                 "โทรไม่ติด"
              };
 
         if (value == "รับสาย")
@@ -792,15 +792,23 @@
                  "ขายได้"
              };
 
-            model.appointment_date = null;
-            btnDisable_appointmentDate = true;
+          //  model.appointment_date = null;
+           // btnDisable_appointmentDate = true;
         }
         if (value == "ไม่รับสาย")
         {
-            StatusConversationData = StatusConversationData.Where(item => item == "ติดต่อไม่ได้");
-            model.call_action = "ติดต่อไม่ได้";
-            model.appointment_date = null;
-            btnDisable_appointmentDate = true;
+
+            StatusConversationData = new List<string>
+            {
+                 "ไม่รับสาย",
+                 "โทรไม่ติด"
+             };
+
+
+          //  StatusConversationData = StatusConversationData.Where(item => item == "โทรไม่ติด");
+          //  model.call_action = "โทรไม่ติด";
+          //  model.appointment_date = null;
+          //  btnDisable_appointmentDate = true;
 
         }
         else if (value == "เลื่อนการโทร")
@@ -809,7 +817,7 @@
             {
                  "ไม่สะดวก",
                  "ติดตาม",
-                 "ติดต่อไม่ได้"
+                 "โทรไม่ติด"
              };
 
             model.call_action = "ติดตาม";
@@ -1035,12 +1043,12 @@
                           contact_date = @contact_date,
                           contact_use_phone = @contact_use_phone ";
 
-            if (model.call_status == "เลื่อนการโทร")
-            {
+          //  if (model.call_status == "เลื่อนการโทร")
+          //  {
                 query += @" ,appointment_date = @appointment_date
                             ,new_activity_ref_guid = @new_activity_ref_guid
                             ,re_activity = @re_activity ";
-            }
+          //  }
 
 
             query += @" WHERE guid = @guid and branch_code = @branch_code ";
@@ -1068,8 +1076,8 @@
             command.Parameters.AddWithValue("@contact_use_phone", "");
 
 
-            if (model.call_status == "เลื่อนการโทร")
-            {
+         //   if (model.call_status == "เลื่อนการโทร")
+         //   {
 
                 if (string.IsNullOrEmpty(model.new_activity_ref_guid))
                 {
@@ -1084,7 +1092,7 @@
                     command.Parameters.AddWithValue("@appointment_date", model.appointment_date ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@re_activity", true);
                 }
-            }
+          //  }
 
             if (!string.IsNullOrEmpty(model.sale_order_no))
             {
@@ -1119,10 +1127,10 @@
         finally
         {
             await MySqlConnection.CloseAsync();
-            if (model.call_status == "เลื่อนการโทร")
-            {
+          //  if (model.call_status == "เลื่อนการโทร")
+          //  {
                 await SaveBatchToDatabaseWithTransaction(new_activity_ref_guid, model.activities_id);
-            }
+          //  }
 
             await InsertCrmContactLog();
 
@@ -1204,8 +1212,8 @@
             command.Parameters.AddWithValue("@name", model.activities_name ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@description", model.activities_description ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@startdate", model.appointment_date ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("@duedate", model.appointment_date.Value.AddDays(7));
-            command.Parameters.AddWithValue("@reminder_duedate", model.appointment_date.Value.AddDays(7));
+            command.Parameters.AddWithValue("@duedate", model.appointment_date.Value.Date.AddHours(19));
+            command.Parameters.AddWithValue("@reminder_duedate", model.appointment_date.Value.Date.AddHours(19));
             command.Parameters.AddWithValue("@assign_work", model.activities_assign_work ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@assign_work_type", "Activities" ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@allowagent", model.allowagent ?? false);

@@ -39,7 +39,7 @@ namespace BlazorApp_TeleCRM.Controller
 
         private static readonly string[] Tag = new[]
          {
-             "Up-Sale","Re-Sale","ลูกค้าขุด"
+             "Up-Sale","Re-Sale","ลูกค้าขุด","Cross-Sale"
         };
 
 

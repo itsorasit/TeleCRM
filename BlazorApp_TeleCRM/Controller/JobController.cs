@@ -44,58 +44,58 @@ namespace BlazorApp_TeleCRM.Controller
 
                 if (searchCriteria.fdate == null || searchCriteria.ldate == null)
                 {
-                    query = @"SELECT 
-    ca.guid, 
-    ca.customer_code, 
-    ca.branch_code, 
-    ca.touch_point, 
-    ca.name, 
-    ca.description, 
-    ca.startdate, 
-    ca.duedate, 
-    ca.reminder_duedate,            
-    ca.assign_work, 
-    ca.assign_work_type, 
-    ca.allowagent, 
-    ca.record_status, 
-    ca.created_by , 
-    ca.created_date , 
-    ca.modified_by, 
-    ca.modified_date,     
-    '' AS activitys_code, 
-    '' AS progress, 
-    0 AS succeed, 
-    0 AS progress_total,
-    ca.status,
-    mc.name AS customer_name,
-    '' AS product_code,
-    ca.call_status, 
-    ca.call_action, 
-    mc.phone AS customer_phone, 
-    mc.province AS customer_province, 
-    ca.remark,
-    cl.contact_result2,
-    cl.created_by AS contact_created_by,
-    cl.created_at AS contact_created_at
-FROM 
-    crm_activitys ca
-INNER JOIN 
-    mas_customers mc ON mc.guid = ca.customer_code
-LEFT JOIN 
-    (SELECT customer_id, contact_result2, created_by, created_at,
-            ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY created_at DESC) AS rn
-     FROM crm_contact_logs) cl ON cl.customer_id = ca.customer_code AND cl.rn = 1
-WHERE 
-    ca.branch_code = @branch_code 
-    AND ca.assign_work = @assign_work
-    AND ca.startdate <= NOW()
-    AND ca.duedate >= NOW()
-ORDER BY 
-    ca.created_date DESC 
-LIMIT 500 ";
+//                    query = @"SELECT 
+//    ca.guid, 
+//    ca.customer_code, 
+//    ca.branch_code, 
+//    ca.touch_point, 
+//    ca.name, 
+//    ca.description, 
+//    ca.startdate, 
+//    ca.duedate, 
+//    ca.reminder_duedate,            
+//    ca.assign_work, 
+//    ca.assign_work_type, 
+//    ca.allowagent, 
+//    ca.record_status, 
+//    ca.created_by , 
+//    ca.created_date , 
+//    ca.modified_by, 
+//    ca.modified_date,     
+//    '' AS activitys_code, 
+//    '' AS progress, 
+//    0 AS succeed, 
+//    0 AS progress_total,
+//    ca.status,
+//    mc.name AS customer_name,
+//    '' AS product_code,
+//    ca.call_status, 
+//    ca.call_action, 
+//    mc.phone AS customer_phone, 
+//    mc.province AS customer_province, 
+//    ca.remark,
+//    cl.contact_result2,
+//    cl.created_by AS contact_created_by,
+//    cl.created_at AS contact_created_at
+//FROM 
+//    crm_activitys ca
+//INNER JOIN 
+//    mas_customers mc ON mc.guid = ca.customer_code
+//LEFT JOIN 
+//    (SELECT customer_id, contact_result2, created_by, created_at,
+//            ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY created_at DESC) AS rn
+//     FROM crm_contact_logs) cl ON cl.customer_id = ca.customer_code AND cl.rn = 1
+//WHERE 
+//    ca.branch_code = @branch_code 
+//    AND ca.assign_work = @assign_work
+//    AND ca.startdate <= NOW()
+//    AND ca.duedate >= NOW()
+//ORDER BY 
+//    ca.created_date DESC 
+//LIMIT 500 ";
 
-                    searchCriteria.fdate = today;
-                    searchCriteria.ldate = today;
+//                    searchCriteria.fdate = today;
+//                    searchCriteria.ldate = today;
                 }
                 else
                 {
@@ -142,8 +142,8 @@ LEFT JOIN
      FROM crm_contact_logs) cl ON cl.customer_id = ca.customer_code AND cl.rn = 1
                     WHERE ca.branch_code = @branch_code
                     AND ca.assign_work = @assign_work
-                    AND @ToDate between ca.startdate and ca.duedate 
-                    AND ca.startdate <= @ToDate
+                    AND DATE(@ToDate) between DATE(ca.startdate) and DATE(ca.duedate) 
+                    AND DATE(ca.startdate) <= DATE(@ToDate)
                     AND ca.assign_work = @assign_work 
                     ORDER BY ca.startdate";
 

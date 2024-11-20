@@ -61,6 +61,11 @@
         <RadzenBadge Variant="Variant.Outlined" Text="@count_x.ToString()" class="rz-ms-2"  />
     </RadzenButton>
 
+    <RadzenButton ButtonStyle="ButtonStyle.Base" Click=@(() => OnSearch_Touch_point("Cross-Sale"))>
+        Cross-Sale
+        <RadzenBadge Variant="Variant.Outlined" Text="@count_x.ToString()" class="rz-ms-2" />
+    </RadzenButton>
+
     <RadzenButton ButtonStyle="ButtonStyle.Info" Click=@(() => OnSearch_JobCompleted())>
         จัดการแล้ว
         <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="@count_completed.ToString()" class="rz-ms-2" />
@@ -144,6 +149,7 @@
 @code {
     private int count_UpSale = 0;
     private int count_ReSale = 0;
+    private int count_CrossSale = 0;
     private int count_x = 0;
     private int count_completed = 0;
 
@@ -214,8 +220,8 @@
 
     private async Task OnClear()
     {
-       // CreateDateFrom = null;
-       // CreateDateTo = null;
+        // CreateDateFrom = null;
+        // CreateDateTo = null;
         CreateDateFrom = DateTime.Now.Date;
         CreateDateTo = DateTime.Now.Date;
 
@@ -353,6 +359,7 @@
                 count_ReSale = 0;
                 count_x = 0;
                 count_completed = 0;
+                count_CrossSale = 0;
 
                 var jobDataList = await response.Content.ReadFromJsonAsync<IEnumerable<JobDataList>>();
                 if (jobDataList.Count() > 0)
@@ -370,6 +377,10 @@
                         else if (i.touch_point == "ลูกค้าขุด" && string.IsNullOrEmpty(i.act_status))
                         {
                             count_x++;
+                        }
+                        else if (i.touch_point == "Cross-Sale" && string.IsNullOrEmpty(i.act_status))
+                        {
+                            count_CrossSale++;
                         }
 
                         if (!string.IsNullOrEmpty( i.act_status))

@@ -47,7 +47,7 @@
 
                         <RadzenColumn Size="6" SizeMD="6">
                                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">วันที่เริ่มจ่ายงาน <span class="rz-messages-error">*</span> </RadzenText>
-                                <RadzenDatePicker @bind-Value=@model.activities_startdate Name="activities_startdate" ShowTime="true" ShowSeconds="true"
+                                <RadzenDatePicker Change="OnDateChanged" @bind-Value=@model.activities_startdate Name="activities_startdate" ShowTime="true" ShowSeconds="true"
                                                   HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm" class="w-100" style="display: block;width: 100%" />
                                 <RadzenRequiredValidator Component="activities_startdate" Text="เลือกวันที่เริ่มจ่ายงาน" Style="position: absolute" />
                         </RadzenColumn>
@@ -57,11 +57,11 @@
                                                   HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm" class="w-100" style="display: block;width: 100%" />
                                 <RadzenRequiredValidator Component="activities_duedate" Text="เลือกวันที่ครบกำหนด" Style="position: absolute" />
                         </RadzenColumn>
-                        <RadzenColumn Size="6" SizeMD="6">
+                       @*  <RadzenColumn Size="6" SizeMD="6">
                                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">แจ้งใกล้ครบกำหนด <span class="rz-messages-error">*</span> </RadzenText>
                                 <RadzenDatePicker @bind-Value=@model.activities_reminder_duedate Name="activities_reminder_duedate" ShowTime="true" ShowSeconds="true"
                                                   HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm" class="w-100" style="display: block;width: 100%" />
-                        </RadzenColumn>
+                        </RadzenColumn> *@
                             <RadzenColumn Size="6" SizeMD="6">
                                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">มอบหมายให้กับพนักงาน<span class="rz-messages-error">*</span> </RadzenText>
                                 <RadzenDropDown @ref="radzenDropDown"
@@ -284,6 +284,11 @@
     }
 
 
+    private void OnDateChanged(DateTime? value1)
+    {
+        model.activities_duedate = value1.Value.Date.AddHours(19);
+    }
+
     private async Task SaveBatchToDatabaseWithTransaction()
     {
         btnDisable = true;
@@ -454,7 +459,7 @@
 
     private static readonly string[] data_channels = new[]
       {
-           "Up-Sale", "Re-Sale","ลูกค้าขุด"
+           "Up-Sale", "Re-Sale","ลูกค้าขุด","Cross-Sale"
       };
 
 
