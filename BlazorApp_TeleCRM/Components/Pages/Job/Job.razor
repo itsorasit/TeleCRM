@@ -82,7 +82,9 @@
                 SelectionMode="DataGridSelectionMode.Single"
                 @bind-Value=@selectedAct
                 AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
-                AllowSorting="true" ColumnWidth="300px">
+                AllowSorting="true" ColumnWidth="300px"
+                ShowPagingSummary="true"
+                PageSizeOptions="@pageSizeOptions">
     <Columns>
         <RadzenDataGridColumn Width="100px" Filterable="false" Property="JobID" Title="">
             <Template Context="data">
@@ -158,6 +160,9 @@
     DateTime? value = DateTime.Now;
     private DateTime? CreateDateFrom { get; set; }
     private DateTime? CreateDateTo { get; set; }
+
+    IEnumerable<int> pageSizeOptions = new int[] { 10, 20, 30, 50, 100 };
+
 
     private string username;
     private IEnumerable<string> roles;

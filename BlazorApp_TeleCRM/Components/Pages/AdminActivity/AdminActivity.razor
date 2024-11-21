@@ -69,7 +69,9 @@
                     SelectionMode="DataGridSelectionMode.Single"
                     @bind-Value=@selectedAct
                     AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
-                    AllowSorting="true" ColumnWidth="300px">
+                    AllowSorting="true" ColumnWidth="300px"
+                    ShowPagingSummary="true"
+                    PageSizeOptions="@pageSizeOptions">
         <Columns>
 
             <RadzenDataGridColumn Width="60px" Filterable="false" Property="@nameof(ActivitysDataList.guid)" Title="">
@@ -149,6 +151,8 @@
 
     private string BranchCode { get; set; }
     private IEnumerable<string> _BranchCode;
+
+    IEnumerable<int> pageSizeOptions = new int[] { 10, 20, 30, 50, 100 };
 
 
     private IEnumerable<ActivitysDataList> act_data;

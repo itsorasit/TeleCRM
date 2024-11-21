@@ -22,7 +22,7 @@
         <RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnChange>
             <Tabs>
                 <RadzenTabsItem Text="บันทึกการโทร" Icon="star" IconColor="@Colors.Success">
-                    <RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+                    <RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;width:100%">
                         <RadzenRow>
                             <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
                                 <RadzenTemplateForm TItem="Model" Data=@model Submit="@OnSubmit" InvalidSubmit="@OnInvalidSubmit">
@@ -143,13 +143,11 @@
                                     </RadzenColumn>
                                 </RadzenRow>
                                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-
                                     <RadzenStack Gap="0">
                                         <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">เบอร์ติดต่อลูกค้า</RadzenText>
                                         <RadzenText TextStyle="TextStyle.Body1"><b><a href="tel:@utility.FormatPhoneNumberWithCountryCode(model.customer_phone)"><RadzenIcon Icon="smartphone" /> @utility.FormatPhoneNumber(model.customer_phone) </a></b></RadzenText>
-                                        <img width="150px" style="margin-top:20px" src="data:image/png;base64,@qrCodeImage" alt="QR Code" />
-                                    </RadzenStack>
-                                    <RadzenStack Gap="0">
+
+
                                         <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ชื่อลูกค้า</RadzenText>
                                         <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@model.customer_name</b></RadzenText>
                                         <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ที่อยู่</RadzenText>
@@ -157,12 +155,12 @@
                                     </RadzenStack>
                                 </RadzenStack>
 
-                                <hr>
+                             @*    <hr>
 
                                 <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
                                     <RadzenText TextStyle="TextStyle.Subtitle1">ผู้ติดต่อ</RadzenText>
                                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                                        <RadzenImage Path="/user/staff1.jpg" Style="width: 5rem;" AlternateText="@* @order.Contact_By *@" />
+                                        <RadzenImage Path="/user/staff1.jpg" Style="width: 5rem;" AlternateText="@order.Contact_By" />
                                         <RadzenStack Gap="0" class="rz-text-truncate">
                                             <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-2 rz-my-0" Style="color: var(--rz-text-tertiary-color);">พนักงาน</RadzenText>
                                             <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b> @model.contact_by </b></RadzenText>
@@ -181,7 +179,7 @@
                                             <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@model.contact_use_phone </b></RadzenText>
                                         </RadzenStack>
                                     </RadzenStack>
-                                </RadzenColumn>
+                                </RadzenColumn> *@
 
 
 
