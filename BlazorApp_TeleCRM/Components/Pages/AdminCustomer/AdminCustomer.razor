@@ -88,7 +88,9 @@
                 SelectionMode="DataGridSelectionMode.Multiple"
                 @bind-Value=@selectedCustomer
                 AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
-                AllowSorting="true" ColumnWidth="300px">
+                    AllowSorting="true" ColumnWidth="300px" 
+                    ShowPagingSummary="true"
+                    PageSizeOptions="@pageSizeOptions">
     <Columns>
         <RadzenDataGridColumn Width="60px" Sortable="false" Filterable="false">
             <HeaderTemplate>
@@ -136,6 +138,8 @@
     DateTime? value = DateTime.Now;
 
     bool value1 = false;
+
+    IEnumerable<int> pageSizeOptions = new int[] { 10, 20, 30, 50,100 };
 
     private IEnumerable<CustomerDataList> cus_datas;
     IList<CustomerDataList> selectedCustomer;

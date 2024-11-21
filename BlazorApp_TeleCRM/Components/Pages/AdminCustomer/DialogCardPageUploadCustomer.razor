@@ -1,5 +1,6 @@
 ﻿@page "/DialogCardPageUploadCustomer/{UploadID}"
 @using System.ComponentModel.DataAnnotations
+@using BlazorApp_TeleCRM.Helper
 @using BlazorApp_TeleCRM.Models
 @using Microsoft.AspNetCore.Components.Authorization
 @using MySql.Data.MySqlClient
@@ -25,7 +26,6 @@
             </RadzenColumn>
             <RadzenColumn Size="12" SizeMD="12">
                 <InputFile OnChange="HandleFileSelected" />
-
             </RadzenColumn>
             <RadzenColumn Size="12" SizeMD="12">
                 <RadzenAlert AlertStyle="AlertStyle.Danger" @bind-Visible=isError ShowIcon="true" Variant="Variant.Flat" Shade="Shade.Lighter">
@@ -205,6 +205,12 @@
 
             foreach (var employee in excelData)
             {
+
+                GetGenerateID generateID = new GetGenerateID(Configuration);
+
+                var genid = generateID.GenId("customer_id", BranchCode.Substring(0,2), BranchCode);
+
+
                 var query = @"
     INSERT INTO mas_customers (guid, code, name, phone, address1, sub_district, district, province, zipcode, datasource_platform, social_media, branch_code, created_by, created_date, modified_by, modified_date)
     VALUES (@Guid, @Code, @Name, @Phone, @Address1, @SubDistrict, @District, @Province, @Zipcode, @DatasourcePlatform, @SocialMedia, @BranchCode, @CreatedBy, @CreatedDate, @ModifiedBy, @ModifiedDate)
@@ -225,7 +231,7 @@
                 using (var cmd = new MySqlCommand(query, MySqlConnection))
                 {
                     cmd.Parameters.AddWithValue("@Guid", Guid.NewGuid());  // สร้าง GUID ใหม่
-                    cmd.Parameters.AddWithValue("@Code", employee.code + "-" + BranchCode);
+                    cmd.Parameters.AddWithValue("@Code", genid[0].document_no);
                     cmd.Parameters.AddWithValue("@Name", employee.name);
                     cmd.Parameters.AddWithValue("@Phone", employee.phone);
                     cmd.Parameters.AddWithValue("@Address1", employee.address1);
