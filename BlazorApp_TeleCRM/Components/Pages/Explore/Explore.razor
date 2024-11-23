@@ -1,0 +1,72 @@
+﻿@page "/explore"
+
+@inject IWebHostEnvironment WebHostEnvironment
+
+
+<h1>test </h1>
+
+<ul>
+    @if (files != null)
+    {
+        @foreach (var file in files)
+        {
+            <li>
+                @Path.GetFileName(file)
+                <button @onclick="() => DeleteFile(Path.GetFileName(file))">Delete</button>
+            </li>
+        }
+    }
+</ul>
+
+<p>@statusMessage</p>
+
+@code {
+    private string[] files;
+    private string statusMessage;
+
+    protected override void OnInitialized()
+    {
+        RefreshFileList();
+    }
+
+    private void RefreshFileList()
+    {
+        var wwwRootPath = WebHostEnvironment.WebRootPath;
+        var folderPath = Path.Combine(wwwRootPath, @"/");
+
+        if (Directory.Exists(folderPath))
+        {
+            files = Directory.GetFiles(folderPath);
+        }
+        else
+        {
+            files = Array.Empty<string>();
+        }
+    }
+
+    private void DeleteFile(string fileName)
+    {
+        try
+        {
+            var wwwRootPath = WebHostEnvironment.WebRootPath;
+            var filePath = Path.Combine(wwwRootPath, null, fileName);
+
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+                statusMessage = $"File '{fileName}' deleted successfully.";
+            }
+            else
+            {
+                statusMessage = $"File '{fileName}' not found.";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error deleting file '{fileName}': {ex.Message}";
+        }
+
+        RefreshFileList();
+        StateHasChanged();
+    }
+}
