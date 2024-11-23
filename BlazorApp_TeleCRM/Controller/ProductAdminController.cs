@@ -1,5 +1,7 @@
 ﻿using BlazorApp_TeleCRM.Data;
+using BlazorApp_TeleCRM.Models;
 using Microsoft.AspNetCore.Mvc;
+using MySql.Data.MySqlClient;
 
 namespace BlazorApp_TeleCRM.Controller
 {
@@ -7,65 +9,65 @@ namespace BlazorApp_TeleCRM.Controller
     [Route("api/[controller]")]
     public class ProductAdminController : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
+
+        private readonly IConfiguration _configuration;
+        private readonly string _connectionString;
+
+        public ProductAdminController(IConfiguration configuration)
         {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
+            _configuration = configuration;
+            _connectionString = _configuration.GetConnectionString("DefaultConnection");
+        }
 
-        private static readonly string[] Admin = new[]
+
+
+
+        [HttpPost("GetProduct")]
+        public async Task<IActionResult> GetProduct([FromBody] SearchCriteriaByID searchCriteria)
         {
-            "Admin A", "Admin B", "Admin C"
-        };
+            var product = new List<MasProductions>();
 
-        private static readonly string[] CustomerPhone = new[]
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                var query = @"SELECT guid, branch_code, production_code, production_name, 
+                     description, image_url, created_by, created_date, modified_by, modified_date, price
+                      FROM mas_productions 
+                      WHERE  branch_code = @branch_code";
+
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                   
+                    var branch_code = searchCriteria.branch_code ?? "";
+                    cmd.Parameters.AddWithValue("@branch_code", branch_code);
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            MasProductions productions = new MasProductions();
+
+                            productions.guid = reader.GetString(reader.GetOrdinal("guid"));
+                            productions.production_code = reader.GetString(reader.GetOrdinal("production_code"));
+                            productions.production_name = reader.GetString(reader.GetOrdinal("production_name"));
+                            productions.image_url = reader.GetString(reader.GetOrdinal("image_url"));
+                            productions.price = decimal.Parse(reader["price"].ToString());
+                               
+                           
+                            product.Add(productions);
+                        }
+                    }
+                }
+            }
+
+            return Ok(product);
+        }
+
+        public class SearchCriteriaByID
         {
-            "086-0981-015", "085-0931-122", "096-0981-013", "067-0981-015"
-        };
-
-        private static readonly string[] ActivityProgress = new[]
-        {
-            "รอดำเนินการ", "สำเร็จ", "ติดตาม" , "เกินกำหนด"
-        };
-
-        private static readonly string[] CustomerAction = new[]
-        {
-             "สั่งสินค้า","ขอคิดดูก่อน","สำเร็จ", "", "ติดต่อไม่ได้", "ปฎิเสธ"
-        };
-
-        private static readonly string[] Channel = new[]
-        {
-             "กิจกรรม","แคมเปญ"
-        };
-
-        private static readonly string[] Tag = new[]
-         {
-             "Up-Sale","Re-Sale","ลูกค้าขุด","Cross-Sale"
-        };
-
-
-        private static readonly string[] ActivityName = new[]
-      {
-            "Activity A", "Activity B", "Activity C", "Activity D"
-        };
-
-
-        private static readonly string[] ContactBy = new[]
-        {
-            "พนักงาน A", "พนักงาน B", "พนักงาน C", "พนักงาน D"
-        };
-
-        [HttpGet]
-        public IEnumerable<Products> Get()
-        {
-            List<Products> prders = new List<Products>
-        {
-            new Products { Code = "P001", Name = "Product 1", Price = 100 ,SalePrice=100 },
-            new Products { Code = "P002", Name = "Product 2", Price = 200 ,SalePrice=150 },
-            new Products { Code = "P003", Name = "Product 3", Price = 150 ,SalePrice=100 },
-            new Products { Code = "P004", Name = "Product 4", Price = 99 ,SalePrice=99 },
-            new Products { Code = "P005", Name = "Product 5", Price = 250 ,SalePrice=250 }
-        };
-            return prders.ToArray();
+            public string? guid { get; set; }
+            public string? branch_code { get; set; }
         }
 
     }
