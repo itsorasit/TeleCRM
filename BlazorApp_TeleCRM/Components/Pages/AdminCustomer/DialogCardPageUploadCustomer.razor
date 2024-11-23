@@ -60,7 +60,6 @@
 
 
     private List<MasCustomers>? excelData;
-    // private List<MasCustomers> excelData;
 
     private string message = "No file attached.";
 
@@ -167,6 +166,25 @@
             for (int row = 2; row <= rowCount; row++) // เริ่มจากแถวที่ 2 เพราะแถวแรกเป็นหัวตาราง
             {
                 Guid id = Guid.NewGuid();
+
+                var dateValue = worksheet.Cell(row, 4).GetValue<string>();
+                DateTime orderDate;
+
+                // ใช้ TryParse เพื่อตรวจสอบและแปลงค่าจากเซลล์
+                if (!DateTime.TryParse(dateValue, out orderDate))
+                {
+                    orderDate = DateTime.MinValue; // หรือกำหนดค่าเริ่มต้นหากไม่สามารถแปลงได้
+                }
+
+                var amount = worksheet.Cell(row, 22).GetValue<string>();
+                decimal out_amount;
+
+                if (!Decimal.TryParse(amount, out out_amount))
+                {
+                    out_amount = 0;
+                }
+
+
                 var employee = new MasCustomers
                     {
                         guid = id.ToString(),
@@ -184,7 +202,18 @@
                         created_by = username,
                         created_date = today,
                         modified_by = "",
-                        modified_date = today
+                        modified_date = today ,
+
+                        order_no = worksheet.Cell(row, 2).GetValue<string>(),
+                        order_date = orderDate, // ใช้ค่าที่ตรวจสอบแล้ว
+                        channel = worksheet.Cell(row, 3).GetValue<string>(),
+                        tracking_no = worksheet.Cell(row, 18).GetValue<string>(),
+                        amount = out_amount,
+                        payment_type = worksheet.Cell(row, 23).GetValue<string>(),
+                        product_codes = worksheet.Cell(row, 14).GetValue<string>(),
+                        product_names = worksheet.Cell(row, 15).GetValue<string>(),
+                        product_qtys = worksheet.Cell(row, 16).GetValue<string>()
+
                     };
 
                 data.Add(employee);
@@ -203,12 +232,8 @@
         {
             await MySqlConnection.OpenAsync();
 
-            foreach (var employee in excelData)
+            foreach (var customers in excelData)
             {
-
-                GetGenerateID generateID = new GetGenerateID(Configuration);
-
-                var genid = generateID.GenId("customer_id", BranchCode.Substring(0,2), BranchCode);
 
 
                 var query = @"
@@ -230,25 +255,61 @@
 
                 using (var cmd = new MySqlCommand(query, MySqlConnection))
                 {
+
+                    GetGenerateID generateID = new GetGenerateID(Configuration);
+                    // var genid = generateID.GenId("customer_id", BranchCode.Substring(0, 2), BranchCode);
+                    var genid = await generateID.GenIdCustomer("customer_id", BranchCode.Substring(0, 2), BranchCode, customers.phone);
+
                     cmd.Parameters.AddWithValue("@Guid", Guid.NewGuid());  // สร้าง GUID ใหม่
-                    cmd.Parameters.AddWithValue("@Code", genid[0].document_no);
-                    cmd.Parameters.AddWithValue("@Name", employee.name);
-                    cmd.Parameters.AddWithValue("@Phone", employee.phone);
-                    cmd.Parameters.AddWithValue("@Address1", employee.address1);
-                    cmd.Parameters.AddWithValue("@SubDistrict", employee.sub_district);
-                    cmd.Parameters.AddWithValue("@District", employee.district);
-                    cmd.Parameters.AddWithValue("@Province", employee.province);
-                    cmd.Parameters.AddWithValue("@Zipcode", employee.zipcode);
-                    cmd.Parameters.AddWithValue("@DatasourcePlatform", employee.datasource_platform);
-                    cmd.Parameters.AddWithValue("@SocialMedia", employee.social_media);
-                    cmd.Parameters.AddWithValue("@BranchCode", employee.branch_code);
+                    cmd.Parameters.AddWithValue("@Code", genid);
+                    cmd.Parameters.AddWithValue("@Name", customers.name);
+                    cmd.Parameters.AddWithValue("@Phone", customers.phone);
+                    cmd.Parameters.AddWithValue("@Address1", customers.address1);
+                    cmd.Parameters.AddWithValue("@SubDistrict", customers.sub_district);
+                    cmd.Parameters.AddWithValue("@District", customers.district);
+                    cmd.Parameters.AddWithValue("@Province", customers.province);
+                    cmd.Parameters.AddWithValue("@Zipcode", customers.zipcode);
+                    cmd.Parameters.AddWithValue("@DatasourcePlatform", customers.datasource_platform);
+                    cmd.Parameters.AddWithValue("@SocialMedia", customers.social_media);
+                    cmd.Parameters.AddWithValue("@BranchCode", customers.branch_code);
                     cmd.Parameters.AddWithValue("@CreatedBy", username);  // ระบุค่าเริ่มต้น
-                    cmd.Parameters.AddWithValue("@CreatedDate", employee.created_date);  // วันที่สร้าง DateTime.UtcNow
+                    cmd.Parameters.AddWithValue("@CreatedDate", customers.created_date);  // วันที่สร้าง DateTime.UtcNow
                     cmd.Parameters.AddWithValue("@ModifiedBy", username);  // ระบุค่าเริ่มต้น
-                    cmd.Parameters.AddWithValue("@ModifiedDate", employee.modified_date);  // วันที่แก้ไขล่าสุด DateTime.UtcNow
+                    cmd.Parameters.AddWithValue("@ModifiedDate", customers.modified_date);  // วันที่แก้ไขล่าสุด DateTime.UtcNow
 
                     await cmd.ExecuteNonQueryAsync();
+
+
                 }
+
+
+                try
+                {
+                    var order = new CrmOrder
+                        {
+                            guid = Guid.NewGuid().ToString(),
+                            customer_code = customers.phone,
+                            branch_code = customers.branch_code,
+                            order_no = customers.order_no,
+                            order_date = customers.order_date,
+                            channel = customers.channel,
+                            tracking_no = customers.tracking_no,
+                            amount = customers.amount,
+                            payment_type = customers.payment_type,
+                            product_codes = customers.product_codes,
+                            product_names = customers.product_names,
+                            product_qtys = customers.product_qtys,
+                            modified_by = username,
+                            modified_date = customers.modified_date
+                        };
+
+                    GetGenerateCrmOrder getGenerateCrmOrder = new GetGenerateCrmOrder(Configuration);
+                    await getGenerateCrmOrder.Upload(order);
+
+                } catch { }
+                // upload sale oder
+                
+
             }
         }
         catch (Exception ex)

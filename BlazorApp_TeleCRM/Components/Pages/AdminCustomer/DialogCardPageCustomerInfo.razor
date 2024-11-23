@@ -155,6 +155,70 @@
                         </Columns>
                     </RadzenDataGrid>
                    </RadzenTabsItem>
+                <RadzenTabsItem Text="ประวัติการซื้อ">
+                    <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
+                                    FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                    @bind-Value=@selecteCrmOrders
+                                    Data="@crmOrders" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
+                                    PagerPosition="PagerPosition.Bottom"
+                                    AllowAlternatingRows="false">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="CrmOrder" Property="@nameof(CrmOrder.order_no)" Width="180px" Title="เลขที่คำสั่งซื้อ" />
+                            <RadzenDataGridColumn TItem="CrmOrder" Property="@nameof(CrmOrder.order_date)" Width="200px" Title="วันที่คำสั่งซื้อ" FormatString="{0:dd/MM/yyyy HH:mm:ss}" />
+                            <RadzenDataGridColumn TItem="CrmOrder" Property="@nameof(CrmOrder.product_codes)" Title="รายการสั่งซื้อ" Width="300px">
+                                <Template Context="data">
+                                    <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
+                                        <RadzenStack Gap="0">
+                                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@data.product_names</RadzenText>
+                                        </RadzenStack>
+                                    </RadzenStack>
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="CrmOrder" Property="@nameof(CrmOrder.amount)" Width="150px" Title="จำนวนเงิน" />
+                            <RadzenDataGridColumn TItem="CrmOrder" Property="@nameof(CrmOrder.payment_type)" Width="150px" Title="การชำระเงิน" />
+                        </Columns>
+                    </RadzenDataGrid>
+
+                    <RadzenCard Variant="Variant.Outlined">
+                        <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.Wrap">
+                            @if (selecteCrmOrders?.Any() == true)
+                            {
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>รหัสสินค้า</th>
+                                            <th>ชื่อสินค้า</th>
+                                            <th>จำนวน</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var product in selecteCrmOrders)
+                                        {
+                                            var productCodes = product.product_codes?.Split('|') ?? Array.Empty<string>();
+                                            var productNames = product.product_names?.Split('|') ?? Array.Empty<string>();
+                                            var productQtys = product.product_qtys?.Split('|') ?? Array.Empty<string>();
+
+                                            for (int i = 0; i < productCodes.Length; i++)
+                                            {
+                                                <tr>
+                                                    <td>@(productCodes.Length > i ? productCodes[i] : "-")</td>
+                                                    <td>@(productNames.Length > i ? productNames[i] : "-")</td>
+                                                    <td>@(productQtys.Length > i ? productQtys[i] : "-")</td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <div>ไม่มีข้อมูล</div>
+                            }
+                        </RadzenStack>
+                    </RadzenCard>
+
+                
+                </RadzenTabsItem>
             </Tabs>
         </RadzenTabs>
 
@@ -188,6 +252,9 @@
 
     private IEnumerable<ActivitysDataList> activitys;
     IList<ActivitysDataList> selecteActivitys;
+
+    private IEnumerable<CrmOrder> crmOrders;
+    IList<CrmOrder> selecteCrmOrders;
 
 
 
@@ -327,6 +394,8 @@
             activitys = await FetchActivitysDataAsync(selectedCus.guid);
             selecteActivitys = new List<ActivitysDataList>() { activitys.FirstOrDefault() };
 
+            crmOrders = await FetchOrderDataAsync(selectedCus.phone);
+            selecteCrmOrders = new List<CrmOrder>() { crmOrders.FirstOrDefault() };
 
         }
 
@@ -537,6 +606,45 @@
             {
                 Console.WriteLine("Error fetching NoteLogData Data.");
                 return Enumerable.Empty<ActivitysDataList>();
+            }
+        }
+        finally
+        {
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
+    }
+
+    public async Task<IEnumerable<CrmOrder>> FetchOrderDataAsync(string phone)
+    {
+        try
+        {
+
+            // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
+            runProcess_wait = true;
+            StateHasChanged(); // บังคับ UI อัปเดต
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+            var searchCriteria = new
+            {
+                guid = phone
+            };
+
+            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/CrmOrder/GetOrderDataByCustomer", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var crmOrders = await response.Content.ReadFromJsonAsync<IEnumerable<CrmOrder>>();
+                return crmOrders;
+            }
+            else
+            {
+                Console.WriteLine("Error fetching NoteLogData Data.");
+                return Enumerable.Empty<CrmOrder>();
             }
         }
         finally

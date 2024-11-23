@@ -16,6 +16,7 @@ namespace BlazorApp_TeleCRM.Models
         public DbSet<CrmContactLog> CrmContactLog { get; set; }
         public DbSet<CrmNote> CrmNote { get; set; }
         public DbSet<MasDocumentControl> MasDocumentControl { get; set; }
+        public DbSet<CrmOrder> CrmOrder { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,7 +45,11 @@ namespace BlazorApp_TeleCRM.Models
            .ToTable("crm_notes")
            .HasKey(u => u.guid);
 
-          modelBuilder.Entity<MasDocumentControl>()
+            modelBuilder.Entity<CrmOrder>()
+            .ToTable("crm_orders")
+            .HasKey(u => u.guid);
+
+            modelBuilder.Entity<MasDocumentControl>()
          .ToTable("mas_document_controls")
          .HasKey(e => new { e.document_type, e.branch_code, e.company_code });
 

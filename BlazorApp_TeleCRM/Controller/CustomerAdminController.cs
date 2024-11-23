@@ -63,7 +63,7 @@ namespace BlazorApp_TeleCRM.Controller
        COUNT(ca.guid) AS activity_count, 
        (SELECT ca_sub.guid 
         FROM crm_activitys ca_sub 
-        WHERE ca_sub.customer_code = mc.guid 
+        WHERE ca_sub.customer_code = mc.guid  and  ca_sub.branch_code =  mc.branch_code
         ORDER BY ca_sub.created_date DESC 
         LIMIT 1) AS latest_activity_guid
 FROM mas_customers mc
@@ -110,7 +110,7 @@ GROUP BY mc.guid,
        COUNT(ca.guid) AS activity_count, 
        (SELECT ca_sub.guid 
         FROM crm_activitys ca_sub 
-        WHERE ca_sub.customer_code = mc.guid 
+        WHERE ca_sub.customer_code = mc.guid  and  ca_sub.branch_code =  mc.branch_code
         ORDER BY ca_sub.created_date DESC 
         LIMIT 1) AS latest_activity_guid
 FROM mas_customers mc

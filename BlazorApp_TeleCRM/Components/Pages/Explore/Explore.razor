@@ -1,27 +1,38 @@
 ﻿@page "/explore"
+@using Microsoft.AspNetCore.Components.Authorization
 
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IWebHostEnvironment WebHostEnvironment
 
+<PageTitle>Explore</PageTitle>
 
-<h1>test </h1>
+<AuthorizeView Roles="Admin">
 
-<ul>
-    @if (files != null)
-    {
-        @foreach (var file in files)
-        {
-            <li>
-                @Path.GetFileName(file)
-                <button @onclick="() => DeleteFile(Path.GetFileName(file))">Delete</button>
-            </li>
-        }
-    }
-</ul>
+    <div class="rz-12">
+        <RadzenBreadCrumb>
+            <RadzenBreadCrumbItem Icon="folder" Path="/explore" Text="Explore" />
+        </RadzenBreadCrumb>
+        <RadzenText TextStyle="TextStyle.DisplayH5"></RadzenText>
+    </div>
 
-<p>@statusMessage</p>
+    <RadzenDataList TItem="string" Data="@files" AllowPaging="true" PageSize="5" Style="margin-top:20px">
+        <Template Context="file">
+            <div class="file-item">
+                <span>@Path.GetFileName(file)</span>
+                <button class="rz-button rz-danger" @onclick="() => DeleteFile(Path.GetFileName(file))">Delete</button>
+            </div>
+        </Template>
+        <EmptyTemplate>
+            <p>No files found.</p>
+        </EmptyTemplate>
+    </RadzenDataList>
+
+    <p>@statusMessage</p>
+
+</AuthorizeView>
 
 @code {
-    private string[] files;
+    private List<string> files = new();
     private string statusMessage;
 
     protected override void OnInitialized()
@@ -32,15 +43,15 @@
     private void RefreshFileList()
     {
         var wwwRootPath = WebHostEnvironment.WebRootPath;
-        var folderPath = Path.Combine(wwwRootPath, @"/");
+        var folderPath = Path.Combine(wwwRootPath);
 
         if (Directory.Exists(folderPath))
         {
-            files = Directory.GetFiles(folderPath);
+            files = Directory.GetFiles(folderPath).ToList();
         }
         else
         {
-            files = Array.Empty<string>();
+            files = new List<string>();
         }
     }
 
@@ -49,7 +60,7 @@
         try
         {
             var wwwRootPath = WebHostEnvironment.WebRootPath;
-            var filePath = Path.Combine(wwwRootPath, null, fileName);
+            var filePath = Path.Combine(wwwRootPath, fileName);
 
             if (System.IO.File.Exists(filePath))
             {
