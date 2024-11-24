@@ -1,0 +1,70 @@
+﻿@page "/overview-report"
+
+<RadzenStack class="rz-p-0 rz-p-md-12">
+
+    <RadzenCardGroup Responsive="@responsive">
+        <RadzenCard Variant="@variant">
+            <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
+                    <RadzenLabel Text="วันที่" Component="DropDownBindValue" />
+                    <RadzenDropDown @bind-Value=@activities_touch_point
+                                    Data=@datachannel Name="activities_touch_point" class="w-100" />
+                </RadzenStack>
+            </RadzenStack>
+        </RadzenCard>
+        <RadzenCard Variant="@variant">
+            <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
+                    <RadzenLabel Text="ร้านค้า" Component="DropDownBindValue" />
+                    <RadzenDropDown @bind-Value=@activities_touch_point 
+                                    Data=@datachannel Name="activities_touch_point" class="w-100" />
+                </RadzenStack>
+             </RadzenStack>
+        </RadzenCard>
+        <RadzenCard Variant="@variant">
+            <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
+                    <RadzenLabel Text="Touch Point" Component="DropDownBindValue" />
+                    <RadzenDropDown @bind-Value=@activities_touch_point
+                                    Data=@datachannel Name="activities_touch_point" class="w-100" />
+                </RadzenStack>
+            </RadzenStack>
+        </RadzenCard>
+        <RadzenCard Variant="@variant">
+            <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
+                    <RadzenLabel Text="ทีมงาน" Component="DropDownBindValue" />
+                    <RadzenDropDown @bind-Value=@activities_touch_point
+                                    Data=@datachannel Name="activities_touch_point" class="w-100" />
+                </RadzenStack>
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenCardGroup>
+</RadzenStack>
+
+@code {
+    bool responsive = true;
+
+    IEnumerable<string> datachannel;
+
+    Variant variant = Variant.Filled;
+
+    double teamOneProgress = 55;
+    double teamTwoProgress = 32;
+    double teamThreeProgress = 76;
+
+    string activities_touch_point = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        datachannel = data_channels;
+    }
+
+    private static readonly string[] data_channels = new[]
+      {
+           "Up-Sale", "Re-Sale","ลูกค้าขุด","Cross-Sale"
+      };
+
+}

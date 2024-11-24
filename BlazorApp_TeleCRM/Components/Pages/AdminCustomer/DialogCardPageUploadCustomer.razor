@@ -228,12 +228,16 @@
         btnDisable = true;
         runProcess_wait = true;
         TextProcess = "กรุณารอ ระบบกำลังทำการบันทึกข้อมูล..";
+
+        string count_total = excelData.Count().ToString() ;
+        int row = 1;
         try
         {
             await MySqlConnection.OpenAsync();
 
             foreach (var customers in excelData)
             {
+                TextProcess = "กรุณารอ ระบบกำลังทำการบันทึกข้อมูล..  " + row + "/" + count_total ;
 
 
                 var query = @"
@@ -256,12 +260,12 @@
                 using (var cmd = new MySqlCommand(query, MySqlConnection))
                 {
 
-                    GetGenerateID generateID = new GetGenerateID(Configuration);
+                    //  GetGenerateID generateID = new GetGenerateID(Configuration);
                     // var genid = generateID.GenId("customer_id", BranchCode.Substring(0, 2), BranchCode);
-                    var genid = await generateID.GenIdCustomer("customer_id", BranchCode.Substring(0, 2), BranchCode, customers.phone);
+                    // var genid = await generateID.GenIdCustomer("customer_id", BranchCode.Substring(0, 2), BranchCode, customers.phone);
 
                     cmd.Parameters.AddWithValue("@Guid", Guid.NewGuid());  // สร้าง GUID ใหม่
-                    cmd.Parameters.AddWithValue("@Code", genid);
+                    cmd.Parameters.AddWithValue("@Code", BranchCode + "-" + customers.phone);
                     cmd.Parameters.AddWithValue("@Name", customers.name);
                     cmd.Parameters.AddWithValue("@Phone", customers.phone);
                     cmd.Parameters.AddWithValue("@Address1", customers.address1);
@@ -281,7 +285,6 @@
 
 
                 }
-
 
                 try
                 {
@@ -308,8 +311,8 @@
 
                 } catch { }
                 // upload sale oder
-                
-
+                row++;
+                StateHasChanged();
             }
         }
         catch (Exception ex)

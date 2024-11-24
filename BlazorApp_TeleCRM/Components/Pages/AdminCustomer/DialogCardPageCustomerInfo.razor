@@ -194,17 +194,21 @@
                                     <tbody>
                                         @foreach (var product in selecteCrmOrders)
                                         {
-                                            var productCodes = product.product_codes?.Split('|') ?? Array.Empty<string>();
-                                            var productNames = product.product_names?.Split('|') ?? Array.Empty<string>();
-                                            var productQtys = product.product_qtys?.Split('|') ?? Array.Empty<string>();
-
-                                            for (int i = 0; i < productCodes.Length; i++)
+                                            @if (product != null)
                                             {
-                                                <tr>
-                                                    <td>@(productCodes.Length > i ? productCodes[i] : "-")</td>
-                                                    <td>@(productNames.Length > i ? productNames[i] : "-")</td>
-                                                    <td>@(productQtys.Length > i ? productQtys[i] : "-")</td>
-                                                </tr>
+                                                var productCodes = product.product_codes?.Split('|') ?? Array.Empty<string>();
+                                                var productNames = product.product_names?.Split('|') ?? Array.Empty<string>();
+                                                var productQtys = product.product_qtys?.Split('|') ?? Array.Empty<string>();
+
+                                                for (int i = 0; i < productCodes.Length; i++)
+                                                {
+                                                    <tr>
+                                                        <td>@(productCodes.Length > i ? productCodes[i] : "-")</td>
+                                                        <td>@(productNames.Length > i ? productNames[i] : "-")</td>
+                                                        <td>@(productQtys.Length > i ? productQtys[i] : "-")</td>
+                                                    </tr>
+                                                }
+
                                             }
                                         }
                                     </tbody>
@@ -457,7 +461,8 @@
             // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
             var searchCriteria = new
             {
-                guid = Guid
+                guid = Guid,
+                branch_code = BranchCode
             };
 
             // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
@@ -496,7 +501,8 @@
             // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
             var searchCriteria = new
             {
-                guid = Guid
+                guid = Guid,
+                branch_code = BranchCode 
             };
 
             // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
@@ -630,8 +636,10 @@
             // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
             var searchCriteria = new
             {
-                guid = phone
+                guid = phone,
+                branch_code =BranchCode
             };
+
 
             // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
             var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/CrmOrder/GetOrderDataByCustomer", searchCriteria);

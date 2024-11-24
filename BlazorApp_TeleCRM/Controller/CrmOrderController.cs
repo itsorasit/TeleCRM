@@ -41,13 +41,16 @@ namespace BlazorApp_TeleCRM.Controller
                                channel, tracking_no, amount, payment_type, product_codes, 
                                product_names, product_qtys, modified_by, modified_date
                     FROM crm_orders
-                    where customer_code = @guid
+                    where customer_code = @guid and branch_code=@branch_code
                     ";
 
                 using (var cmd = new MySqlCommand(query, connection))
                 {
                     var guid = searchCriteria.guid ?? "";
                     cmd.Parameters.AddWithValue("@guid", guid);
+
+                    var branch_code = searchCriteria.branch_code ?? "";
+                    cmd.Parameters.AddWithValue("@branch_code", branch_code);
 
                     using (var reader = await cmd.ExecuteReaderAsync())
                     {
@@ -93,6 +96,7 @@ namespace BlazorApp_TeleCRM.Controller
         public class SearchCriteriaByID
         {
             public string? guid { get; set; }
+            public string? branch_code { get; set; }
         }
 
     }

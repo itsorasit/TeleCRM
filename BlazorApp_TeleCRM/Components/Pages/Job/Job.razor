@@ -51,6 +51,11 @@
         <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="@count_UpSale.ToString()" class="rz-ms-2" />
     </RadzenButton>
 
+    <RadzenButton ButtonStyle="ButtonStyle.Success" Click=@(() => OnSearch_Touch_point("Cross-Sale"))>
+        Cross-Sale
+        <RadzenBadge Variant="Variant.Outlined" Text="@count_CrossSale.ToString()" class="rz-ms-2" />
+    </RadzenButton>
+
     <RadzenButton ButtonStyle="ButtonStyle.Secondary" Click=@(() => OnSearch_Touch_point("Re-Sale"))>
         Re-Sale
         <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="@count_ReSale.ToString()" class="rz-ms-2" />
@@ -59,11 +64,6 @@
     <RadzenButton ButtonStyle="ButtonStyle.Base" Click=@(() => OnSearch_Touch_point("ลูกค้าขุด"))>
         ลูกค้าขุด
         <RadzenBadge Variant="Variant.Outlined" Text="@count_x.ToString()" class="rz-ms-2"  />
-    </RadzenButton>
-
-    <RadzenButton ButtonStyle="ButtonStyle.Base" Click=@(() => OnSearch_Touch_point("Cross-Sale"))>
-        Cross-Sale
-        <RadzenBadge Variant="Variant.Outlined" Text="@count_x.ToString()" class="rz-ms-2" />
     </RadzenButton>
 
     <RadzenButton ButtonStyle="ButtonStyle.Info" Click=@(() => OnSearch_JobCompleted())>
@@ -135,9 +135,9 @@
         <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.customer_name)" Width="180px" Title="ชื่อลูกค้า" />
         <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.customer_phone)" Width="150px" Title="เบอร์ลูกค้า" />
         <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.customer_province)" Width="120px" Title="จังหวัด" />
-        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.assign_work)" Width="150px" Title="ผู้ติดต่อ" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.assign_work)" Width="150px" Title="พนักงานติดต่อ" />
         <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.startdate)" Width="180px" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Title="วันที่ติดต่อลูกค้า" />
-        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.contact_created_by)" Width="150px" Title="ผู้ติดต่อครั้งก่อน" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.contact_created_by)" Width="150px" Title="พนักงานติดต่อครั้งก่อน" />
         <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.contact_created_at)" Width="180px" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Title="วันที่ติดต่อครั้งก่อน" />
         <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.contact_result2)" Width="150px" Title="ผลตอบรับครั้งก่อน" />
 

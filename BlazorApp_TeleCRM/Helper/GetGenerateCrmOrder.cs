@@ -104,6 +104,15 @@ namespace BlazorApp_TeleCRM.Helper
                                 }
                             }
                         }
+                        else {
+                            var productCodes = data.product_codes?.Split('|') ?? Array.Empty<string>();
+                            var productNames = data.product_names?.Split('|') ?? Array.Empty<string>();
+
+                            for (int i = 0; i < productCodes.Length; i++)
+                            {
+                                await UploadProduction(productCodes[i], productNames[i], data.branch_code, data.modified_by);
+                            }
+                        }
 
                     }
                 }

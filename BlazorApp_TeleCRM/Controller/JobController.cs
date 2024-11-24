@@ -351,13 +351,16 @@ LEFT JOIN
                     branch_code, created_by, created_at ,statusparticipation ,
                     contact_result2
                     FROM crm_contact_logs 
-                    where customer_id = @guid
+                    where customer_id = @guid and branch_code=@branch_code 
                     order by created_at desc  ";
 
                 using (var cmd = new MySqlCommand(query, connection))
                 {
                     var guid = searchCriteria.guid ?? "";
                     cmd.Parameters.AddWithValue("@guid", guid);
+
+                    var branch_code = searchCriteria.branch_code ?? "";
+                    cmd.Parameters.AddWithValue("@branch_code", branch_code);
 
                     using (var reader = await cmd.ExecuteReaderAsync())
                     {
@@ -408,13 +411,16 @@ LEFT JOIN
                 string query = @"SELECT guid, activity_id, customer_id, 
                     note, branch_code, created_by, created_at 
                     FROM crm_notes 
-                    where customer_id = @guid
+                    where customer_id = @guid and branch_code = @branch_code 
                     order by created_at desc  ";
 
                 using (var cmd = new MySqlCommand(query, connection))
                 {
                     var guid = searchCriteria.guid ?? "";
                     cmd.Parameters.AddWithValue("@guid", guid);
+
+                    var branch_code = searchCriteria.branch_code ?? "";
+                    cmd.Parameters.AddWithValue("@branch_code", branch_code);
 
                     using (var reader = await cmd.ExecuteReaderAsync())
                     {
@@ -582,6 +588,7 @@ LEFT JOIN
         public class SearchCriteriaByID
         {
             public string? guid { get; set; }
+            public string? branch_code { get; set; }
         }
 
     }
