@@ -75,16 +75,15 @@
 
     <div class="rz-12">
         <RadzenBreadCrumb>
-            @*  <RadzenBreadCrumbItem Text="คอนโซล" /> *@
             <RadzenBreadCrumbItem Icon="settings" Path="/console" Text="คอนโซล" />
         </RadzenBreadCrumb>
         <RadzenText TextStyle="TextStyle.DisplayH5"></RadzenText>
     </div>
 
 
+
     <div class="rz-display-flex rz-row rz-align-items-normal rz-justify-content-normal" style="margin-top:50px" id="components">
         <div class="rz-col-12">
-          
             <div class=" rz-card rz-variant-outlined rz-background-color-white   rz-display-flex rz-row rz-align-items-normal ">
                 <div class="rz-col-12 " style=""><h3 class="rz-text-h4">ร้านค้า</h3></div>
                 <div class="rz-col-12  components-list">
@@ -92,6 +91,7 @@
                     <div class="rz-display-flex rz-row rz-align-items-normal rz-justify-content-normal" style="--rz-row-gap:1.5rem">
                         <div class="rz-col-12 rz-col-xs-6 rz-col-sm-4 rz-col-lg-3">
                             <RadzenButton Text="เพิ่มร้านค้า" Icon="store" Click="@OpenNewStore" />
+                            <RadzenButton Text="รีเฟรช" Icon="refresh" ButtonStyle="ButtonStyle.Info" Click="@OnRefresh" />
 
                         </div>
 
@@ -140,6 +140,16 @@
 
 
     private List<MasBranches> Branches = new();
+
+
+    private async Task OnRefresh()
+    {
+        // เรียกข้อมูลจากฐานข้อมูล
+        Branches = await GetBranchesAsync();
+        StateHasChanged();
+    }
+
+
 
 
     protected override async Task OnInitializedAsync()
@@ -192,9 +202,6 @@
 
         return branches;
     }
-
-
-
 
     async Task OpenNewStore()
     {

@@ -1,11 +1,21 @@
-﻿@page "/DialogCardPageProduct/{OrderID}"
+﻿@page "/DialogCardPageProduct/{ProductID}"
 @using System.ComponentModel.DataAnnotations
+@using Azure.Storage.Blobs
 @using BlazorApp_TeleCRM.Data
+@using BlazorApp_TeleCRM.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@using MySql.Data.MySqlClient
+@using System.Security.Claims
 @using static BlazorApp_TeleCRM.Components.Pages.Job.Job
 @inject IConfiguration Configuration
 @inject Radzen.DialogService dialogService
 @inject HttpClient Http
-
+@inject IConfiguration Configuration
+@inject Radzen.DialogService dialogService
+@inject HttpClient Http
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NotificationService NotificationService
+@inject MySqlConnection MySqlConnection
 
 <RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
     <RadzenCard Variant="Variant.Outlined">
@@ -13,52 +23,43 @@
             <Tabs>
                 <RadzenTabsItem Text="ข้อมูลสินค้า">
 
-                    <RadzenStack class="rz-12">
-                        <RadzenTemplateForm @ref="form" TItem="Products" Data="@Model" Submit="@OnSubmit" InvalidSubmit="@OnInvalidSubmit">
-                            <RadzenFieldset Text="กรอกข้อมูล">
-                                <RadzenStack class="rz-12">
-                                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
-                                        <RadzenColumn Size="12" SizeMD="12">
-                                            <RadzenLabel Text="รหัสสินค้า" Component="ProductCode" />
-                                            <RadzenTextBox Placeholder="" Style="width: 100%" Name="ProductName" @bind-Value="@Model.Code" />
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
-                                        <RadzenColumn Size="12" SizeMD="12">
-                                            <RadzenLabel Text="ชื่อสินค้า" Component="ProductName" />
-                                            <RadzenTextBox Placeholder="" Style="width: 100%" Name="ProductName" @bind-Value="@Model.Name" />
-                                        </RadzenColumn>
-                                    </RadzenRow>
+                    <RadzenTemplateForm TItem="MasProductions" Data="@product" Submit="@HandleValidSubmit">
 
-                                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
-                                        <RadzenColumn Size="12" SizeMD="12">
-                                            <RadzenLabel Text="ราคาสินค้า" Component="ProductPrice" />
-                                            <RadzenNumeric ShowUpDown="false" Placeholder="" Style="width: 100%" Name="ProducPrice" @bind-Value="@Model.Price" />
-                                        </RadzenColumn>
-                                    </RadzenRow>
 
-                                      <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
-                                    <RadzenColumn Size="12" SizeMD="4">
-                                            <RadzenCard Variant="Variant.Outlined" Style="width: 100%;">
-                                                <RadzenLabel Text="รูปสินค้า" />
-                                                <RadzenFileInput @bind-Value=@Photo @bind-FileName=@fileName @bind-FileSize=@fileSize TValue="string" Style="width: 100%"
-                                                                 Change=@(args => OnChange(args, "FileInput")) Error=@(args => OnError(args, "FileInput")) InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})" />
-                                            </RadzenCard>
-                                    </RadzenColumn>
-                                    </RadzenRow>
+                        <div style="margin-top:20px ;text-align: center;">
+                            @if (string.IsNullOrEmpty(product.image_url))
+                            {
+                                <img src="image/system/new.png" width="150px" />
+                            }
+                            else
+                            {
+                                <img src="@product.image_url" width="150px" />
+                            }
+                        </div>
+                        <div style="margin-top:20px">
+                            <RadzenLabel Text="รหัสสินค้า" />
+                            <RadzenTextBox style="display: block;width: 100%" @bind-Value="product.production_code" Name="code" Disabled="true" />
+                            <RadzenRequiredValidator Component="code" Text="ใส่รหัสสินค้า" Style="position: absolute" />
+                        </div>
+                        <div style="margin-top:20px">
+                            <RadzenLabel Text="ชื่อสินค้า" />
+                            <RadzenTextBox style="display: block;width: 100%" @bind-Value="product.production_name" Name="name" class="w-100" />
+                            <RadzenRequiredValidator Component="name" Text="ใส่ชื่อสินค้า" Style="position: absolute" />
+                        </div>
+                        <div style="margin-top:20px">
+                            <RadzenLabel Text="ราคา" />
+                            <RadzenNumeric TValue="decimal" Format="c" @bind-Value="product.price" Name="price" class="w-100" />
+                            <RadzenRequiredValidator Component="price" Text="ใส่ราคา" Style="position: absolute" /> 
+                        </div>
+                        <div style="margin-top:20px">
+                            <RadzenLabel Text="อัปโหลดรูปภาพสินค้า" />
+                            <InputFile OnChange="@UploadFile" />
+                        </div>
+                        <div style="margin-top:20px">
+                            <RadzenButton Text="บันทึก" Style="margin-top: 10px;" ButtonType="ButtonType.Submit" />
+                        </div>
+                    </RadzenTemplateForm>
 
-                                    <!-- Submit Button -->
-                                    <RadzenRow AlignItems="AlignItems.Start">
-                                        <RadzenColumn Size="12">
-                                            <RadzenButton ButtonType="ButtonType.Submit" Text="บันทึก" Style="margin-top: 5px;" />
-                                        </RadzenColumn>
-                                    </RadzenRow>
-
-                                </RadzenStack>
-                            </RadzenFieldset>
-                        </RadzenTemplateForm>
-
-                    </RadzenStack>
 
                  
                 </RadzenTabsItem>
@@ -66,44 +67,86 @@
         </RadzenTabs>
     </RadzenCard>
 </RadzenStack>
-@* <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="1.5rem">
-    <RadzenButton Click="@((args) => dialogService.Close(true))" Variant="Variant.Outlined" Text="ปิด" Style="width: 120px;margin-bottom:20px" />
-</RadzenStack>
- *@
+
 
 @code {
-    [Parameter] public string OrderID { get; set; }
-  
-    DateTime? appointmentDate = DateTime.Now.AddDays(3);
-    
+    [Parameter] public string ProductID { get; set; }
+
 
     int selectedIndex = 0;
+    private MasProductions product = new MasProductions();
+    private string UploadedFileUrl;
+
+    private string? username;
+    bool isEdit = false;
+    private string? BranchCode { get; set; }
+    private IEnumerable<string>? _BranchCode;
+
+    private RadzenTemplateForm<MasProductions> form;
 
 
-    string fileName;
-   string Photo = @"products/product001.png";
-    long? fileSize;
 
-    private RadzenTemplateForm<Products> form;
-    private Products Model = new Products();
-    IEnumerable<string> StatusTelData;
-    IEnumerable<string> StatusConversationData;
+
+    private async Task HandleValidSubmit()
+    {
+
+        if (string.IsNullOrEmpty(ProductID))
+        {
+            ///   await SaveBranchAsync(branch);
+            //   branch = new MasProductions();
+        }
+        else
+        {
+         
+            await UpdateProductAsync(product);
+        }
+    }
+
 
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
-    
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            username = user.Identity.Name;
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+        }
+        else
+        {
+            username = "";
+            BranchCode = "";
+        }
+
     }
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        if (!string.IsNullOrEmpty(ProductID))
+        {
+            isEdit = true;
+
+            var b = await LoadData(ProductID);
+            product.guid = b.guid;
+            product.production_code = b.production_code;
+            product.production_name = b.production_name;
+            product.image_url = b.image_url;
+            product.price = b.price;
+        }
+
+    }
+
+
 
     void OnChange(int index)
-    {
-
-    }
-
-
-    private async Task OnSubmit()
     {
 
     }
@@ -113,17 +156,141 @@
 
     }
 
-
-    void OnChange(string value, string name)
+    private async Task UpdateProductAsync(MasProductions data)
     {
-       // console.Log($"{name} value changed");
+        try
+        {
+
+            if (string.IsNullOrEmpty(data.image_url))
+            {
+                data.image_url = "image/system/new.png";
+            }
+
+
+            await MySqlConnection.OpenAsync();
+
+            using var command = new MySqlCommand(
+             @"UPDATE mas_productions SET  production_code=@production_code, production_name=@production_name,
+             image_url=@image_url, modified_by=@modified_by, modified_date=@modified_date, price=@price
+WHERE guid=@guid",
+                MySqlConnection);
+
+            command.Parameters.AddWithValue("@production_code", data.production_code);
+            command.Parameters.AddWithValue("@production_name", data.production_name);
+            command.Parameters.AddWithValue("@image_url", data.image_url);
+            command.Parameters.AddWithValue("@price", data.price);
+            command.Parameters.AddWithValue("@modified_by", username);
+            command.Parameters.AddWithValue("@modified_date", DateTime.Now);
+            command.Parameters.AddWithValue("@guid", data.guid);
+
+            await command.ExecuteNonQueryAsync();
+
+            NotificationService.Notify(NotificationSeverity.Success, "สำเร็จ", "อัปเดตข้อมูลสำเร็จ");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Error saving branch: {ex.Message}");
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
     }
 
-    void OnError(UploadErrorEventArgs args, string name)
+
+    private async Task UploadFile(InputFileChangeEventArgs e)
     {
-     //   console.Log($"{args.Message}");
+        var file = e.File;
+
+        // ตรวจสอบขนาดไฟล์
+        if (file.Size > 5 * 1024 * 1024) // 5MB
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "ไฟล์ใหญ่เกินไป");
+            return;
+        }
+
+        try
+        {
+            // ดึง Connection String และ Container Name จาก Configuration
+            string connectionString = Configuration["AzureBlobStorage:ConnectionString"];
+            string containerName = Configuration["AzureBlobStorage:ContainerName"];
+            string fileName = $"{Guid.NewGuid()}-{file.Name}";
+
+            // สร้าง Blob Service Client ด้วย Connection String
+            var blobServiceClient = new BlobServiceClient(connectionString);
+            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+
+            // ตรวจสอบว่ามี Container อยู่แล้วหรือไม่ (ถ้าไม่มีจะสร้างใหม่)
+            await containerClient.CreateIfNotExistsAsync();
+
+            // อัปโหลดไฟล์ไปยัง Blob Storage
+            using var stream = file.OpenReadStream();
+            var blobClient = containerClient.GetBlobClient(fileName);
+            await blobClient.UploadAsync(stream, true);
+
+            // บันทึก URL ของไฟล์
+            UploadedFileUrl = blobClient.Uri.ToString();
+            // NotificationService.Notify(NotificationSeverity.Success, "สำเร็จ", "อัปโหลดรูปภาพสำเร็จ");
+
+            product.image_url = UploadedFileUrl;
+
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"เกิดข้อผิดพลาดในการอัปโหลดไฟล์: {ex.Message}");
+        }
     }
 
+
+    public async Task<MasProductions> LoadData(string guid)
+    {
+
+        // คำสั่ง SQL ที่จะดำเนินการ
+        string query = @"
+        SELECT guid, branch_code, production_code, production_name, 
+        description, image_url, created_by,
+        created_date, modified_by, modified_date, price 
+        FROM mas_productions
+        WHERE guid = @guid;
+    ";
+
+        MasProductions masProductions = null;
+
+        try
+        {
+            await MySqlConnection.OpenAsync();
+            // สร้างการเชื่อมต่อกับฐานข้อมูล
+            using (var command = new MySqlCommand(query, MySqlConnection))
+            {
+                // เพิ่มพารามิเตอร์ @code
+                command.Parameters.AddWithValue("@guid", guid);
+
+                // ดำเนินการอ่านข้อมูล
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    if (await reader.ReadAsync())
+                    {
+                        masProductions = new MasProductions
+                            {
+                                guid = reader["guid"].ToString(),
+                                production_code = reader["production_code"].ToString(),
+                                production_name = reader["production_name"].ToString(),
+                                price =  Convert.ToDecimal(reader["price"].ToString()),
+                                image_url = reader["image_url"].ToString()
+                            };
+                    }
+                }
+
+                await MySqlConnection.CloseAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            await MySqlConnection.CloseAsync();
+        }
+
+        return masProductions;
+    }
 
 
 }

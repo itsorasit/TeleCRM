@@ -47,10 +47,10 @@
 </RadzenProgressBarCircular>
 
 
-<RadzenDataGrid TItem="MasProductions" Data="@productions" PagerPosition="PagerPosition.Bottom"
+    <RadzenDataGrid TItem="MasProductions" Data="@productions"  @bind-Value=@selectedProduction 
+    PagerPosition="PagerPosition.Bottom"
                 FilterMode="FilterMode.SimpleWithMenu" PageSize="10"
                 SelectionMode="DataGridSelectionMode.Single"
-                @bind-Value=@selectedProduction
                 AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
                     AllowSorting="true" ColumnWidth="300px"
                     ShowPagingSummary="true"
@@ -59,7 +59,7 @@
 
         <RadzenDataGridColumn Width="60px" Filterable="false" Property="@nameof(MasProductions.production_code)" Title="">
             <Template Context="data">
-                <RadzenButton ButtonStyle="ButtonStyle.Light" Click="@(args => OpenSideDialog(data.production_code))" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" />
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Click="@(args => OpenSideDialog(data.guid))" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" />
             </Template>
         </RadzenDataGridColumn>
 
@@ -164,7 +164,7 @@
             }
             else
             {
-                Console.WriteLine("Error fetching customer data.");
+                Console.WriteLine("Error fetching product data.");
                 return Enumerable.Empty<MasProductions>();
             }
         }
@@ -205,7 +205,7 @@
 
 
 
-    async Task OpenSideDialog(string ActID)
+    async Task OpenSideDialog(string ProductID)
     {
 
         if (isDialogOpen)
@@ -218,7 +218,7 @@
             "ข้อมูลสินค้า",
             new Dictionary<string, object>
                                     {
-            { "OrderID", ActID }
+            { "ProductID", ProductID }
                                     },
             new SideDialogOptions
                 {

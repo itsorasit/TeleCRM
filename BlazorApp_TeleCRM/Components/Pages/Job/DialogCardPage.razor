@@ -17,12 +17,12 @@
 
 
 
-<RadzenStack Gap="1rem" Orientation="Orientation.Horizontal">
+<div>
     <RadzenCard Variant="Variant.Outlined">
         <RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnChange>
             <Tabs>
                 <RadzenTabsItem Text="บันทึกการโทร" Icon="star" IconColor="@Colors.Success">
-                    <RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;width:100%">
+                    <RadzenStack Gap="1rem" Orientation="Orientation.Vertical"  >
                         <RadzenRow>
                             <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
                                 <RadzenTemplateForm TItem="Model" Data=@model Submit="@OnSubmit" InvalidSubmit="@OnInvalidSubmit">
@@ -308,7 +308,6 @@
                         </RadzenDataGrid>
                     </RadzenStack>
                 </RadzenTabsItem>
-
                 <RadzenTabsItem Text="Note">
 
                     <RadzenTemplateForm TItem="Model2" Data=@model2 Submit="@OnSubmit2" InvalidSubmit="@OnInvalidSubmit2">
@@ -352,7 +351,6 @@
                         </RadzenDataGrid>
                     </RadzenStack>
                 </RadzenTabsItem>
-
                 <RadzenTabsItem Text="ประวัติการซื้อ">
                     <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
                                     FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
@@ -417,12 +415,34 @@
 
 
                 </RadzenTabsItem>
+                <RadzenTabsItem Text="สินค้าทั้งหมด">
+                    <RadzenDataGrid @bind-Value=@selecteProduct
+                                    Data="@products" PagerPosition="PagerPosition.Bottom"
+                                    FilterMode="FilterMode.SimpleWithMenu" PageSize="10"
+                                    SelectionMode="DataGridSelectionMode.Single"
+                                    AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
+                                    AllowSorting="true" ColumnWidth="300px"
+                                    ShowPagingSummary="true">
+                        <Columns>
+                            <RadzenDataGridColumn Width="100px" Filterable="false" TItem="MasProductions" Property="@nameof(MasProductions.image_url)" Title="">
+                                <Template Context="data">
+                                    <RadzenImage Path="@data.image_url" Style="width: 60px; height: 60px;" class="rz-border-radius-2" AlternateText="" />
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="MasProductions" Property="@nameof(MasProductions.production_code)" Width="100px" Title="รหัสสินค้า" />
+                            <RadzenDataGridColumn TItem="MasProductions" Property="@nameof(MasProductions.production_name)" Width="180px" Title="ชื่อสินค้า" />
+                            <RadzenDataGridColumn TItem="MasProductions" Property="@nameof(MasProductions.price)" Width="150px" Title="ราคาสินค้า" />
+                        </Columns>
+                    </RadzenDataGrid>
 
+                  
+
+                </RadzenTabsItem>
 
             </Tabs>
         </RadzenTabs>
     </RadzenCard>
-</RadzenStack>
+</div>
 @* <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="1.5rem">
     <RadzenButton Click="@((args) => dialogService.Close(true))" Variant="Variant.Outlined" Text="ปิด" Style="width: 120px;margin-bottom:20px" />
 </RadzenStack>
@@ -465,6 +485,9 @@
 
     private IEnumerable<CrmOrder> crmOrders;
     IList<CrmOrder> selecteCrmOrders;
+
+    private IEnumerable<MasProductions> products;
+    IList<MasProductions> selecteProduct;
 
 
     //from data
@@ -632,6 +655,10 @@
 
             crmOrders = await FetchOrderDataAsync(selectedAct.customer_phone);
             selecteCrmOrders = new List<CrmOrder>() { crmOrders.FirstOrDefault() };
+
+            products = await FetchProductDataAsync();
+            selecteProduct = new List<MasProductions>() { products.FirstOrDefault() };
+
         }
 
     }
@@ -1192,5 +1219,44 @@
         }
     }
 
+    public async Task<IEnumerable<MasProductions>> FetchProductDataAsync()
+    {
+        try
+        {
+            runProcess_wait = true;
+            StateHasChanged(); // บังคับ UI อัปเดต
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+
+
+            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+            var searchCriteria = new
+            {
+                guid = "",
+                branch_code = BranchCode
+            };
+
+            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/ProductAdmin/GetProduct", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var data = await response.Content.ReadFromJsonAsync<IEnumerable<MasProductions>>();
+                return data;
+            }
+            else
+            {
+                Console.WriteLine("Error fetching NoteLogData Data.");
+                return Enumerable.Empty<MasProductions>();
+            }
+        }
+        finally
+        {
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
+    }
 
 }
