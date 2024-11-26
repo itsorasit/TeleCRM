@@ -96,7 +96,7 @@
                     {
                         <RadzenButton Text="สำเร็จ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
                     }
-                    else if (data.status == "")
+                    else if (data.status == "รอดำเนินการ")
                     {
                         <RadzenButton Text="รอดำเนินการ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
                     }
@@ -119,9 +119,7 @@
             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.name)" Width="200px" Title="ชื่อกิจกรรม" />
             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.assign_work_type)" Width="150px" Title="ประเภท" />
             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.touch_point)" Width="150px" Title="Touch Point" />
-            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.assign_work)" Width="180px" Title="มอบหมายให้" />
-            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.succeed)" Width="100px" Title="สำเร็จ" />
-            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.progress_total)" Width="100px" Title="ทั้งหมด" />
+            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.assign_work_fullName)" Width="180px" Title="มอบหมายให้" />
             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.created_by)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Width="180px" Title="วันที่สร้างกิจกรรม" />
             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.startdate)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Width="180px" Title="วันที่เริ่มกิจกรรม" />
             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.duedate)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Width="180px" Title="วันครบกำหนด" />

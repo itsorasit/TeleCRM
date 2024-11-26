@@ -37,22 +37,24 @@ namespace BlazorApp_TeleCRM.Controller
 
                 if (searchCriteria.fdate == null || searchCriteria.ldate == null)
                 {
-                    query = @"SELECT guid, customer_code, branch_code, touch_point, name, description, startdate, duedate, reminder_duedate, 
-                        assign_work, assign_work_type, allowagent, record_status, created_by, created_date, modified_by, modified_date,
-                        '' as activitys_code,'' as progress,0 as succeed, 0 as progress_total ,status
-                        FROM crm_activitys ca
-                        where ca.branch_code = @branch_code
-                        ORDER BY ca.created_date  DESC LIMIT 500 ";
+                    query = @"SELECT ca.guid, ca.customer_code, ca.branch_code, ca.touch_point, ca.name, ca.description, ca.startdate, ca.duedate, ca.reminder_duedate, 
+                    ca.assign_work, ca.assign_work_type, ca.allowagent, ca.record_status, ca.created_by, ca.created_date, ca.modified_by, ca.modified_date,
+                    '' as activitys_code,'' as progress,0 as succeed, 0 as progress_total ,ca.status, mu.firstname 
+                    FROM crm_activitys ca 
+                    left join mas_users mu on mu.username = ca.assign_work and mu.organization = ca.branch_code 
+                    where ca.branch_code = @branch_code 
+                    ORDER BY ca.created_date  DESC LIMIT 500 ";
 
                     searchCriteria.fdate = today;
                     searchCriteria.ldate = today;
                 }
                 else
                 {
-                    query = @"SELECT guid, customer_code, branch_code, touch_point, name, description, startdate, duedate, reminder_duedate, 
-                    assign_work, assign_work_type, allowagent, record_status, created_by, created_date, modified_by, modified_date,
-                    '' as activitys_code,'' as progress,0 as succeed, 0 as progress_total ,status
+                    query = @"SELECT ca.guid, ca.customer_code, ca.branch_code, ca.touch_point, ca.name, ca.description, ca.startdate, ca.duedate, ca.reminder_duedate, 
+                    ca.assign_work, ca.assign_work_type, ca.allowagent, ca.record_status, ca.created_by, ca.created_date, ca.modified_by, ca.modified_date,
+                    '' as activitys_code,'' as progress,0 as succeed, 0 as progress_total ,ca.status, mu.firstname 
                     FROM crm_activitys ca
+                    left join mas_users mu on mu.username = ca.assign_work and mu.organization = ca.branch_code 
                     where ca.branch_code = @branch_code
                     AND  ca.created_date >= @FromDate 
                     AND  ca.created_date <= @ToDate
@@ -100,12 +102,15 @@ namespace BlazorApp_TeleCRM.Controller
                                 modified_by = reader.IsDBNull(reader.GetOrdinal("modified_by")) ? null : reader["modified_by"].ToString(),
                                 modified_date = reader.IsDBNull(reader.GetOrdinal("modified_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("modified_date")),
 
-                                status = reader["status"].ToString(),
+                                status = string.IsNullOrEmpty( reader["status"].ToString())==true?"รอดำเนินการ":reader["status"].ToString() ,
 
                                 activitys_code = reader["activitys_code"].ToString(),
                                 progress = reader["activitys_code"].ToString(),
                                 succeed = reader.IsDBNull(reader.GetOrdinal("succeed")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("succeed")),
-                                progress_total = reader.IsDBNull(reader.GetOrdinal("progress_total")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("progress_total"))
+                                progress_total = reader.IsDBNull(reader.GetOrdinal("progress_total")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("progress_total")),
+
+                                assign_work_fullName = reader["firstname"].ToString()+ " ("+ reader["assign_work"].ToString() +")"
+
                             };
 
                             activitys.Add(dataList);
