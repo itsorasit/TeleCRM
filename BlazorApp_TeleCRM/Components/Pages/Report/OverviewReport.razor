@@ -6,42 +6,90 @@
 @inject IConfiguration Configuration
 @inject MySqlConnection MySqlConnection
 
-<RadzenStack class="rz-p-0 rz-p-md-8">
 
-    <RadzenCardGroup Responsive="@responsive">
-       
-        <RadzenCard Variant="@variant">
-            <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
-                <RadzenLabel Text="วันที่" />
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
-                    <RadzenDatePicker @bind-Value="@fdate" DateFormat="MM/dd/yyyy" Name="FDatePickerDateOnlyType" class="w-100" />
-                    <RadzenLabel Text="ถึง" Component="DropDownBindValue" />
-                    <RadzenDatePicker @bind-Value="@ldate" DateFormat="MM/dd/yyyy" Name="LDatePickerDateOnlyType" class="w-100" />
-                </RadzenStack>
-            </RadzenStack>
-        </RadzenCard>
 
-        <RadzenCard Variant="@variant">
-            <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
-                <RadzenLabel Text="Touch Point" />
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
-                    <RadzenDropDown @bind-Value=@touch_point Multiple=true AllowClear=true Chips=true
-                                    Data=@datachannel Name="touch_point" class="w-100" />
-                </RadzenStack>
-             </RadzenStack>
-        </RadzenCard>
-       <RadzenCard Variant="@variant">
-            <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
-                <RadzenLabel Text="พนักงาน"  />
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
-                    <RadzenDropDown @bind-Value=@staff_values Data=@users_staff Name="DropDownMultipleMaxLabels"
-                                    TextProperty="firstname" ValueProperty="username" Chips=true
-                                    Multiple=true AllowClear=true class="w-100" />
-                </RadzenStack>
-            </RadzenStack>
-        </RadzenCard> 
-    </RadzenCardGroup>
+<RadzenStack class="rz-8" Style="margin-bottom: 0;">
+    <!-- ลดระยะห่างส่วนนี้ -->
+    <RadzenPanel AllowCollapse="true" >
+        <HeaderTemplate>
+            <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
+                <RadzenIcon Icon="filter_alt" class="rz-me-1" /><b>กรองข้อมูล</b>
+            </RadzenText>
+        </HeaderTemplate>
+        <ChildContent>
+            <RadzenCardGroup Responsive="@responsive">
+                <RadzenCard Variant="@variant">
+                    <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                        <RadzenLabel Text="วันที่" />
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
+                            <RadzenDatePicker @bind-Value="@fdate" DateFormat="MM/dd/yyyy" Name="FDatePickerDateOnlyType" class="w-100" />
+                            <RadzenLabel Text="ถึง" Component="DropDownBindValue" />
+                            <RadzenDatePicker @bind-Value="@ldate" DateFormat="MM/dd/yyyy" Name="LDatePickerDateOnlyType" class="w-100" />
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenCard>
+
+                <RadzenCard Variant="@variant">
+                    <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                        <RadzenLabel Text="Touch Point" />
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
+                            <RadzenDropDown @bind-Value=@touch_point Multiple=true AllowClear=true Chips=true
+                                            Data=@datachannel Name="touch_point" class="w-100" />
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenCard>
+                <RadzenCard Variant="@variant">
+                    <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                        <RadzenLabel Text="พนักงาน" />
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
+                            <RadzenDropDown @bind-Value=@staff_values Data=@users_staff Name="Staff"
+                                            TextProperty="firstname" ValueProperty="username" Chips=true
+                                            Multiple=true AllowClear=true class="w-100" />
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenCardGroup>
+        </ChildContent>
+    </RadzenPanel>
 </RadzenStack>
+
+<div class="rz-12" Style="margin-top: -30px;">
+    <!-- ลดระยะห่างส่วนนี้ -->
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="0.5rem">
+        <RadzenCard Variant="Variant.Filled" class="rz-my-12 rz-mx-auto" Style="min-width: 420px">
+            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
+                <RadzenIcon Icon="work" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Primary" />
+                <RadzenStack Gap="0" Style="width: 100%;">
+                    <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start">กิจกรรมการโทรทั้งหมด</RadzenText>
+                </RadzenStack>
+                <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>20</b></RadzenText>
+            </RadzenStack>
+        </RadzenCard>
+        <RadzenCard Variant="Variant.Filled" class="rz-my-12 rz-mx-auto" Style="min-width: 420px">
+            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
+                <RadzenIcon Icon="schedule" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Warning" />
+                <RadzenStack Gap="0" Style="width: 100%;">
+                    <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start">รอดำเนินการ</RadzenText>
+                </RadzenStack>
+                <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>20</b></RadzenText>
+            </RadzenStack>
+        </RadzenCard>
+        <RadzenCard Variant="Variant.Filled" class="rz-my-12 rz-mx-auto" Style="min-width: 420px">
+            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
+                <RadzenIcon Icon="check_circle" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Success" />
+                <RadzenStack Gap="0" Style="width: 100%;">
+                    <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start">ดำเนินการแล้ว</RadzenText>
+                </RadzenStack>
+                <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>20</b></RadzenText>
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenStack>
+</div>
+
+<RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" class=" rz-border-radius-1" Style="border: var(--rz-grid-cell-border);">
+  
+</RadzenStack>
+
 
 @code {
     bool responsive = true;
@@ -73,9 +121,10 @@
 
         foreach (var i in users_staff)
         {
-            staff_values.Add(i.firstname.ToString());
+            staff_values.Add(i.username);
         }
-
+        // บังคับให้ UI อัปเดตใหม่
+        StateHasChanged();
 
     }
     private static readonly string[] data_channels = new[]
@@ -96,13 +145,13 @@
             while (await reader.ReadAsync())
             {
                 users_staff.Add(new User
-                {
+                    {
                         username = reader["username"].ToString(),
                         firstname = reader["firstname"].ToString()
                     });
             }
         }
-       catch (Exception ex)
+        catch (Exception ex)
         {
             Console.WriteLine($"Error fetching users: {ex.Message}");
         }
