@@ -144,7 +144,6 @@ LEFT JOIN
                     AND ca.assign_work = @assign_work
                     AND DATE(@ToDate) between DATE(ca.startdate) and DATE(ca.duedate) 
                     AND DATE(ca.startdate) <= DATE(@ToDate)
-                    AND ca.assign_work = @assign_work 
                     ORDER BY ca.startdate";
 
                 }

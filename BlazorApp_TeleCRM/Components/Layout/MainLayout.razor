@@ -86,6 +86,11 @@
                             <RadzenPanelMenuItem Text="2. กิจกรรม" Icon="sprint" Click="@(() => GoToPage("/adminactivity"))" Selected="@IsMenuItemSelected("/adminactivity")" />
                             <RadzenPanelMenuItem Text="3. สินค้า" Icon="category" Click="@(() => GoToPage("/adminproduct"))" Selected="@IsMenuItemSelected("/adminproduct")" />
                         </RadzenPanelMenuItem>
+
+                        <RadzenPanelMenuItem Text="Report - Admin" Icon="analytics" Expanded="@((IsMenuItemSelected("/overview-report")))">
+                            <RadzenPanelMenuItem Text="Job Monitor" Icon="finance" Click="@(() => GoToPage("/overview-report"))" Selected="@IsMenuItemSelected("/overview-report")" />
+                        </RadzenPanelMenuItem>
+
                     </AuthorizeView>
 
 

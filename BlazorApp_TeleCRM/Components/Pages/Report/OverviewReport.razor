@@ -5,31 +5,34 @@
 @using System.Security.Claims
 @inject IConfiguration Configuration
 @inject MySqlConnection MySqlConnection
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-
+<AuthorizeView Roles="Admin,Manager,Supervisor">
 
 <RadzenStack class="rz-8" Style="margin-bottom: 0;">
     <!-- ลดระยะห่างส่วนนี้ -->
-    <RadzenPanel AllowCollapse="true" >
+    <RadzenPanel AllowCollapse="true">
         <HeaderTemplate>
             <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
-                <RadzenIcon Icon="filter_alt" class="rz-me-1" /><b>กรองข้อมูล</b>
-            </RadzenText>
+                    <RadzenIcon Icon="filter_alt" class="rz-me-1" /><b>ข้อมูลวันที่ @lastUpdated</b>
+                    <RadzenButton Click=@(args => OnLoad()) Icon="search" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Primary" />
+                @*     <RadzenButton Click=@(args => ToggleAutoRefresh()) Icon="autorenew" Text="auto refresh" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Success" /> *@
+                </RadzenText>
         </HeaderTemplate>
         <ChildContent>
-            <RadzenCardGroup Responsive="@responsive">
-                <RadzenCard Variant="@variant">
+            <RadzenCardGroup Responsive="true">
+                <RadzenCard Variant="Variant.Filled">
                     <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
-                        <RadzenLabel Text="วันที่" />
+                        <RadzenLabel Text="วันที่เริ่มกิจกรรม" />
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
-                            <RadzenDatePicker @bind-Value="@fdate" DateFormat="MM/dd/yyyy" Name="FDatePickerDateOnlyType" class="w-100" />
+                            <RadzenDatePicker @bind-Value="@Fdate" DateFormat="dd/MM/yyyy" Name="FDatePickerDateOnlyType" class="w-100" />
                             <RadzenLabel Text="ถึง" Component="DropDownBindValue" />
-                            <RadzenDatePicker @bind-Value="@ldate" DateFormat="MM/dd/yyyy" Name="LDatePickerDateOnlyType" class="w-100" />
+                            <RadzenDatePicker @bind-Value="@Ldate" DateFormat="dd/MM/yyyy" Name="LDatePickerDateOnlyType" class="w-100" />
                         </RadzenStack>
                     </RadzenStack>
                 </RadzenCard>
 
-                <RadzenCard Variant="@variant">
+                <RadzenCard Variant="Variant.Filled">
                     <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
                         <RadzenLabel Text="Touch Point" />
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
@@ -38,7 +41,7 @@
                         </RadzenStack>
                     </RadzenStack>
                 </RadzenCard>
-                <RadzenCard Variant="@variant">
+                <RadzenCard Variant="Variant.Filled">
                     <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
                         <RadzenLabel Text="พนักงาน" />
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
@@ -52,106 +55,287 @@
         </ChildContent>
     </RadzenPanel>
 </RadzenStack>
+<RadzenStack Style="margin-bottom: 0;">
+    <RadzenPanel AllowCollapse="true">
+        <HeaderTemplate>
+            <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
+                <RadzenIcon Icon="pie_chart" class="rz-me-1" /><b>Summary</b>
+            </RadzenText>
+        </HeaderTemplate>
+        <ChildContent>
+            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Style="height:90px" Gap="0rem">
+                <RadzenCard Variant="Variant.Filled" Style="min-width: 420px">
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
+                        <RadzenIcon Icon="work" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Primary" />
+                        <RadzenStack Gap="0" Style="width: 100%;">
+                            <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start"> กิจกรรมการโทรทั้งหมด</RadzenText>
+                        </RadzenStack>
+                        <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>@count_sum_all</b></RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+                <RadzenCard Variant="Variant.Filled" Style="min-width: 420px">
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
+                        <RadzenIcon Icon="schedule" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Warning" />
+                        <RadzenStack Gap="0" Style="width: 100%;">
+                            <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start"> รอดำเนินการ</RadzenText>
+                        </RadzenStack>
+                        <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>@count_sum_wait</b></RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+                <RadzenCard Variant="Variant.Filled" Style="min-width: 420px">
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
+                        <RadzenIcon Icon="check_circle" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Success" />
+                        <RadzenStack Gap="0" Style="width: 100%;">
+                            <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start"> ดำเนินการแล้ว</RadzenText>
+                        </RadzenStack>
+                        <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>@count_sum_finished</b></RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenStack>
+        </ChildContent>
+    </RadzenPanel>
+</RadzenStack>
+<RadzenStack Style="margin-bottom: 0;">
+    <RadzenPanel AllowCollapse="true">
+        <HeaderTemplate>
+            <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
+                <RadzenIcon Icon="equalizer" class="rz-me-1" /><b>Marketing</b>
+            </RadzenText>
+        </HeaderTemplate>
+        <ChildContent>
+            <RadzenStack Orientation="Orientation.Horizontal" Style="height:65px" Gap="0rem">
+                <RadzenCard Variant="Variant.Filled" Style="min-width: 300px">
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                        <RadzenIcon Icon="deskphone" Style="border-radius: 50%;font-size: 32px;" IconStyle="IconStyle.Success" />
+                        <RadzenStack Gap="0" Style="width: 100%;">
+                            <RadzenText TextStyle="TextStyle.Body2" TextAlign="TextAlign.Start">สายที่โทรทั้งหมด</RadzenText>
+                        </RadzenStack>
+                        <RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Right"><b>@count_sum_finished</b></RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+                <RadzenCard Variant="Variant.Filled" Style="min-width: 300px">
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                        <RadzenIcon Icon="perm_phone_msg" Style="border-radius: 50%;font-size: 32px;" IconStyle="IconStyle.Success" />
+                        <RadzenStack Gap="0" Style="width: 100%;">
+                            <RadzenText TextStyle="TextStyle.Body2" TextAlign="TextAlign.Start">รับสาย</RadzenText>
+                        </RadzenStack>
+                        <RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Right"><b>@count_sum_oncall</b></RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+                <RadzenCard Variant="Variant.Filled" Style="min-width: 300px">
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                        <RadzenIcon Icon="tooltip" Style="border-radius: 50%;font-size: 32px;" IconStyle="IconStyle.Success" />
+                        <RadzenStack Gap="0" Style="width: 100%;">
+                            <RadzenText TextStyle="TextStyle.Body2" TextAlign="TextAlign.Start">ได้คุย</RadzenText>
+                        </RadzenStack>
+                        <RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Right"><b>@count_sum_oncall_V1</b></RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+                <RadzenCard Variant="Variant.Filled" Style="min-width: 300px">
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                        <RadzenIcon Icon="order_approve" Style="border-radius: 50%;font-size: 32px;" IconStyle="IconStyle.Success" />
+                        <RadzenStack Gap="0" Style="width: 100%;">
+                            <RadzenText TextStyle="TextStyle.Body2" TextAlign="TextAlign.Start">ขายได้</RadzenText>
+                        </RadzenStack>
+                        <RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Right"><b>@count_sum_oncall_V1_sale</b></RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+                <RadzenCard Variant="Variant.Filled" Style="min-width: 300px">
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                        <RadzenIcon Icon="military_tech" Style="border-radius: 50%;font-size: 32px;" IconStyle="IconStyle.Success" />
+                        <RadzenStack Gap="0" Style="width: 100%;">
+                            <RadzenText TextStyle="TextStyle.Body2" TextAlign="TextAlign.Start">ยอดขาย</RadzenText>
+                        </RadzenStack>
+                        <RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Right"><b>Soon</b></RadzenText>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenStack>
+        </ChildContent>
+    </RadzenPanel>
+</RadzenStack>
+<RadzenStack Style="margin-bottom: 0;">
+    <RadzenPanel AllowCollapse="true">
+        <HeaderTemplate>
+            <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
+                <RadzenIcon Icon="equalizer" class="rz-me-1" /><b>Team Actives</b>
+            </RadzenText>
+        </HeaderTemplate>
+        <ChildContent>
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="0rem">
+                <RadzenRow Gap="1rem">
+                    <RadzenColumn Size="6" SizeMD="6">
+                        <RadzenChart  ColorScheme="ColorScheme.Pastel" style="height: 400px; width: 800px">
 
 
-<div class="rz-12" Style="margin-top: -30px;">
-    <!-- ลดระยะห่างส่วนนี้ -->
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="0.5rem">
-        <RadzenCard Variant="Variant.Filled" class="rz-my-12 rz-mx-auto" Style="min-width: 420px">
-            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
-                <RadzenIcon Icon="work" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Primary" />
-                <RadzenStack Gap="0" Style="width: 100%;">
-                    <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start">กิจกรรมการโทรทั้งหมด</RadzenText>
-                </RadzenStack>
-                <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>20</b></RadzenText>
-            </RadzenStack>
-        </RadzenCard>
-        <RadzenCard Variant="Variant.Filled" class="rz-my-12 rz-mx-auto" Style="min-width: 420px">
-            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
-                <RadzenIcon Icon="schedule" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Warning" />
-                <RadzenStack Gap="0" Style="width: 100%;">
-                    <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start">รอดำเนินการ</RadzenText>
-                </RadzenStack>
-                <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>20</b></RadzenText>
-            </RadzenStack>
-        </RadzenCard>
-        <RadzenCard Variant="Variant.Filled" class="rz-my-12 rz-mx-auto" Style="min-width: 420px">
-            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
-                <RadzenIcon Icon="check_circle" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Success" />
-                <RadzenStack Gap="0" Style="width: 100%;">
-                    <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start">ดำเนินการแล้ว</RadzenText>
-                </RadzenStack>
-                <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>20</b></RadzenText>
-            </RadzenStack>
-        </RadzenCard>
-    </RadzenStack>
-</div>
+                            @if (revenue_wait != null)
+                            {
+                                <RadzenStackedBarSeries Data="@revenue_wait"
+                                                        CategoryProperty="staff1"
+                                                        Title="รอดำเนินการ"
+                                                        LineType="LineType.Dashed"
+                                                        ValueProperty="count1">
+                                    <RadzenSeriesDataLabels Visible="true" />
+                                </RadzenStackedBarSeries>
+                            }
 
-<div Style="margin-top: -30px;">
-    <RadzenText TextStyle="TextStyle.DisplayH5" >Marketing</RadzenText>
-    <!-- ลดระยะห่างส่วนนี้ -->
-    <RadzenStack Orientation="Orientation.Horizontal"  Gap="0rem">
-        <RadzenCard Variant="Variant.Filled" class="rz-my-12 rz-mx-auto" Style="min-width: 300px">
-            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
-                <RadzenIcon Icon="work" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Primary" />
-                <RadzenStack Gap="0" Style="width: 100%;">
-                    <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start">กิจกรรมการโทรทั้งหมด</RadzenText>
-                </RadzenStack>
-                <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>20</b></RadzenText>
+                            @if (revenue_oncall1 != null)
+                            {
+                                <RadzenStackedBarSeries Data="@revenue_oncall1"
+                                                        CategoryProperty="staff1"
+                                                        Title="คุยจบ"
+                                                        LineType="LineType.Dashed"
+                                                        ValueProperty="count1">
+                                    <RadzenSeriesDataLabels Visible="true" />
+                                </RadzenStackedBarSeries>
+                            }
+
+                            @if (revenue_oncall2 != null)
+                            {
+                                <RadzenStackedBarSeries Data="@revenue_oncall2"
+                                                        CategoryProperty="staff1"
+                                                        Title="ไม่สะดวก"
+                                                        LineType="LineType.Dashed"
+                                                        ValueProperty="count1">
+                                    <RadzenSeriesDataLabels Visible="true" />
+                                </RadzenStackedBarSeries>
+                            }
+
+                            @if (revenue_oncall3 != null)
+                            {
+                                <RadzenStackedBarSeries Data="@revenue_oncall3"
+                                                        CategoryProperty="staff1"
+                                                        Title="ติดตาม"
+                                                        LineType="LineType.Dashed"
+                                                        ValueProperty="count1">
+                                    <RadzenSeriesDataLabels Visible="true" />
+                                </RadzenStackedBarSeries>
+                            }
+
+                            @if (revenue_oncall4 != null)
+                            {
+                                <RadzenStackedBarSeries Data="@revenue_oncall4"
+                                                        CategoryProperty="staff1"
+                                                        Title="ขายได้"
+                                                        LineType="LineType.Dashed"
+                                                        ValueProperty="count1">
+                                    <RadzenSeriesDataLabels Visible="true" />
+                                </RadzenStackedBarSeries>
+                            }
+
+                            @if (revenue_oncall5 != null)
+                            {
+                                <RadzenStackedBarSeries Data="@revenue_oncall5"
+                                                        CategoryProperty="staff1"
+                                                        Title="ไม่รับสาย"
+                                                        LineType="LineType.Dashed"
+                                                        ValueProperty="count1">
+                                    <RadzenSeriesDataLabels Visible="true" />
+                                </RadzenStackedBarSeries>
+                            }
+                            @if (revenue_oncall6 != null)
+                            {
+                                <RadzenStackedBarSeries Data="@revenue_oncall6"
+                                                        CategoryProperty="staff1"
+                                                        Title="โทรไม่ติด"
+                                                        LineType="LineType.Dashed"
+                                                        ValueProperty="count1">
+                                    <RadzenSeriesDataLabels Visible="true" />
+                                </RadzenStackedBarSeries>
+                            }
+
+                            <RadzenValueAxis Min="0" Max=@count_sum_all_chart>
+                                <RadzenGridLines Visible="true" />
+                                <RadzenAxisTitle Text="กิจกรรมการโทรทั้งหมด" />
+                            </RadzenValueAxis>
+                            <RadzenBarOptions Radius="5" Height="40" />
+                        </RadzenChart>
+
+                        @*                         <pre>Revenue Wait: @System.Text.Json.JsonSerializer.Serialize(revenue_wait)</pre>
+                        <pre>Revenue OnCall1: @System.Text.Json.JsonSerializer.Serialize(revenue_oncall1)</pre>
+                        *@
+                    </RadzenColumn>
+                    <RadzenColumn Size="6" SizeMD="6">
+                        <RadzenChart ColorScheme="ColorScheme.Pastel" style="height: 400px; width: 800px">
+
+
+
+                            @if (revenue_oncall1 != null)
+                            {
+                                <RadzenStackedBarSeries Data="@revenue_oncall1"
+                                                        CategoryProperty="staff1"
+                                                        Title="คุยจบ"
+                                                        LineType="LineType.Dashed"
+                                                        ValueProperty="count1">
+                                    <RadzenSeriesDataLabels Visible="true" />
+                                </RadzenStackedBarSeries>
+                            }
+
+
+                            @if (revenue_oncall3 != null)
+                            {
+                                <RadzenStackedBarSeries Data="@revenue_oncall3"
+                                                        CategoryProperty="staff1"
+                                                        Title="ติดตาม"
+                                                        LineType="LineType.Dashed"
+                                                        ValueProperty="count1">
+                                    <RadzenSeriesDataLabels Visible="true" />
+                                </RadzenStackedBarSeries>
+                            }
+
+                            @if (revenue_oncall4 != null)
+                            {
+                                <RadzenStackedBarSeries Data="@revenue_oncall4"
+                                                        CategoryProperty="staff1"
+                                                        Title="ขายได้"
+                                                        LineType="LineType.Dashed"
+                                                        ValueProperty="count1">
+                                    <RadzenSeriesDataLabels Visible="true" />
+                                </RadzenStackedBarSeries>
+                            }
+
+                            <RadzenValueAxis Min="0" Max=@count_sum_all_chart>
+                                <RadzenGridLines Visible="true" />
+                                <RadzenAxisTitle Text="Marketing" />
+                            </RadzenValueAxis>
+                            <RadzenBarOptions Radius="5" Height="40" />
+                        </RadzenChart>
+                    </RadzenColumn>
+                </RadzenRow>
             </RadzenStack>
-        </RadzenCard>
-        <RadzenCard Variant="Variant.Filled" class="rz-my-12 rz-mx-auto" Style="min-width: 300px">
-            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
-                <RadzenIcon Icon="schedule" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Warning" />
-                <RadzenStack Gap="0" Style="width: 100%;">
-                    <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start">รอดำเนินการ</RadzenText>
-                </RadzenStack>
-                <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>20</b></RadzenText>
-            </RadzenStack>
-        </RadzenCard>
-        <RadzenCard Variant="Variant.Filled" class="rz-my-12 rz-mx-auto" Style="min-width: 300px">
-            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
-                <RadzenIcon Icon="check_circle" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Success" />
-                <RadzenStack Gap="0" Style="width: 100%;">
-                    <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start">ดำเนินการแล้ว</RadzenText>
-                </RadzenStack>
-                <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>20</b></RadzenText>
-            </RadzenStack>
-        </RadzenCard>
-        <RadzenCard Variant="Variant.Filled" class="rz-my-12 rz-mx-auto" Style="min-width: 300px">
-            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
-                <RadzenIcon Icon="check_circle" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Success" />
-                <RadzenStack Gap="0" Style="width: 100%;">
-                    <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start">ดำเนินการแล้ว</RadzenText>
-                </RadzenStack>
-                <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>20</b></RadzenText>
-            </RadzenStack>
-        </RadzenCard>
-        <RadzenCard Variant="Variant.Filled" class="rz-my-12 rz-mx-auto" Style="min-width: 300px">
-            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
-                <RadzenIcon Icon="check_circle" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Success" />
-                <RadzenStack Gap="0" Style="width: 100%;">
-                    <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start">ดำเนินการแล้ว</RadzenText>
-                </RadzenStack>
-                <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>20</b></RadzenText>
-            </RadzenStack>
-        </RadzenCard>
-    </RadzenStack>
-</div>
+        </ChildContent>
+    </RadzenPanel>
+</RadzenStack>
+
+</AuthorizeView>
+
+
 
 
 
 @code {
-    bool responsive = true;
 
-    DateTime fdate = DateTime.Now;
-    DateTime ldate = DateTime.Now;
-
+    private bool isAutoRefreshing = true; // ตัวแปรควบคุมการทำงาน
+    private DateTime lastUpdated; // เวลาอัปเดตล่าสุด
 
     IEnumerable<string> datachannel;
 
-    Variant variant = Variant.Filled;
 
+
+
+    private string BranchCode { get; set; }
+    private IEnumerable<string> _BranchCode;
+
+    int count_sum_all = 0;
+    int count_sum_wait = 0;
+    int count_sum_finished = 0;
+
+    int count_sum_oncall = 0;
+    int count_sum_oncall_V1 = 0;
+    int count_sum_oncall_V1_sale = 0;
+
+
+
+    int count_sum_all_chart = 10;
 
     // string touch_point = "เลือกทั้งหมด";
     List<string> touch_point = new List<string> { "Up-Sale", "Re-Sale", "ลูกค้าขุด", "Cross-Sale" };
@@ -159,13 +343,45 @@
     List<string> staff_values = new List<string>();
     List<User> users_staff = new List<User>();
 
+    private DateTime? Fdate { get; set; }
+    private DateTime? Ldate { get; set; }
 
 
 
+    DataItem[]? revenue_wait = null;
+    DataItem[]? revenue_oncall1 = null;
+    DataItem[]? revenue_oncall2 = null;
+    DataItem[]? revenue_oncall3 = null;
+    DataItem[]? revenue_oncall4 = null;
+
+    DataItem[]? revenue_oncall5 = null;
+    DataItem[]? revenue_oncall6 = null;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            //  username = user.Identity.Name;
+            //  roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+
+        }
+        else
+        {
+            // username = "Not authenticated";
+            // roles = Enumerable.Empty<string>();
+            BranchCode = "";
+        }
+
+        Fdate = DateTime.Now.Date;
+        Ldate = DateTime.Now.Date;
+
         datachannel = data_channels;
         await LoadUsersAsync();
 
@@ -173,10 +389,35 @@
         {
             staff_values.Add(i.username);
         }
-        // บังคับให้ UI อัปเดตใหม่
-        StateHasChanged();
+
+        await OnLoad();
+
+        // เริ่ม Auto Refresh
+        _ = AutoRefreshLoop();
 
     }
+
+    private void ToggleAutoRefresh()
+    {
+        isAutoRefreshing = !isAutoRefreshing; // เปิด/ปิด Auto Refresh
+        if (isAutoRefreshing)
+        {
+            _ = AutoRefreshLoop(); // เริ่มใหม่หากเปิดใช้งาน
+        }
+    }
+
+
+    private async Task AutoRefreshLoop()
+    {
+        while (isAutoRefreshing)
+        {
+            await Task.Delay(15000); // รอ 15 วินาที
+            await OnLoad(); // โหลดข้อมูลใหม่
+            StateHasChanged(); // บังคับให้ UI อัปเดต
+        }
+    }
+
+
     private static readonly string[] data_channels = new[]
       {
         "Up-Sale", "Re-Sale","ลูกค้าขุด","Cross-Sale"
@@ -187,18 +428,21 @@
         try
         {
             await MySqlConnection.OpenAsync();
-
-            string query = "SELECT username, firstname FROM mas_users WHERE organization = '000500'";
-            using var command = new MySqlCommand(query, MySqlConnection);
-
-            using var reader = await command.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
+            string query = "SELECT username, firstname FROM mas_users WHERE organization = @BranchCode";
+            using (var cmd = new MySqlCommand(query, MySqlConnection))
             {
-                users_staff.Add(new User
+                cmd.Parameters.AddWithValue("@BranchCode", BranchCode);
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
                     {
-                        username = reader["username"].ToString(),
-                        firstname = reader["firstname"].ToString()
-                    });
+                        users_staff.Add(new User
+                            {
+                                username = reader["username"].ToString(),
+                                firstname = reader["firstname"].ToString()
+                            });
+                    }
+                }
             }
         }
         catch (Exception ex)
@@ -211,5 +455,286 @@
         }
     }
 
+    private async Task LoadSummary(DateTime fdate, DateTime ldate, string touch_point, string user)
+    {
+        //                AND DATE(ca.startdate) <= DATE(@ldate)
 
+        try
+        {
+            await MySqlConnection.OpenAsync();
+
+            string query = @"
+            SELECT
+                COUNT(ca.guid) AS activity_count,
+                ca.status,ca.call_status ,ca.call_action,ca.assign_work ,mu.firstname
+            FROM
+                crm_activitys ca
+            left join mas_users mu  on mu.username =  ca.assign_work  and mu.organization = ca.branch_code
+            WHERE
+                ca.branch_code = @branch_code
+                AND FIND_IN_SET(ca.assign_work, @user)
+                AND DATE(ca.startdate) between DATE(@fdate) and DATE(@ldate)
+                AND FIND_IN_SET(IFNULL(ca.touch_point, ''), @touch_point)
+            GROUP BY
+                ca.status,ca.call_status ,ca.call_action,ca.assign_work ,mu.firstname";
+
+            using (var cmd = new MySqlCommand(query, MySqlConnection))
+            {
+                cmd.Parameters.AddWithValue("@branch_code", BranchCode);
+                cmd.Parameters.AddWithValue("@fdate", fdate);
+                cmd.Parameters.AddWithValue("@ldate", ldate);
+                cmd.Parameters.AddWithValue("@user", user); // Ensure `user` is comma-separated for FIND_IN_SET
+                cmd.Parameters.AddWithValue("@touch_point", touch_point); // Ensure `touch_point` is comma-separated for FIND_IN_SET
+
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        int activityCount = Convert.ToInt32(reader["activity_count"]);
+                        count_sum_all += activityCount;
+
+
+                        if (reader["status"] == DBNull.Value || string.IsNullOrEmpty(reader["status"].ToString()))
+                        {
+                            count_sum_wait += activityCount;
+
+                            DataItem newItem = new DataItem
+                                {
+                                    staff1 = reader["firstname"].ToString(),
+                                    count1 = activityCount
+                                };
+
+                            if (revenue_wait == null)
+                            {
+                                revenue_wait = new DataItem[1] { newItem };
+                            }
+                            else
+                            {
+                                Array.Resize(ref revenue_wait, revenue_wait.Length + 1);
+                                revenue_wait[revenue_wait.Length - 1] = newItem;
+                            }
+
+
+                        }
+                        else
+                        {
+                            count_sum_finished += activityCount;
+                        }
+
+                        if (!string.IsNullOrEmpty(reader["call_status"].ToString()))
+                        {
+                            if (reader["call_status"].ToString() == "รับสาย")
+                            {
+                                count_sum_oncall += activityCount;
+
+                                if (reader["call_action"].ToString() == "คุยจบ" ||
+                                    reader["call_action"].ToString() == "ติดตาม" ||
+                                    reader["call_action"].ToString() == "ขายได้"
+                                )
+                                {
+                                    count_sum_oncall_V1 += activityCount;
+                                }
+
+
+
+                                if (reader["call_action"].ToString() == "คุยจบ")
+                                {
+                                    #region คุยจบ
+                                    DataItem newItem1 = new DataItem
+                                        {
+                                            staff1 = reader["firstname"].ToString(),
+                                            count1 = activityCount
+                                        };
+
+                                    if (revenue_oncall1 == null)
+                                    {
+                                        revenue_oncall1 = new DataItem[1] { newItem1 };
+                                    }
+                                    else
+                                    {
+                                        Array.Resize(ref revenue_oncall1, revenue_oncall1.Length + 1);
+                                        revenue_oncall1[revenue_oncall1.Length - 1] = newItem1;
+                                    }
+                                    #endregion
+
+                                }
+
+                                if (reader["call_action"].ToString() == "ไม่สะดวก")
+                                {
+                                    #region ไม่สะดวก
+                                    DataItem newItem2 = new DataItem
+                                        {
+                                            staff1 = reader["firstname"].ToString(),
+                                            count1 = activityCount
+                                        };
+
+                                    if (revenue_oncall2 == null)
+                                    {
+                                        revenue_oncall2 = new DataItem[1] { newItem2 };
+                                    }
+                                    else
+                                    {
+                                        Array.Resize(ref revenue_oncall2, revenue_oncall2.Length + 1);
+                                        revenue_oncall2[revenue_oncall2.Length - 1] = newItem2;
+                                    }
+                                    #endregion
+                                }
+
+                                if (reader["call_action"].ToString() == "ติดตาม")
+                                {
+                                    #region ติดตาม
+                                    DataItem newItem2 = new DataItem
+                                        {
+                                            staff1 = reader["firstname"].ToString(),
+                                            count1 = activityCount
+                                        };
+
+                                    if (revenue_oncall3 == null)
+                                    {
+                                        revenue_oncall3 = new DataItem[1] { newItem2 };
+                                    }
+                                    else
+                                    {
+                                        Array.Resize(ref revenue_oncall3, revenue_oncall3.Length + 1);
+                                        revenue_oncall3[revenue_oncall3.Length - 1] = newItem2;
+                                    }
+                                    #endregion
+                                }
+
+                                if (reader["call_action"].ToString() == "ขายได้")
+                                {
+                                    count_sum_oncall_V1_sale += activityCount;
+                                    #region ขายได้
+                                    DataItem newItem2 = new DataItem
+                                        {
+                                            staff1 = reader["firstname"].ToString(),
+                                            count1 = activityCount
+                                        };
+
+                                    if (revenue_oncall4 == null)
+                                    {
+                                        revenue_oncall4 = new DataItem[1] { newItem2 };
+                                    }
+                                    else
+                                    {
+                                        Array.Resize(ref revenue_oncall4, revenue_oncall4.Length + 1);
+                                        revenue_oncall4[revenue_oncall4.Length - 1] = newItem2;
+                                    }
+                                    #endregion
+                                }
+
+                            }
+                            else
+                            {
+                                if (reader["call_action"].ToString() == "ไม่รับสาย")
+                                {
+                                    #region ไม่รับสาย
+                                    DataItem newItem1 = new DataItem
+                                        {
+                                            staff1 = reader["firstname"].ToString(),
+                                            count1 = activityCount
+                                        };
+
+                                    if (revenue_oncall5 == null)
+                                    {
+                                        revenue_oncall5 = new DataItem[1] { newItem1 };
+                                    }
+                                    else
+                                    {
+                                        Array.Resize(ref revenue_oncall5, revenue_oncall5.Length + 1);
+                                        revenue_oncall5[revenue_oncall5.Length - 1] = newItem1;
+                                    }
+                                    #endregion
+
+                                }
+
+                                if (reader["call_action"].ToString() == "โทรไม่ติด")
+                                {
+                                    #region โทรไม่ติด
+                                    DataItem newItem2 = new DataItem
+                                        {
+                                            staff1 = reader["firstname"].ToString(),
+                                            count1 = activityCount
+                                        };
+
+                                    if (revenue_oncall6 == null)
+                                    {
+                                        revenue_oncall6 = new DataItem[1] { newItem2 };
+                                    }
+                                    else
+                                    {
+                                        Array.Resize(ref revenue_oncall6, revenue_oncall6.Length + 1);
+                                        revenue_oncall6[revenue_oncall6.Length - 1] = newItem2;
+                                    }
+                                    #endregion
+                                }
+
+                            
+                            }
+                        }
+                    }
+                }
+
+                count_sum_all_chart = count_sum_all + 10;
+
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching sum activities: {ex.Message}");
+            // Optionally log the error with a logging framework
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+    }
+
+    private async Task TimerElapsed()
+    {
+        await InvokeAsync(async () =>
+        {
+            await OnLoad();
+            StateHasChanged(); // บังคับให้ UI อัปเดต
+        });
+    }
+
+
+
+    class DataItem
+    {
+        public string staff1 { get; set; }
+        public double count1 { get; set; }
+    }
+
+
+
+
+    private async Task OnLoad()
+    {
+        lastUpdated = DateTime.Now; // อัปเดตเวลา
+        count_sum_all = 0;
+        count_sum_wait = 0;
+        count_sum_finished = 0;
+        count_sum_oncall = 0;
+        count_sum_oncall_V1 = 0;
+        count_sum_oncall_V1_sale = 0;
+
+        revenue_wait = null;
+        revenue_oncall1 = null;
+        revenue_oncall2 = null;
+        revenue_oncall3 = null;
+        revenue_oncall4 = null;
+
+        revenue_oncall5 = null;
+        revenue_oncall6 = null;
+
+
+        count_sum_all_chart = 10;
+
+        //  StateHasChanged();
+        await LoadSummary(this.Fdate.Value, this.Ldate.Value, string.Join(",", touch_point), string.Join(",", staff_values));
+        // บังคับให้ UI อัปเดตใหม่
+        StateHasChanged();
+    }
 }
