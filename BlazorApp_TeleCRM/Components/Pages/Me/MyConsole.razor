@@ -1,0 +1,237 @@
+﻿@page "/me"
+@using BlazorApp_TeleCRM.Data
+@using BlazorApp_TeleCRM.Models
+@using BlazorApp_TeleCRM.Service
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using MySql.Data.MySqlClient
+@using static BlazorApp_TeleCRM.Controller.CustomerAdminController
+@inject IConfiguration Configuration
+@inject HttpClient Http
+@inject DialogService DialogService
+@inject SharedStateService SharedState
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject MySqlConnection MySqlConnection
+@inject NotificationService NotificationService
+
+
+<PageTitle>เกี่ยวกับฉัน</PageTitle>
+
+<AuthorizeView>
+
+    <div class="rz-12">
+        <RadzenBreadCrumb>
+            <RadzenBreadCrumbItem Icon="face" Path="/me" Text="เกี่ยวกับฉัน" />
+        </RadzenBreadCrumb>
+        <RadzenText TextStyle="TextStyle.DisplayH5"></RadzenText>
+    </div>
+
+
+
+    <RadzenStack class="rz-8" Style="margin-bottom: 0;">
+        <RadzenPanel AllowCollapse="true">
+            <HeaderTemplate>
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
+                    <RadzenButton Icon="refresh" Click=@(args => OnRefresh()) Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Primary" />
+                </RadzenText>
+            </HeaderTemplate>
+            <ChildContent>
+                <RadzenCard class="rz-my-12 rz-mx-auto" Style="max-width: 420px">
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" Gap="1rem" class="rz-p-4">
+                        <RadzenImage Path="@Users.imageurl" Style="width: 100px; height: 100px; border-radius: 50%;" />
+                        <RadzenStack Gap="0">
+                            <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">บัญชีผู้ใช้งาน</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body1"><b>@Users.username</b></RadzenText>
+                            <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">ชื่อผู้ใช้งาน</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body1"><b>@Users.firstname</b></RadzenText>
+                            <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">อีเมล์</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body1"><b>@Users.email</b></RadzenText>
+                        </RadzenStack>
+                    </RadzenStack>
+                    <RadzenCard class="rz-background-color-primary-light rz-shadow-0 rz-border-radius-0 rz-p-8" style="margin: 1rem calc(-1 * var(--rz-card-padding));">
+                        <RadzenText TextStyle="TextStyle.H6" class="rz-color-on-primary-light"><strong>สิทธิ์ผู้ใช้งาน</strong></RadzenText>
+                        <RadzenRow RowGap="0">
+                            <RadzenColumn SizeSM="8">
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">กลุ่มผู้ใช้งาน</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-on-primary-light"><b>@Users.role</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">ล็อกอินครั้งล่าสุด</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-on-primary-light"><b>
+                                        @if (Users.lastlogin!=null)
+                                        {
+                                            @Users.lastlogin.Value.ToString("dd/MM/yyyy HH:mm:ss")
+                                        }
+
+                                </b></RadzenText>
+                            </RadzenColumn>
+
+                        </RadzenRow>
+                    </RadzenCard>
+                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0">
+                        <RadzenButton Click=@(args => OpenEdit1()) Variant="Variant.Text" Text="แก้ไขข้อมูล" />
+                        <RadzenButton Click=@(args => OpenEdit2()) Variant="Variant.Text" Text="เปลี่ยนรหัสผ่าน" />
+                    </RadzenStack>
+                </RadzenCard>
+
+            </ChildContent>
+        </RadzenPanel>
+    </RadzenStack>
+
+   
+
+
+    <div class="rz-display-flex rz-row rz-align-items-normal rz-justify-content-normal" style="margin-top:50px" id="components">
+        <div class="rz-col-12">
+            <div class=" rz-card rz-variant-outlined rz-background-color-white   rz-display-flex rz-row rz-align-items-normal ">
+                <div class="rz-col-12 " style=""><h3 class="rz-text-h4">KPI</h3></div>
+                <div class="rz-col-12  components-list">
+
+
+                    <h1>Soon</h1>                
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+</AuthorizeView>
+
+@code{
+
+
+  //  private List<MasBranches> Branches = new();
+    private User Users = new();
+
+
+    private string username;
+    private IEnumerable<string> roles;
+
+    private string BranchCode { get; set; }
+    private IEnumerable<string> _BranchCode;
+
+
+
+    private async Task OnRefresh()
+    {
+        // เรียกข้อมูลจากฐานข้อมูล
+        Users = await GetUser();
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            username = user.Identity.Name;
+            roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+
+        }
+        else
+        {
+            username = "Not authenticated";
+            roles = Enumerable.Empty<string>();
+            BranchCode = "";
+        }
+
+
+        // เรียกข้อมูลจากฐานข้อมูล
+        Users = await GetUser();
+
+    }
+
+    private async Task<User> GetUser()
+    {
+        var me = new User();
+        try
+        {
+            await MySqlConnection.OpenAsync();
+
+            string query = @"
+                SELECT id, username, email, password, firstname, lastname
+                , `role`, organization, loginkey, lastlogin,imageurl
+                FROM mas_users
+                WHERE organization = @branch_code AND username = @user";
+
+
+            using (var cmd = new MySqlCommand(query, MySqlConnection))
+            {
+                cmd.Parameters.AddWithValue("@branch_code", BranchCode);
+                cmd.Parameters.AddWithValue("@user", username); // Ensure `user` is comma-separated for FIND_IN_SET
+
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        me.id = reader["id"] != DBNull.Value ? Convert.ToInt32(reader["id"]) : 0;
+                        me.username = reader["username"]?.ToString();
+                        me.email = reader["email"]?.ToString();
+                        me.password = reader["password"]?.ToString();
+                        me.firstname = reader["firstname"]?.ToString();
+                        me.lastname = reader["lastname"]?.ToString();
+                        me.role = reader["role"]?.ToString();
+                        me.organization = reader["organization"]?.ToString();
+                        me.loginkey = reader["loginkey"]?.ToString();
+                        me.lastlogin = reader["lastlogin"] != DBNull.Value ? Convert.ToDateTime(reader["lastlogin"]) : (DateTime?)null;
+
+                        if (!string.IsNullOrEmpty(reader["imageurl"]?.ToString()))
+                        {
+                            me.imageurl = reader["imageurl"]?.ToString();
+                        }
+                        else
+                        {
+                            me.imageurl = "/user/profile.png";
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Error  branch: {ex.Message}");
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+
+        return me;
+    }
+
+    async Task OpenEdit1()
+    {
+        await DialogService.OpenAsync<DialogCardPageProfile>($"ข้อมูลส่วนตัว",
+       new Dictionary<string, object>() { { "UId", Users.id } },
+       new DialogOptions()
+           {
+               Width = "600px",
+               Height = "600px",
+               CloseDialogOnOverlayClick = false,  // Disable closing on clicking outside
+               CloseDialogOnEsc = false,           // Disable closing by pressing ESC
+               ShowClose = true                   // Remove the "X" close button
+           });
+    }
+
+    async Task OpenEdit2()
+    {
+        await DialogService.OpenAsync<DialogCardPageChangePassword>($"เปลี่ยนรหัสผ่าน",
+       new Dictionary<string, object>() { { "UId", Users.id } },
+       new DialogOptions()
+           {
+               Width = "600px",
+               Height = "600px",
+               CloseDialogOnOverlayClick = false,  // Disable closing on clicking outside
+               CloseDialogOnEsc = false,           // Disable closing by pressing ESC
+               ShowClose = true                   // Remove the "X" close button
+           });
+    }
+
+
+}

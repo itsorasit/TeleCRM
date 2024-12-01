@@ -101,26 +101,13 @@
 
 //            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "uid", string.Join(",", user.role));
 
-            NotificationService.Notify(NotificationSeverity.Success, "เข้าสู่ระบบ สำเร็จ", "สวัสดี คุณ"+user.firstname + " "+ user.lastname );
+            NotificationService.Notify(NotificationSeverity.Success, "เข้าสู่ระบบ สำเร็จ", "สวัสดี คุณ"+user.firstname  );
             Navigation.NavigateTo("/home", forceLoad: false);
         }
         else
         {
             NotificationService.Notify(NotificationSeverity.Error, "เข้าสู่ระบบ ไม่สำเร็จ", "กรุณาตรวจสอบข้อมูล หรือติดต่อผู้ดูแลระบบ");
         }
-
-        // if (loginModel.Username == "admin" && loginModel.Password == "password")
-        // {
-        //     // Save login status in local storage
-        //     await JSRuntime.InvokeVoidAsync("localStorage.setItem", "isLoggedIn", "true");
-
-        //     NotificationService.Notify(NotificationSeverity.Success, "Login successful", "Welcome back, admin!");
-        //     Navigation.NavigateTo("/dashboard");
-        // }
-        // else
-        // {
-        //     NotificationService.Notify(NotificationSeverity.Error, "Login failed", "Invalid username or password.");
-        // }
     }
 
     private void OnInvalidSubmit()

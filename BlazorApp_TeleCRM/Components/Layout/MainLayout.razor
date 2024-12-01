@@ -33,12 +33,12 @@
                         <RadzenStack Orientation="Orientation.Horizontal" Style="margin-top:5px" JustifyContent="JustifyContent.Right" AlignItems="AlignItems.End" Wrap="FlexWrap.NoWrap">
                             <div class="rz-stack rz-display-flex rz-flex-row rz-align-items-center rz-justify-content-flex-end" style=";flex-wrap:nowrap;">
                                 <div class="rz-display-none rz-display-sm-inline-flex align-items-center">
-                                    <a href="#" class="rz-link rz-text-nowrap rz-mx-2 rz-mx-lg-4"><span class="rz-link-text"><RadzenIcon Icon="account_circle" /><span> ผู้ใช้งาน : @authState.User.Identity.Name </span></span></a>
+                                    <a onclick="@(() => GoToPage("/me"))" class="rz-link rz-text-nowrap rz-mx-2 rz-mx-lg-4"><span class="rz-link-text"><RadzenImage Path="@pic_avater" Style="width:32px; border-radius:50%; border:1px solid #ccc; background-color:#f0f0f0;" /><span> ผู้ใช้งาน : @authState.User.Identity.Name </span></span></a>
                                     @* <a href="#" class="rz-link rz-text-nowrap rz-mx-2 rz-mx-lg-4"><span class="rz-link-text">
                                     Shop : @organization_code </span>
                                     </a> *@
-                                   @*  <RadzenDropDown AllowClear="true" @bind-Value=select_branch AllowVirtualization="true" Name="DropDownVirtualization"
-                                                    AllowFiltering="true" Data=@branches TextProperty="@nameof(MasBranches.name)" ValueProperty="@nameof(MasBranches.code)" Style="width: 100%; max-width: 400px;" /> *@
+                                    @*  <RadzenDropDown AllowClear="true" @bind-Value=select_branch AllowVirtualization="true" Name="DropDownVirtualization"
+                                    AllowFiltering="true" Data=@branches TextProperty="@nameof(MasBranches.name)" ValueProperty="@nameof(MasBranches.code)" Style="width: 100%; max-width: 400px;" /> *@
 
 
                                     <RadzenDropDown AllowClear="true"
@@ -49,8 +49,7 @@
                                                     Data="@branches"
                                                     TextProperty="@nameof(MasBranches.name)"
                                                     ValueProperty="@nameof(MasBranches.code)"
-                                                    Style="width: 100%; max-width: 500px;"
-                                                    >
+                                                    Style="width: 100%; max-width: 500px;">
                                         <Template Context="branch">
                                             <img src="@branch.imageurl" style="max-width:25px">
                                             @branch.name
@@ -59,8 +58,8 @@
 
 
 
-                                                
-                                                </div>
+
+                                </div>
                                 <RadzenAppearanceToggle />
 
                                 <AuthorizeView Roles="Admin,Manager">
@@ -78,8 +77,8 @@
                     <RadzenPanelMenuItem Text="Overview Team" Icon="home" Click="@(() => GoToPage("/home"))" Selected="@IsMenuItemSelected("/home")" />
                     <RadzenPanelMenuItem Text="งานของฉัน" Icon="assignment" Click="@(() => GoToPage("/job"))" Selected="@IsMenuItemSelected("/job")" />
                     <RadzenPanelMenuItem Text="ปฏิทินของฉัน" Icon="calendar_month" Click="@(() => GoToPage("/job-calendar"))" Selected="@IsMenuItemSelected("/job-calendar")" />
-  
-                        <AuthorizeView Roles="Admin,Manager,Supervisor">
+
+                    <AuthorizeView Roles="Admin,Manager,Supervisor">
                         <RadzenPanelMenuItem Text="CRM - Admin" Icon="work" Expanded="@((IsMenuItemSelected("/admincustomer") || IsMenuItemSelected("/adminactivity") || IsMenuItemSelected("/adminproduct")))">
                             <RadzenPanelMenuItem Text="1. ข้อมูลลูกค้า" Icon="person" Click="@(() => GoToPage("/admincustomer"))" Selected="@IsMenuItemSelected("/admincustomer")" />
                             <RadzenPanelMenuItem Text="2. กิจกรรม" Icon="sprint" Click="@(() => GoToPage("/adminactivity"))" Selected="@IsMenuItemSelected("/adminactivity")" />
@@ -89,9 +88,9 @@
                         <RadzenPanelMenuItem Text="Report - Admin" Icon="analytics" Expanded="@((IsMenuItemSelected("/overview-report") || IsMenuItemSelected("/admin-calendar") ))">
                             <RadzenPanelMenuItem Text="Job Monitor" Icon="finance" Click="@(() => GoToPage("/overview-report"))" Selected="@IsMenuItemSelected("/overview-report")" />
                             <RadzenPanelMenuItem Text="ปฏิทิน" Icon="calendar_month" Click="@(() => GoToPage("/admin-calendar"))" Selected="@IsMenuItemSelected("/admin-calendar")" />
-                            
-                            
-                            </RadzenPanelMenuItem>
+
+
+                        </RadzenPanelMenuItem>
 
                     </AuthorizeView>
 
@@ -129,8 +128,13 @@
 
     private string? username;
     private string? organization_code;
+
+    private string pic_avater = "user/profile.png";
+
     private IEnumerable<string>? roles;
     private IEnumerable<string>? organization;
+
+
 
     string select_branch;
     IEnumerable<MasBranches> branches;
@@ -155,6 +159,16 @@
             organization = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
             organization_code = organization.FirstOrDefault();
             select_branch = organization_code;
+       
+            var user1 = await allseed_Db.Users.Where(u => u.username == username && u.organization == select_branch).FirstOrDefaultAsync();
+            if (user1 != null)
+            {
+                if (!string.IsNullOrEmpty(user1.imageurl))
+                {
+                    pic_avater = user1.imageurl;
+                }
+            }
+
         }
         else
         {
@@ -167,10 +181,10 @@
 
 
                 InvokeAsync(async () =>
-    {
-        await Task.Delay(2000);
-        DialogService.Close();
-    });
+        {
+    await Task.Delay(2000);
+    DialogService.Close();
+        });
                 await BusyDialog();
 
 
@@ -189,6 +203,11 @@
                         organization = userx.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
                         organization_code = organization.FirstOrDefault();
                         select_branch = organization_code;
+
+                        if (!string.IsNullOrEmpty(user1.imageurl))
+                        {
+                            pic_avater = user1.imageurl;
+                        }
                     }
                     await LocalStorage.SetItemAsStringAsync("username", username);
                 }
@@ -197,7 +216,9 @@
                     Navigation.NavigateTo("/login", forceLoad: false);
                 }
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         if (organization_code == "000000")
@@ -209,7 +230,7 @@
             branches = allseed_Db.MasBranches.Where(o => o.code == organization_code).ToList();
         }
 
-      
+
 
 
     }
@@ -217,14 +238,14 @@
 
 
     private readonly Dictionary<string, string> PageTitles = new()
-        {
+            {
     { "/admincustomer", "ข้อมูลรายชื่อลูกค้า" },
     { "/adminactivity", "ข้อมูลกิจกรรม" },
     { "/home", "Overview Team" },
     { "/adminproduct", "สินค้า" },
-     { "/console", "คอนโซล" }
-    
-        };
+    { "/console", "คอนโซล" }
+
+            };
 
     private void HandleLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
@@ -245,23 +266,18 @@
         var isSelected = string.Equals(currentPage, route.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
 
         // Log the selection check for debugging
-        Console.WriteLine($"IsMenuItemSelected: Route = {route}, Selected = {isSelected}");
+        // Console.WriteLine($"IsMenuItemSelected: Route = {route}, Selected = {isSelected}");
 
         return isSelected;
     }
 
-    // private void GoToHome() => Navigation.NavigateTo("/home", forceLoad: false, StateHasChanged(););
-    // private void GoToJob() => Navigation.NavigateTo("/job", forceLoad: false);
-    // private void GoToCustomers() => Navigation.NavigateTo("/admincustomer", forceLoad: false);
-    // private void GoToAdminCustomer() => Navigation.NavigateTo("/admincustomer", forceLoad: false);
-    // private void GoToAdminActivity() => Navigation.NavigateTo("/adminactivity", forceLoad: false);
     private void GoToLogin() => Navigation.NavigateTo("/adminactivity", forceLoad: false);
 
     private async Task GoToLogout()
     {
         // Show confirmation dialog
         var result = await DialogService.Confirm("คุณต้องการออกจากระบบหรือไม่?", "ยืนยัน",
-    new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
+        new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
 
         // If user clicked "Yes", proceed with logout
         if (result.HasValue && result.Value)

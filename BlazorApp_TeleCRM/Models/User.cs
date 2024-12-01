@@ -12,5 +12,7 @@
         public string? organization { get; set; }
         public string? loginkey { get; set; }
         public DateTime? lastlogin { get; set; }
+        public string? imageurl { get; set; }
+
     }
 }
