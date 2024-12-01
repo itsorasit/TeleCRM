@@ -78,18 +78,20 @@
                     <RadzenPanelMenuItem Text="Overview Team" Icon="home" Click="@(() => GoToPage("/home"))" Selected="@IsMenuItemSelected("/home")" />
                     <RadzenPanelMenuItem Text="งานของฉัน" Icon="assignment" Click="@(() => GoToPage("/job"))" Selected="@IsMenuItemSelected("/job")" />
                     <RadzenPanelMenuItem Text="ปฏิทินของฉัน" Icon="calendar_month" Click="@(() => GoToPage("/job-calendar"))" Selected="@IsMenuItemSelected("/job-calendar")" />
-                  @*   <RadzenPanelMenuItem Text="รายชื่อลูกค้า" Icon="person" Click="@(() => GoToPage("/admincustomer"))" Selected="@IsMenuItemSelected("/admincustomer")" />
- *@
-                    <AuthorizeView Roles="Admin,Manager,Supervisor">
+  
+                        <AuthorizeView Roles="Admin,Manager,Supervisor">
                         <RadzenPanelMenuItem Text="CRM - Admin" Icon="work" Expanded="@((IsMenuItemSelected("/admincustomer") || IsMenuItemSelected("/adminactivity") || IsMenuItemSelected("/adminproduct")))">
                             <RadzenPanelMenuItem Text="1. ข้อมูลลูกค้า" Icon="person" Click="@(() => GoToPage("/admincustomer"))" Selected="@IsMenuItemSelected("/admincustomer")" />
                             <RadzenPanelMenuItem Text="2. กิจกรรม" Icon="sprint" Click="@(() => GoToPage("/adminactivity"))" Selected="@IsMenuItemSelected("/adminactivity")" />
                             <RadzenPanelMenuItem Text="3. สินค้า" Icon="category" Click="@(() => GoToPage("/adminproduct"))" Selected="@IsMenuItemSelected("/adminproduct")" />
                         </RadzenPanelMenuItem>
 
-                        <RadzenPanelMenuItem Text="Report - Admin" Icon="analytics" Expanded="@((IsMenuItemSelected("/overview-report")))">
+                        <RadzenPanelMenuItem Text="Report - Admin" Icon="analytics" Expanded="@((IsMenuItemSelected("/overview-report") || IsMenuItemSelected("/admin-calendar") ))">
                             <RadzenPanelMenuItem Text="Job Monitor" Icon="finance" Click="@(() => GoToPage("/overview-report"))" Selected="@IsMenuItemSelected("/overview-report")" />
-                        </RadzenPanelMenuItem>
+                            <RadzenPanelMenuItem Text="ปฏิทิน" Icon="calendar_month" Click="@(() => GoToPage("/admin-calendar"))" Selected="@IsMenuItemSelected("/admin-calendar")" />
+                            
+                            
+                            </RadzenPanelMenuItem>
 
                     </AuthorizeView>
 

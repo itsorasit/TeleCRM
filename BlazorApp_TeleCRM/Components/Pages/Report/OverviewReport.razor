@@ -10,14 +10,12 @@
 <AuthorizeView Roles="Admin,Manager,Supervisor">
 
 <RadzenStack class="rz-8" Style="margin-bottom: 0;">
-    <!-- ลดระยะห่างส่วนนี้ -->
     <RadzenPanel AllowCollapse="true">
         <HeaderTemplate>
             <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
                     <RadzenIcon Icon="filter_alt" class="rz-me-1" /><b>ข้อมูลวันที่ @lastUpdated</b>
                     <RadzenButton Click=@(args => OnLoad()) Icon="search" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Primary" />
-                @*     <RadzenButton Click=@(args => ToggleAutoRefresh()) Icon="autorenew" Text="auto refresh" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Success" /> *@
-                </RadzenText>
+              </RadzenText>
         </HeaderTemplate>
         <ChildContent>
             <RadzenCardGroup Responsive="true">
@@ -146,7 +144,7 @@
                         <RadzenStack Gap="0" Style="width: 100%;">
                             <RadzenText TextStyle="TextStyle.Body2" TextAlign="TextAlign.Start">ยอดขาย</RadzenText>
                         </RadzenStack>
-                        <RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Right"><b>Soon</b></RadzenText>
+                        <RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Right"><b>@sale_amount</b></RadzenText>
                     </RadzenStack>
                 </RadzenCard>
             </RadzenStack>
@@ -337,6 +335,9 @@
 
     int count_sum_all_chart = 10;
 
+    decimal sale_amount = 0;
+
+
     // string touch_point = "เลือกทั้งหมด";
     List<string> touch_point = new List<string> { "Up-Sale", "Re-Sale", "ลูกค้าขุด", "Cross-Sale" };
 
@@ -466,7 +467,8 @@
             string query = @"
             SELECT
                 COUNT(ca.guid) AS activity_count,
-                ca.status,ca.call_status ,ca.call_action,ca.assign_work ,mu.firstname
+                ca.status,ca.call_status ,ca.call_action,ca.assign_work ,mu.firstname 
+            ,SUM(IFNULL(ca.sale_amount, 0)) as sale_amount 
             FROM
                 crm_activitys ca
             left join mas_users mu  on mu.username =  ca.assign_work  and mu.organization = ca.branch_code
@@ -492,6 +494,9 @@
                     {
                         int activityCount = Convert.ToInt32(reader["activity_count"]);
                         count_sum_all += activityCount;
+
+
+                        sale_amount += Convert.ToDecimal(reader["sale_amount"]);
 
 
                         if (reader["status"] == DBNull.Value || string.IsNullOrEmpty(reader["status"].ToString()))
@@ -706,9 +711,6 @@
         public string staff1 { get; set; }
         public double count1 { get; set; }
     }
-
-
-
 
     private async Task OnLoad()
     {

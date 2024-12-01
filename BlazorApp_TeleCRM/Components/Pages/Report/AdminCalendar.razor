@@ -1,0 +1,329 @@
+﻿@page "/admin-calendar"
+@using BlazorApp_TeleCRM.Data
+@using BlazorApp_TeleCRM.Models
+@using System.Security.Claims
+@using MySql.Data.MySqlClient
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IConfiguration Configuration
+@inject HttpClient Http
+@inject DialogService DialogService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject MySqlConnection MySqlConnection
+
+<PageTitle>ปฏิทิน</PageTitle>
+
+<div class="rz-6">
+    <RadzenBreadCrumb>
+        <RadzenBreadCrumbItem  Text="Report - Admin" />
+        <RadzenBreadCrumbItem Path="/admin-calendar" Text="ปฏิทิน" />
+    </RadzenBreadCrumb>
+   @*  <RadzenText TextStyle="TextStyle.DisplayH5">ปฏิทิน</RadzenText> *@
+</div>
+
+<AuthorizeView Roles="Admin,Manager,Supervisor">
+
+    <RadzenStack class="rz-8" Style="margin-top: 40px;">
+        <RadzenPanel AllowCollapse="true">
+            <HeaderTemplate>
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
+                    <RadzenIcon Icon="filter_alt" class="rz-me-1" /><b>ข้อมูลวันที่ @lastUpdated</b>
+                    <RadzenButton Click=@(args => OnLoad()) Icon="search" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Primary" />
+                </RadzenText>
+            </HeaderTemplate>
+            <ChildContent>
+                <RadzenCardGroup Responsive="true">
+                 
+                    <RadzenCard Variant="Variant.Filled">
+                        <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                            <RadzenLabel Text="Touch Point" />
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
+                                <RadzenDropDown @bind-Value=@touch_point Multiple=true AllowClear=true Chips=true
+                                                Data=@datachannel Name="touch_point" class="w-100" />
+                            </RadzenStack>
+                        </RadzenStack>
+                    </RadzenCard>
+                    <RadzenCard Variant="Variant.Filled">
+                        <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                            <RadzenLabel Text="พนักงาน" />
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
+                                <RadzenDropDown @bind-Value=@staff_values Data=@users_staff Name="Staff"
+                                                TextProperty="firstname" ValueProperty="username" Chips=true
+                                                Multiple=true AllowClear=true class="w-100" />
+                            </RadzenStack>
+                        </RadzenStack>
+                    </RadzenCard>
+                </RadzenCardGroup>
+            </ChildContent>
+        </RadzenPanel>
+    </RadzenStack>
+
+
+
+<RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+    <Template>โหลด</Template>
+</RadzenProgressBarCircular>
+
+<RadzenScheduler @ref=@scheduler SlotRender=@OnSlotRender style="height: 768px;" TItem="Appointment" Data=@appointments StartProperty="Start" EndProperty="End"
+                 TextProperty="Text" SelectedIndex="0"
+                 SlotSelect=@OnSlotSelect AppointmentSelect=@OnAppointmentSelect AppointmentRender=@OnAppointmentRender
+                 AppointmentMove=@OnAppointmentMove  >
+
+@*     <RadzenDayView   />
+    <RadzenWeekView /> *@
+    <RadzenMonthView />
+</RadzenScheduler>
+</AuthorizeView>
+@code {
+
+    RadzenScheduler<Appointment> scheduler;
+    Dictionary<DateTime, string> events = new Dictionary<DateTime, string>();
+    private IEnumerable<Appointment> appointments;
+
+    IEnumerable<string> datachannel;
+
+    bool runProcess_wait = false;
+    bool isDialogOpen = false;
+    DateTime? value = DateTime.Now;
+    private DateTime? CreateDateFrom { get; set; }
+    private DateTime? CreateDateTo { get; set; }
+
+    private string username;
+    private IEnumerable<string> roles;
+
+    private string BranchCode { get; set; }
+    private IEnumerable<string> _BranchCode;
+
+
+    private bool isAutoRefreshing = true; // ตัวแปรควบคุมการทำงาน
+
+
+
+    List<string> touch_point = new List<string> { "Up-Sale", "Re-Sale", "ลูกค้าขุด", "Cross-Sale" };
+
+    private static readonly string[] data_channels = new[]
+       {
+        "Up-Sale", "Re-Sale","ลูกค้าขุด","Cross-Sale"
+    };
+
+
+
+    List<string> staff_values = new List<string>();
+    List<User> users_staff = new List<User>();
+
+    private DateTime lastUpdated; // เวลาอัปเดตล่าสุด
+
+
+    private async Task OnLoad()
+    {
+        lastUpdated = DateTime.Now; // อัปเดตเวลา
+     
+        // เรียกใช้เมธอด FetchCustomerDataAsync เพื่อดึงข้อมูล
+        appointments = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo, string.Join(",", staff_values));
+
+
+        StateHasChanged();
+    }
+
+
+
+    void OnSlotRender(SchedulerSlotRenderEventArgs args)
+    {
+        // Highlight today in month view
+        if (args.View.Text == "Month" && args.Start.Date == DateTime.Today)
+        {
+            args.Attributes["style"] = "background: var(--rz-scheduler-highlight-background-color, rgba(255,220,40,.2));";
+        }
+
+        // Highlight working hours (9-18)
+        if ((args.View.Text == "Week" || args.View.Text == "Day") && args.Start.Hour > 8 && args.Start.Hour < 19)
+        {
+            args.Attributes["style"] = "background: var(--rz-scheduler-highlight-background-color, rgba(255,220,40,.2));";
+        }
+    }
+
+    async Task OnSlotSelect(SchedulerSlotSelectEventArgs args)
+    {
+
+    }
+
+    async Task OnAppointmentSelect(SchedulerAppointmentSelectEventArgs<Appointment> args)
+    {
+
+        var copy = new Appointment
+            {
+                Start = args.Data.Start,
+                End = args.Data.End,
+                Text = args.Data.Text
+            };
+
+
+
+        await scheduler.Reload();
+    }
+
+    void OnAppointmentRender(SchedulerAppointmentRenderEventArgs<Appointment> args)
+    {
+
+        if (args.Data.Text == "Birthday")
+        {
+            args.Attributes["style"] = "background: red";
+        }else if (args.Data.Text.Contains("รอดำเนินการ"))
+        {
+            args.Attributes["style"] = "background: #ff9800";
+        }
+        else if (args.Data.Text.Contains("สำเร็จ"))
+        {
+            args.Attributes["style"] = "background:#2196f3";
+        }
+
+    }
+
+    async Task OnAppointmentMove(SchedulerAppointmentMoveEventArgs args)
+    {
+        var draggedAppointment = appointments.FirstOrDefault(x => x == args.Appointment.Data);
+
+        if (draggedAppointment != null)
+        {
+            draggedAppointment.Start = draggedAppointment.Start + args.TimeSpan;
+
+            draggedAppointment.End = draggedAppointment.End + args.TimeSpan;
+
+            await scheduler.Reload();
+        }
+    }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            username = user.Identity.Name;
+            roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+
+        }
+        else
+        {
+            username = "Not authenticated";
+            roles = Enumerable.Empty<string>();
+            BranchCode = "";
+        }
+
+        datachannel = data_channels;
+        await LoadUsersAsync();
+
+        foreach (var i in users_staff)
+        {
+            staff_values.Add(i.username);
+        }
+
+        await OnLoad();
+
+        // เริ่ม Auto Refresh
+        _ = AutoRefreshLoop();
+
+
+    }
+
+
+    private async Task AutoRefreshLoop()
+    {
+        while (isAutoRefreshing)
+        {
+          //  await Task.Delay(15000); // รอ 15 วินาที
+            await Task.Delay(180000); // รอ 180 วินาที (3 นาที)
+            await OnLoad(); // โหลดข้อมูลใหม่
+            StateHasChanged(); // บังคับให้ UI อัปเดต
+        }
+    }
+
+
+
+
+    private async Task LoadUsersAsync()
+    {
+        try
+        {
+            await MySqlConnection.OpenAsync();
+            string query = "SELECT username, firstname FROM mas_users WHERE organization = @BranchCode";
+            using (var cmd = new MySqlCommand(query, MySqlConnection))
+            {
+                cmd.Parameters.AddWithValue("@BranchCode", BranchCode);
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        users_staff.Add(new User
+                            {
+                                username = reader["username"].ToString(),
+                                firstname = reader["firstname"].ToString()
+                            });
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching users: {ex.Message}");
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+    }
+
+
+
+    public async Task<IEnumerable<Appointment>> FetchJobDataAsync(DateTime? fdate, DateTime? ldate, string user)
+    {
+        try
+        {
+
+            // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
+            runProcess_wait = true;
+            StateHasChanged(); // บังคับ UI อัปเดต
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+            var searchCriteria = new
+            {
+                fdate = fdate,
+                ldate = ldate,
+                branch_code = BranchCode,
+                assign_work = user
+            };
+
+            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/Job/GetAdminjobCalendar", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                
+
+                var jobDataList = await response.Content.ReadFromJsonAsync<IEnumerable<Appointment>>();
+                
+                return jobDataList;
+            }
+            else
+            {
+                Console.WriteLine("Error fetching Job Data.");
+                return Enumerable.Empty<Appointment>();
+            }
+        }
+        finally
+        {
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
+    }
+
+}

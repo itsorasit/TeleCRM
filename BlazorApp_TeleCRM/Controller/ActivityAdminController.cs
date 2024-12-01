@@ -102,14 +102,14 @@ namespace BlazorApp_TeleCRM.Controller
                                 modified_by = reader.IsDBNull(reader.GetOrdinal("modified_by")) ? null : reader["modified_by"].ToString(),
                                 modified_date = reader.IsDBNull(reader.GetOrdinal("modified_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("modified_date")),
 
-                                status = string.IsNullOrEmpty( reader["status"].ToString())==true?"รอดำเนินการ":reader["status"].ToString() ,
+                                status = string.IsNullOrEmpty(reader["status"].ToString()) == true ? "รอดำเนินการ" : reader["status"].ToString(),
 
                                 activitys_code = reader["activitys_code"].ToString(),
                                 progress = reader["activitys_code"].ToString(),
                                 succeed = reader.IsDBNull(reader.GetOrdinal("succeed")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("succeed")),
                                 progress_total = reader.IsDBNull(reader.GetOrdinal("progress_total")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("progress_total")),
 
-                                assign_work_fullName = reader["firstname"].ToString()+ " ("+ reader["assign_work"].ToString() +")"
+                                assign_work_fullName = reader["firstname"].ToString() + " (" + reader["assign_work"].ToString() + ")"
 
                             };
 
@@ -138,9 +138,10 @@ namespace BlazorApp_TeleCRM.Controller
                 await connection.OpenAsync();
 
 
-                var query  = @"SELECT guid, customer_code, branch_code, touch_point, name, description, startdate, duedate, reminder_duedate, 
+                var query = @"SELECT guid, customer_code, branch_code, touch_point, name, description, startdate, duedate, reminder_duedate, 
                     assign_work, assign_work_type, allowagent, record_status, created_by, created_date, modified_by, modified_date,
-                    ca.code as activitys_code, ca.status as progress,0 as succeed, 0 as progress_total ,call_status ,call_action, sale_order_no ,ca.status
+                    ca.code as activitys_code, ca.status as progress,0 as succeed, 0 as progress_total ,call_status ,call_action, sale_order_no ,ca.status 
+                    ,ca.sale_amount 
                     FROM crm_activitys ca
                     where ca.guid = @guid
                     ";
@@ -154,7 +155,16 @@ namespace BlazorApp_TeleCRM.Controller
                     {
                         while (await reader.ReadAsync())
                         {
-                            var  activitysData = new ActivitysDataList
+
+                            decimal _sale_amount = 0;
+
+                            if (!string.IsNullOrEmpty(reader["sale_amount"].ToString()))
+                            {
+                                _sale_amount = Convert.ToDecimal(reader["sale_amount"].ToString());
+                            }
+
+
+                            var activitysData = new ActivitysDataList
                             {
                                 guid = reader["guid"].ToString(),
                                 customer_code = reader["customer_code"].ToString(),
@@ -178,13 +188,16 @@ namespace BlazorApp_TeleCRM.Controller
 
 
                                 activitys_code = reader["activitys_code"].ToString(),
- 
-                               // progress = reader["progress"].ToString(),
+
+                                // progress = reader["progress"].ToString(),
                                 status = reader["status"].ToString(),
-                               
+
                                 call_status = reader["call_status"].ToString(),
-                                call_action  = reader["call_action"].ToString(),
+                                call_action = reader["call_action"].ToString(),
                                 sale_order_no = reader["sale_order_no"].ToString(),
+
+                                sale_amount = _sale_amount,
+
 
                                 succeed = reader.IsDBNull(reader.GetOrdinal("succeed")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("succeed")),
                                 progress_total = reader.IsDBNull(reader.GetOrdinal("progress_total")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("progress_total"))
@@ -215,13 +228,14 @@ namespace BlazorApp_TeleCRM.Controller
                 var query = @"SELECT guid, customer_code, branch_code, touch_point, name, description, startdate, duedate, reminder_duedate, 
                     assign_work, assign_work_type, allowagent, record_status, created_by, created_date, modified_by, modified_date,
                     '' as activitys_code,'' as progress,0 as succeed, 0 as progress_total ,status ,call_status ,call_action, sale_order_no 
+                    , ca.sale_amount  
                     FROM crm_activitys ca
                     where ca.customer_code = @customer_code
                     ORDER BY ca.created_date";
 
                 using (var cmd = new MySqlCommand(query, connection))
                 {
-                    
+
                     var customer_code = searchCriteria.guid ?? "";
                     cmd.Parameters.AddWithValue("@customer_code", customer_code);
 
@@ -230,6 +244,16 @@ namespace BlazorApp_TeleCRM.Controller
                     {
                         while (await reader.ReadAsync())
                         {
+                            decimal _sale_amount = 0;
+
+                            if (!string.IsNullOrEmpty(reader["sale_amount"].ToString()))
+                            {
+                                _sale_amount = Convert.ToDecimal(reader["sale_amount"].ToString());
+                            }
+
+
+
+
                             var dataList = new ActivitysDataList
                             {
                                 guid = reader["guid"].ToString(),
@@ -263,6 +287,7 @@ namespace BlazorApp_TeleCRM.Controller
                                 call_status = reader["call_status"].ToString(),
                                 call_action = reader["call_action"].ToString(),
                                 sale_order_no = reader["sale_order_no"].ToString(),
+                                sale_amount = _sale_amount
 
                             };
 

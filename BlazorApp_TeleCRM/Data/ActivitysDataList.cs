@@ -29,8 +29,8 @@
         public string? call_action { get; set; }
         public string? sale_order_no { get; set; }
         public string? code { get; set; }
-
         public string? assign_work_fullName { get; set; }
+        public decimal? sale_amount { get; set; }
 
     }
 }

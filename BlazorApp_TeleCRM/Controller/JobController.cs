@@ -248,7 +248,7 @@ LEFT JOIN
                     mc.district as customer_district,
                     mc.zipcode as customer_zipcode, ca.sale_order_no, ca.remark ,IFNULL(ca.statusparticipation, 0) as statusparticipation,
                     ca.contact_by, ca.contact_date, ca.contact_use_phone, ca.new_activity_ref_guid, ca.appointment_date ,ca.old_activity_guid,
-                    ca.re_activity
+                    ca.re_activity, ca.sale_amount 
                     FROM crm_activitys ca
                     inner join mas_customers mc on mc.guid = ca.customer_code 
                     where ca.guid = @guid
@@ -263,6 +263,15 @@ LEFT JOIN
                     {
                         while (await reader.ReadAsync())
                         {
+
+                            decimal _sale_amount = 0;
+
+                            if (!string.IsNullOrEmpty(reader["sale_amount"].ToString()))
+                            {
+                                _sale_amount = Convert.ToDecimal(reader["sale_amount"].ToString());
+                            }
+
+
                             var activitysData = new JobDataList
                             {
                                 guid = reader["guid"].ToString(),
@@ -273,6 +282,8 @@ LEFT JOIN
                                 act_name = reader["name"].ToString(),
                                 remark = reader["remark"].ToString(),
                                 sale_order_no = reader["sale_order_no"].ToString(),
+                                sale_amount = _sale_amount,
+
                                 statusparticipation = reader.IsDBNull(reader.GetOrdinal("statusparticipation")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("statusparticipation")),
 
 
@@ -573,6 +584,66 @@ LEFT JOIN
             }
             return Ok(appointments);
         }
+
+
+        [HttpPost("GetAdminjobCalendar")]
+        public async Task<IActionResult> GetAdminjobCalendar([FromBody] SearchCriteria searchCriteria)
+        {
+
+            DateTime today = DateTime.Now;
+
+            var appointments = new List<Appointment>();
+
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+               var query = @"SELECT 
+    ca.touch_point,
+    DATE(ca.startdate) AS startdate, 
+    IFNULL(ca.status, 'รอดำเนินการ') AS status,
+    COUNT(*) AS count
+FROM 
+    crm_activitys ca
+WHERE 
+    ca.branch_code = @branch_code 
+    AND FIND_IN_SET(ca.assign_work, @assign_work) 
+GROUP BY 
+    ca.touch_point, 
+    IFNULL(ca.status, 'รอดำเนินการ'),
+    DATE(ca.startdate) 
+";
+
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                   
+                    var branch_code = searchCriteria.branch_code ?? "";
+                    cmd.Parameters.AddWithValue("@branch_code", branch_code);
+
+                    var assign_work = searchCriteria.assign_work ?? "";
+                    cmd.Parameters.AddWithValue("@assign_work", assign_work);
+
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            Appointment d = new Appointment();
+
+                            d.Text = reader["touch_point"].ToString() + "-[" + reader["status"].ToString() + " (" + reader["count"].ToString() + ")]";
+                            d.Start = reader.IsDBNull(reader.GetOrdinal("startdate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("startdate"));
+                            d.End = reader.IsDBNull(reader.GetOrdinal("startdate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("startdate"));
+
+                            appointments.Add(d);
+                        };
+
+                    }
+                }
+            }
+            return Ok(appointments);
+        }
+
+
 
 
         public class SearchCriteria

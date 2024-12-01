@@ -29,6 +29,7 @@
         public string? contact_use_phone { get; set; }
         public string? new_activity_ref_guid { get; set; }
         public DateTime? appointment_date { get; set; }
+        public decimal? sale_amount { get; set; }
 
     }
 }

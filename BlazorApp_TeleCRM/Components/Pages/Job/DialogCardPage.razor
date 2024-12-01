@@ -63,6 +63,17 @@
                                             </RadzenColumn>
                                         </RadzenRow>
 
+
+                                        <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                            <RadzenColumn Size="12" SizeMD="4">
+                                                <RadzenLabel Text="ยอดเงินคำสั่งซื้อ" TextStyle="TextStyle.Subtitle2" Component="sale_amount" />
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="12" SizeMD="8">
+                                                <RadzenNumeric TValue="decimal" Disabled="btnDisable_sale_order_no" Format="c" Min="0" @bind-Value="@model.sale_amount"  Name="sale_amount" class="w-100" />
+                                            </RadzenColumn>
+                                        </RadzenRow>
+
+
                                         <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
                                             <RadzenColumn Size="12" SizeMD="4">
                                                 <RadzenLabel Text="หมายเหตุ" TextStyle="TextStyle.Subtitle2" Component="remark" />
@@ -513,6 +524,8 @@
         public int statusparticipation { get; set; }
         public string? remark { get; set; }
 
+        public decimal sale_amount { get; set; }
+
 
         public string? customer_name { get; set; }
         public string? customer_phone { get; set; }
@@ -616,6 +629,8 @@
                 model.sale_order_no = selectedAct.sale_order_no;
                 model.remark = selectedAct.remark;
                 model.statusparticipation = selectedAct.statusparticipation.Value;
+              
+                model.sale_amount = selectedAct.sale_amount.Value;
 
                 model.customer_name = selectedAct.customer_name;
                 model.customer_phone = selectedAct.customer_phone;
@@ -733,6 +748,7 @@
         {
             btnDisable_sale_order_no = true;
             model.sale_order_no = "";
+            model.sale_amount = 0;
         }
     }
 
@@ -931,6 +947,7 @@
                           status = @status,
                           call_status = @call_status,
                           sale_order_no = @sale_order_no,
+                          sale_amount = @sale_amount,
                           remark= @remark,
                           statusparticipation = @statusparticipation,
                           code = @code,
@@ -1003,6 +1020,7 @@
 
             command.Parameters.AddWithValue("@call_status", model.call_status ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@sale_order_no", model.sale_order_no ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@sale_amount", model.sale_amount );
             command.Parameters.AddWithValue("@remark", model.remark ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@code", model.code ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@call_action", model.call_action ?? (object)DBNull.Value);

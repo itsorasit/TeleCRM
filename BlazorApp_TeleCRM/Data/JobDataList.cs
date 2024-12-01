@@ -60,5 +60,6 @@
         public string?  contact_created_by { get; set; }
         public DateTime?  contact_created_at { get; set; }
 
+        public decimal? sale_amount { get; set; }
     }
 }
