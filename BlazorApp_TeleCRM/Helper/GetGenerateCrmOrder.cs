@@ -22,7 +22,7 @@ namespace BlazorApp_TeleCRM.Helper
             _connectionString = connectionString;
         }
 
-        public async Task<bool> Upload(CrmOrder data)
+        public async Task<bool> Upload(CrmOrder data,string type)
         {
             bool result = false;
 
@@ -42,6 +42,10 @@ namespace BlazorApp_TeleCRM.Helper
                   AND order_no = @order_no 
                   AND order_date = @order_date 
                   AND channel = @channel";
+                
+                    if (type == "GoSell") {
+                        checkQuery += " AND product_codes = @product_codes ";
+                    }
 
                     using (var checkCommand = new MySqlCommand(checkQuery, connection))
                     {
@@ -51,6 +55,10 @@ namespace BlazorApp_TeleCRM.Helper
                         checkCommand.Parameters.AddWithValue("@order_no", data.order_no);
                         checkCommand.Parameters.AddWithValue("@order_date", data.order_date);
                         checkCommand.Parameters.AddWithValue("@channel", data.channel);
+
+                        if (type == "GoSell") {
+                            checkCommand.Parameters.AddWithValue("@product_codes", data.product_codes);
+                        }
 
                         // ตรวจสอบผลลัพธ์
                         int count = Convert.ToInt32(checkCommand.ExecuteScalar());

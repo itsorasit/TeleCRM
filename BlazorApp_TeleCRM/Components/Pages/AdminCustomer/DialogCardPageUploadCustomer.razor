@@ -182,7 +182,7 @@
                 }
 
                 //ยอดขาย
-                var amount = worksheet.Cell(row, 45).GetValue<string>();
+                var amount = worksheet.Cell(row, 33).GetValue<string>();
                 decimal out_amount;
 
                 if (!Decimal.TryParse(amount, out out_amount))
@@ -394,7 +394,7 @@
                         };
 
                     GetGenerateCrmOrder getGenerateCrmOrder = new GetGenerateCrmOrder(Configuration);
-                    await getGenerateCrmOrder.Upload(order);
+                    await getGenerateCrmOrder.Upload(order, channel);
 
                 } catch { }
                 // upload sale oder
