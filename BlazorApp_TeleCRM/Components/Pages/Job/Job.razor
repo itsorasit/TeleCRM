@@ -2,10 +2,13 @@
 @using BlazorApp_TeleCRM.Data
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Components.Authorization
+@using MySql.Data.MySqlClient
 @inject IConfiguration Configuration
 @inject HttpClient Http
 @inject DialogService DialogService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject MySqlConnection MySqlConnection
+@inject NotificationService NotificationService
 
 
 <PageTitle>My Job</PageTitle>
@@ -19,29 +22,88 @@
 </div>
 
 
-<div class="rz-col-12">
+<RadzenPanel Style="background-color: rgba(255, 255, 255, 0.5); " AllowCollapse="true">
+    <HeaderTemplate>
+        <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
+            <b>Filter</b>
+            <RadzenIcon Icon="filter_alt" class="rz-me-1" />
+        </RadzenText>
+    </HeaderTemplate>
+    <ChildContent>
+        <div class="rz-col-12">
+            <RadzenCard Variant="Variant.Outlined" class="rz-info rz-shade-lighte" Style="padding: 1rem;">
+                <RadzenRow Gap="1rem" JustifyContent="JustifyContent.Start" Class="rz-mt-2">
+                    <RadzenColumn>
+                        <RadzenLabel Text="งานวันที่ " Component="RadzenDatePickerBindValue" />
+                        <RadzenDatePicker @bind-Value="CreateDateFrom" Name="CreateDateFrom" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
+                    </RadzenColumn>
+                    <RadzenColumn>
+                        <RadzenLabel Text="ถึงวันที่ " Component="RadzenDatePickerBindValue" />
+                        <RadzenDatePicker @bind-Value="CreateDateTo" Name="CreateDateTo" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
+                    </RadzenColumn>
+                    <RadzenColumn Size="3">
+                        <br />
+                        <RadzenButton Text="ค้นหา" Icon="search" Variant="Variant.Flat" Style="width: 100px; margin-right: 0.5rem;" Click="@OnSearch" />
+                        <RadzenButton Text="ล้าง" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Secondary" Style="width: 100px;" Click="@OnClear" />
+                    </RadzenColumn>
+                </RadzenRow>
+            </RadzenCard>
+        </div>
+    </ChildContent>
+</RadzenPanel>
 
-    <RadzenCard Variant="Variant.Outlined" class="rz-info rz-shade-lighte" Style="padding: 1rem;">
-        <strong>ค้นหา</strong>
-        <RadzenRow Gap="1rem" JustifyContent="JustifyContent.Start" Class="rz-mt-2">
-            <RadzenColumn>
-                <RadzenLabel Text="งานวันที่ " Component="RadzenDatePickerBindValue" />
-                <RadzenDatePicker @bind-Value="CreateDateFrom" Name="CreateDateFrom"  DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
-            </RadzenColumn>
-            <RadzenColumn>
-                <RadzenLabel Text="ถึงวันที่ " Component="RadzenDatePickerBindValue" />
-                <RadzenDatePicker @bind-Value="CreateDateTo" Name="CreateDateTo" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
-            </RadzenColumn>
-            <RadzenColumn Size="3">
-                <br />
-                <RadzenButton Text="ค้นหา" Icon="search" Variant="Variant.Flat" Style="width: 100px; margin-right: 0.5rem;" Click="@OnSearch" />
-                <RadzenButton Text="ล้าง" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Secondary" Style="width: 100px;" Click="@OnClear" />
-            </RadzenColumn>
-        </RadzenRow>
-    </RadzenCard>
+<RadzenPanel AllowCollapse="true" Collapsed="true">
+    <HeaderTemplate>
+        <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
+            <b>Targeted Filter</b>
+            <RadzenIcon Icon="filter_alt" class="rz-me-1" />
+        </RadzenText>
+    </HeaderTemplate>
+    <ChildContent>
 
+        <div class="rz-col-12 ">
+            <RadzenCard Variant="Variant.Outlined" class="rz-info rz-shade-lighte" Style="padding: 1rem;">
+                <RadzenRow Gap="1rem" JustifyContent="JustifyContent.Start" Class="rz-mt-2">
+                    <RadzenColumn Size="3">
+                        <RadzenLabel Text="เลือกคำค้นหา" />
+                        <RadzenDropDown @bind-Value=@Filtering_Key style="display:block;width:100%"
+                                        Data=@dataFiltering Change="@(args => OnCallKeyChange(Filtering_Key))" Name="ddlFiltering" class="w-100" />
+                    </RadzenColumn>
+                    <RadzenColumn Size="3">
+                        <RadzenLabel Text="=" />
+                        @if (ISKeyDroupDown == false)
+                        {
+                            <RadzenTextBox @bind-Value=@Filtering_Value Name="txtFiltering_Value" Placeholder="" class="w-100" />
+                        }
+                        else
+                        {
+                            <RadzenDropDown @ref="radzenDropDown"
+                                            @bind-SearchText="SearchText"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                            FilterOperator="StringFilterOperator.StartsWith"
+                                            AllowFiltering="true"
+                                            Data="@Assignworks"
+                                            TextProperty="FullName"
+                                            ValueProperty="Username"
+                                            AllowClear="true"
+                                            @bind-Value=@Filtering_Value
+                                            Name="Filtering_Value2" class="w-100" style="display: block;width: 100%" />
 
-</div>
+                        }
+
+                    </RadzenColumn>
+                    <RadzenColumn Size="3">
+                        <br />
+                        <RadzenButton Text="ค้นหา" Icon="search" Variant="Variant.Flat" Style="width: 100px; margin-right: 0.5rem;" Click="@OnSearch2" />
+                        <RadzenButton Text="ล้าง" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Secondary" Style="width: 100px;" Click="@OnClear2" />
+
+                    </RadzenColumn>
+                </RadzenRow>
+            </RadzenCard>
+        </div>
+
+    </ChildContent>
+</RadzenPanel>
 
 
 
@@ -176,6 +238,33 @@
     RadzenDataGrid<JobDataList> grid;
 
 
+    private string Filtering_Key = "ค้นจากเบอร์ลูกค้า";
+    private string Filtering_Value = "";
+    private bool ISKeyDroupDown = false;
+    IEnumerable<string> dataFiltering;
+    private static readonly string[] Filterings = new[]
+      {
+           "ค้นจากเบอร์ลูกค้า", "ค้นจากชื่อลูกค้า"
+      };
+
+    private List<Assignwork> Assignworks = new();
+    private string SearchText { get; set; }
+    private RadzenDropDown<string> radzenDropDown;
+
+    private void OnCallKeyChange(string value)
+    {
+        Filtering_Value = "";
+        if (value == "ค้นจากพนักงาน")
+        {
+            ISKeyDroupDown = true;
+        }
+        else
+        {
+            ISKeyDroupDown = false;
+        }
+    }
+
+
     private async Task OnSearch()
     {
         act_data = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo);
@@ -187,6 +276,29 @@
 
         StateHasChanged();
     }
+
+    private async Task OnSearch2()
+    {
+
+        if (string.IsNullOrEmpty(Filtering_Value))
+        {
+            NotificationService.Notify(NotificationSeverity.Warning,
+                @"แจ้งเตือน Targeted Filter", "กรุณาใส่ข้อมูล : " + Filtering_Key);
+        }
+        else
+        {
+            act_data = await FetchJobDataTargetedFilterAsync(Filtering_Key, Filtering_Value);
+
+            if (act_data != null && act_data.Any())
+            {
+                selectedAct = new List<JobDataList>() { act_data.FirstOrDefault() };
+            }
+
+            StateHasChanged();
+        }
+    }
+
+
 
 
     private async Task OnSearch_Touch_point(string value)
@@ -225,8 +337,7 @@
 
     private async Task OnClear()
     {
-        // CreateDateFrom = null;
-        // CreateDateTo = null;
+
         CreateDateFrom = DateTime.Now.Date;
         CreateDateTo = DateTime.Now.Date;
 
@@ -253,6 +364,16 @@
         // บังคับให้ UI อัปเดตใหม่
         StateHasChanged();
     }
+
+    private async Task OnClear2()
+    {
+
+        Filtering_Key = "ค้นจากเบอร์ลูกค้า";
+        Filtering_Value = "";
+        ISKeyDroupDown = false;
+        StateHasChanged();
+    }
+
 
 
     async Task OpenSideDialog(string orderId)
@@ -285,6 +406,7 @@
     {
         await base.OnInitializedAsync();
 
+        dataFiltering = Filterings;
 
         CreateDateFrom = DateTime.Now.Date;
         CreateDateTo = DateTime.Now.Date;
@@ -397,6 +519,85 @@
                 }
 
                 
+
+                return jobDataList;
+            }
+            else
+            {
+                Console.WriteLine("Error fetching Job Data.");
+                return Enumerable.Empty<JobDataList>();
+            }
+        }
+        finally
+        {
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
+    }
+
+    public async Task<IEnumerable<JobDataList>> FetchJobDataTargetedFilterAsync(string key, string value)
+    {
+        try
+        {
+
+            // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
+            runProcess_wait = true;
+            StateHasChanged(); // บังคับ UI อัปเดต
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+            var searchCriteria = new
+            {
+                key1 = key,
+                value1 = value,
+                branch_code = BranchCode,
+                assign_work = username
+            };
+
+            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/Job/GetJobDataTargetedByKey", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                count_UpSale = 0;
+                count_ReSale = 0;
+                count_x = 0;
+                count_completed = 0;
+                count_CrossSale = 0;
+
+                var jobDataList = await response.Content.ReadFromJsonAsync<IEnumerable<JobDataList>>();
+                if (jobDataList.Count() > 0)
+                {
+                    foreach (var i in jobDataList)
+                    {
+                        if (i.touch_point == "Up-Sale" && string.IsNullOrEmpty(i.act_status))
+                        {
+                            count_UpSale++;
+                        }
+                        else if (i.touch_point == "Re-Sale" && string.IsNullOrEmpty(i.act_status))
+                        {
+                            count_ReSale++;
+                        }
+                        else if (i.touch_point == "ลูกค้าขุด" && string.IsNullOrEmpty(i.act_status))
+                        {
+                            count_x++;
+                        }
+                        else if (i.touch_point == "Cross-Sale" && string.IsNullOrEmpty(i.act_status))
+                        {
+                            count_CrossSale++;
+                        }
+
+                        if (!string.IsNullOrEmpty(i.act_status))
+                        {
+                            count_completed++;
+                        }
+
+                    }
+                }
+
+
 
                 return jobDataList;
             }

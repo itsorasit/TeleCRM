@@ -94,7 +94,6 @@
                         <RadzenColumn Size="12" SizeMD="12">
                                 <RadzenButton Text="บันทึก" Disabled="@btnDisable" ButtonType="ButtonType.Submit" Style="margin-top:15px" ButtonStyle="ButtonStyle.Primary" />
                         </RadzenColumn>
-
                             <RadzenColumn Size="12" SizeMD="12">
                                 <RadzenCard Variant="Variant.Outlined" @bind-Visible=runProcess style="background-color:#CBE2F5;">
                                     <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
@@ -102,6 +101,7 @@
                                             <Template>รอ</Template>
                                         </RadzenProgressBarCircular>
                                         <RadzenText Style="margin-top:20px" TextStyle="TextStyle.Caption">@TextProcess</RadzenText>
+                                        <RadzenText Style="margin-top:20px;color:red" TextStyle="TextStyle.Caption">@TextProcess_Duplicate</RadzenText>
                                     </RadzenStack>
                                 </RadzenCard>
                             </RadzenColumn>
@@ -217,6 +217,7 @@
     bool runProcess = false;
     bool runProcess_wait = false;
     string TextProcess = "";
+    string TextProcess_Duplicate = "";
 
 
     private string username;
@@ -226,6 +227,10 @@
 
     bool allowagent = false;
     int selectedIndex = 0;
+
+
+    string? old_staff = "";
+
 
 
     private List<Assignwork> Assignworks = new();
@@ -295,10 +300,10 @@
         runProcess = true;
         runProcess_wait = true;
         TextProcess = "กรุณารอ ระบบกำลังทำการบันทึกข้อมูล..";
-       
+        TextProcess_Duplicate = "";
+
         DateTime today = new DateTime();
         today = DateTime.Now;
-
 
         await MySqlConnection.OpenAsync();
         using var transaction = await MySqlConnection.BeginTransactionAsync();
@@ -307,83 +312,97 @@
         {
             var query = @"INSERT INTO crm_activitys (guid, customer_code, branch_code, touch_point, name, description, startdate, duedate, reminder_duedate, assign_work, assign_work_type, allowagent, record_status, created_by, created_date)
             VALUES (@guid, @customer_code, @branch_code, @touch_point, @name, @description, @startdate, @duedate, @reminder_duedate, @assign_work, @assign_work_type, @allowagent, @record_status, @created_by, @created_date)";
+
             foreach (var i in SharedState.SelectedCustomerIDs)
             {
-                using var command = new MySqlCommand(query, MySqlConnection, transaction);
 
-                command.Parameters.AddWithValue("@guid", Guid.NewGuid().ToString());
-                command.Parameters.AddWithValue("@customer_code", i );
-                command.Parameters.AddWithValue("@branch_code", BranchCode ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@touch_point", model.activities_touch_point ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@name", model.activities_name ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@description", model.activities_description ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@startdate", model.activities_startdate ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@duedate", model.activities_duedate ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@reminder_duedate", model.activities_reminder_duedate ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@assign_work", model.activities_assign_work ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@assign_work_type", "Activities" ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@allowagent", model.allowagent ?? false);
-                command.Parameters.AddWithValue("@record_status", true );
-                command.Parameters.AddWithValue("@created_by", username);
-                command.Parameters.AddWithValue("@created_date", today);
-                // command.Parameters.AddWithValue("@modified_by", activity.modified_by ?? (object)DBNull.Value);
-                // command.Parameters.AddWithValue("@modified_date", activity.modified_date ?? (object)DBNull.Value);
+                // Check duplicate user
+                await CheckDuplicateUsersAsync(i);
 
-                await command.ExecuteNonQueryAsync();
+                if (string.IsNullOrEmpty(old_staff) || old_staff == model.activities_assign_work)
+                {
+                    using var command = new MySqlCommand(query, MySqlConnection, transaction);
+                    command.Parameters.AddWithValue("@guid", Guid.NewGuid().ToString());
+                    command.Parameters.AddWithValue("@customer_code", i);
+                    command.Parameters.AddWithValue("@branch_code", BranchCode ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@touch_point", model.activities_touch_point ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@name", model.activities_name ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@description", model.activities_description ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@startdate", model.activities_startdate ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@duedate", model.activities_duedate ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@reminder_duedate", model.activities_reminder_duedate ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@assign_work", model.activities_assign_work ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@assign_work_type", "Activities" ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@allowagent", model.allowagent ?? false);
+                    command.Parameters.AddWithValue("@record_status", true);
+                    command.Parameters.AddWithValue("@created_by", username);
+                    command.Parameters.AddWithValue("@created_date", today);
+                    await command.ExecuteNonQueryAsync();
+                }
+                else
+                {
+                    TextProcess_Duplicate += "รหัสลูกค้า " + i + " มี " + old_staff + " รับผิดชอบแล้ว\n";
+                    StateHasChanged();
+                }
+
+
+                
+             
+               
             }
-
             // Commit transaction
             await transaction.CommitAsync();
+            TextProcess = "บันทึกข้อมูลระบบเรียบร้อยแล้ว";
+            NotificationService.Notify(NotificationSeverity.Success, "สำเร็จ", "บันทึกข้อมูลสำเร็จ");
         }
         catch (Exception ex)
         {
-            // Rollback transaction in case of an error
             await transaction.RollbackAsync();
             TextProcess = $"Error: {ex.Message}";
-            btnDisable = false;
-            runProcess_wait = false;
+            NotificationService.Notify(NotificationSeverity.Error, "ผิดพลาด", "การบันทึกข้อมูลล้มเหลว");
+        
         }
         finally
         {
             await MySqlConnection.CloseAsync();
             btnDisable = true;
             runProcess_wait = false;
-            TextProcess = "บันทึกข้อมูลระบบเรียบร้อยแล้ว";
-            NotificationService.Notify(NotificationSeverity.Success, "สำเร็จ", "บันทึกข้อมูลสำเร็จ");
             StateHasChanged();
         }
+  
+    
     }
 
 
     #region grid product
 
-    RadzenDataGrid<Products> ordersGrid;
-    IEnumerable<Products> orders;
-    DataGridEditMode editMode = DataGridEditMode.Single;
-    List<Products> ordersToInsert = new List<Products>();
-    List<Products> ordersToUpdate = new List<Products>();
+    //  RadzenDataGrid<Products> ordersGrid;
+    //  IEnumerable<Products> orders;
+    //  DataGridEditMode editMode = DataGridEditMode.Single;
+    //  List<Products> ordersToInsert = new List<Products>();
+    //  List<Products> ordersToUpdate = new List<Products>();
     void Reset()
     {
-        ordersToInsert.Clear();
-        ordersToUpdate.Clear();
+        //   ordersToInsert.Clear();
+        //  ordersToUpdate.Clear();
     }
 
     void Reset(Products order)
     {
-        ordersToInsert.Remove(order);
-        ordersToUpdate.Remove(order);
+        // ordersToInsert.Remove(order);
+        //  ordersToUpdate.Remove(order);
     }
 
 
     async Task EditRow(Products order)
     {
-        if (editMode == DataGridEditMode.Single && ordersToInsert.Count() > 0)
-        {
-            Reset();
-        }
+        // if (editMode == DataGridEditMode.Single && ordersToInsert.Count() > 0)
+        // {
+        //     Reset();
+        // }
 
-        ordersToUpdate.Add(order);
-        await ordersGrid.EditRow(order);
+        // ordersToUpdate.Add(order);
+        // await ordersGrid.EditRow(order);
     }
 
     void OnUpdateRow(Products order)
@@ -397,14 +416,14 @@
 
     async Task SaveRow(Products order)
     {
-        await ordersGrid.UpdateRow(order);
+        //  await ordersGrid.UpdateRow(order);
     }
 
     void CancelEdit(Products order)
     {
         Reset(order);
 
-        ordersGrid.CancelEditRow(order);
+        // ordersGrid.CancelEditRow(order);
 
         // var orderEntry = dbContext.Entry(order);
         // if (orderEntry.State == EntityState.Modified)
@@ -416,33 +435,33 @@
 
     async Task DeleteRow(Products order)
     {
-        Reset(order);
+        // Reset(order);
 
-        if (orders.Contains(order))
-        {
-            //    dbContext.Remove<Products>(order);
+        // if (orders.Contains(order))
+        // {
+        //        dbContext.Remove<Products>(order);
 
-            //  dbContext.SaveChanges();
+        //     dbContext.SaveChanges();
 
-            await ordersGrid.Reload();
-        }
-        else
-        {
-            ordersGrid.CancelEditRow(order);
-            await ordersGrid.Reload();
-        }
+        //     await ordersGrid.Reload();
+        // }
+        // else
+        // {
+        //     ordersGrid.CancelEditRow(order);
+        //     await ordersGrid.Reload();
+        // }
     }
 
     async Task InsertRow()
     {
-        if (editMode == DataGridEditMode.Single)
-        {
-            Reset();
-        }
+        // if (editMode == DataGridEditMode.Single)
+        // {
+        //     Reset();
+        // }
 
-        var order = new Products();
-        ordersToInsert.Add(order);
-        await ordersGrid.InsertRow(order);
+        // var order = new Products();
+        // ordersToInsert.Add(order);
+        // await ordersGrid.InsertRow(order);
     }
 
     void OnCreateRow(Products order)
@@ -451,7 +470,7 @@
 
         //  dbContext.SaveChanges();
 
-        ordersToInsert.Remove(order);
+        // ordersToInsert.Remove(order);
     }
 
 
@@ -477,26 +496,21 @@
 
         model.activities_touch_point = "";
 
-
-        //  countcustomer = customercode.Count().ToString();
         countcustomer = SharedState.SelectedCustomerIDs.Count().ToString();
 
 
-        // foreach (var i in SharedState.SelectedCustomerIDs){
-        //     Console.WriteLine(i.ToString());
-        // }
 
 
         // orders = dbContext.Orders.Include("Customer").Include("Employee");
-        List<Products> prders = new List<Products>
-        {
-            new Products { Code = "P001", Name = "Product 1", Price = 100 ,SalePrice=100 },
-            new Products { Code = "P002", Name = "Product 2", Price = 200 ,SalePrice=150 },
-            new Products { Code = "P003", Name = "Product 3", Price = 150 ,SalePrice=100 },
-            new Products { Code = "P004", Name = "Product 4", Price = 99 ,SalePrice=99 },
-            new Products { Code = "P005", Name = "Product 5", Price = 250 ,SalePrice=250 }
-        };
-        orders = prders.ToList();
+        // List<Products> prders = new List<Products>
+        // {
+        //     new Products { Code = "P001", Name = "Product 1", Price = 100 ,SalePrice=100 },
+        //     new Products { Code = "P002", Name = "Product 2", Price = 200 ,SalePrice=150 },
+        //     new Products { Code = "P003", Name = "Product 3", Price = 150 ,SalePrice=100 },
+        //     new Products { Code = "P004", Name = "Product 4", Price = 99 ,SalePrice=99 },
+        //     new Products { Code = "P005", Name = "Product 5", Price = 250 ,SalePrice=250 }
+        // };
+        // orders = prders.ToList();
 
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -519,45 +533,11 @@
 
     }
 
-    private async Task OnFetchData()
-    {
-        // ตัวอย่าง: เรียกค่าพารามิเตอร์ใหม่ หรือดึงข้อมูลใหม่
-        Console.WriteLine($"UploadID: {UploadID}");
-        Console.WriteLine($"Customer Codes: {string.Join(", ", customercode)}");
-
-        countcustomer = SharedState.SelectedCustomerIDs.Count().ToString();
-        StateHasChanged();
-
-        // คุณสามารถดึงข้อมูลใหม่จาก API หรือทำงานเพิ่มเติมที่นี่ได้
-        // เช่น await LoadDataAsync(); เป็นต้น
-    }
-
 
     protected override async Task OnParametersSetAsync()
     {
-        // // จะถูกเรียกทุกครั้งที่พารามิเตอร์ถูกส่งเข้ามาหรือเปลี่ยนแปลง
-        // Console.WriteLine($"UploadID: {UploadID}");
-        // Console.WriteLine($"Customer Codes: {string.Join(", ", customercode)}");
-
-        // // ถ้าต้องการให้ re-render หน้าจอใหม่
-        //  countcustomer = customercode.Count().ToString();
         countcustomer = SharedState.SelectedCustomerIDs.Count().ToString();
         await base.OnParametersSetAsync();
-
-    }
-
-
-    void OnProgress(UploadProgressArgs args, string name)
-    {
-        // console.Log($"{args.Progress}% '{name}' / {args.Loaded} of {args.Total} bytes.");
-
-        if (args.Progress == 100)
-        {
-            foreach (var file in args.Files)
-            {
-                //  console.Log($"Uploaded: {file.Name} / {file.Size} bytes");
-            }
-        }
     }
 
     private async Task LoadUsers()
@@ -583,12 +563,48 @@
                         Username = reader.GetString("username"),
                         FirstName = reader.GetString("firstname"),
                         LastName = reader.GetString("lastname"),
-                        FullName = $"{reader.GetString("firstname")} {reader.GetString("lastname")} ({reader.GetString("username")})"
+                        FullName = $"{reader.GetString("firstname")} - {reader.GetString("username")}"
                     });
             }
         }
     }
 
-    
+    private async Task CheckDuplicateUsersAsync(string customer_code)
+    {
+        old_staff = "";
+        try
+        {
+           // await MySqlConnection.OpenAsync();
+            string query = @"SELECT ca.assign_work  FROM crm_activitys ca 
+     WHERE ca.branch_code = @BranchCode 
+     and ca.customer_code = @customer_code 
+     order by ca.created_date desc LIMIT 1";
+            using (var cmd = new MySqlCommand(query, MySqlConnection))
+            {
+                cmd.Parameters.AddWithValue("@BranchCode", BranchCode);
+                cmd.Parameters.AddWithValue("@customer_code", customer_code);
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    if (await reader.ReadAsync()) // ตรวจสอบว่ามีข้อมูลหรือไม่
+                    {
+                        old_staff = reader["assign_work"]?.ToString() ?? ""; // เก็บข้อมูลหากพบ
+                    }
+                    else
+                    {
+                        old_staff = ""; // กำหนดค่าเมื่อไม่พบข้อมูล
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching assign_work: {ex.Message}");
+            old_staff = ""; // กำหนดค่าเมื่อเกิดข้อผิดพลาด
+        }
+        finally
+        {
+           // await MySqlConnection.CloseAsync();
+        }
+    }
 
 }

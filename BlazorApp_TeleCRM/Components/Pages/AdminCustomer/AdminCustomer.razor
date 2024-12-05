@@ -3,12 +3,16 @@
 @using BlazorApp_TeleCRM.Service
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
+@using MySql.Data.MySqlClient
 @using static BlazorApp_TeleCRM.Controller.CustomerAdminController
 @inject IConfiguration Configuration
 @inject HttpClient Http
 @inject DialogService DialogService
 @inject SharedStateService SharedState
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject MySqlConnection MySqlConnection
+@inject NotificationService NotificationService
+
 
 <PageTitle>ข้อมูลรายชื่อลูกค้า</PageTitle>
 
@@ -24,44 +28,108 @@
 </div>
 
 
+    <RadzenPanel  Style="background-color: rgba(255, 255, 255, 0.5); " AllowCollapse="true">
+        <HeaderTemplate>
+            <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
+                <b>Filter</b>
+                <RadzenIcon Icon="filter_alt" class="rz-me-1" />
+            </RadzenText>
+        </HeaderTemplate>
+        <ChildContent>
 
-<div class="rz-col-12 ">
-        <RadzenCard Variant="Variant.Outlined" class="rz-info rz-shade-lighte" Style="padding: 1rem;">
-        <strong>ค้นหา</strong>
-        <RadzenRow Gap="1rem"  JustifyContent="JustifyContent.Start" Class="rz-mt-2">
-            <RadzenColumn Size="3">
-                <RadzenLabel Text="อัพโหลดวันที่" Component="UploadDatePicker" />
-                <RadzenDatePicker @bind-Value="UploadDateFrom" Name="UploadDatePicker" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
-            </RadzenColumn>
-            <RadzenColumn Size="3">
-                <RadzenLabel Text="ถึงวันที่" Component="UploadDateToPicker" />
-                    <RadzenDatePicker @bind-Value="UploadDateTo" Name="UploadDateToPicker" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
-            </RadzenColumn>
-            <RadzenColumn Size="3">
-                <br />
-                <RadzenButton Text="ค้นหา" Icon="search" Variant="Variant.Flat" Style="width: 100px; margin-right: 0.5rem;" Click="@OnSearch" />
-                <RadzenButton Text="ล้าง" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Secondary" Style="width: 100px;" Click="@OnClear" />
-            </RadzenColumn>
-        </RadzenRow>
-        
-       <br />
-        
-        <RadzenRow Gap="1rem" JustifyContent="JustifyContent.Start" Class="rz-mt-2">
-            <RadzenColumn Size="2">
-                <RadzenLabel Text="กิจกรรมยังดำเนินการอยู่" Component="ActivityStatusCheckbox" />
-                <RadzenCheckBox @bind-Value="IsActivityOngoing" Name="ActivityStatusCheckbox" />
-            </RadzenColumn>
-            <RadzenColumn Size="2">
-                <RadzenLabel Text="รหัสกิจกรรม/แคมเปญ" Component="ActivityCodeTextBox" />
-                <RadzenTextBox @bind-Value="ActivityCode" Name="ActivityCodeTextBox" Placeholder="กรุณากรอกรหัส" Style="width: 250px;" />
-            </RadzenColumn>
-            <RadzenColumn Size="2">
-                <RadzenLabel Text="ชื่อกิจกรรม/แคมเปญ" Component="ActivityNameTextBox" />
-                <RadzenTextBox @bind-Value="ActivityName" Name="ActivityNameTextBox" Placeholder="กรุณากรอกชื่อ" Style="width: 250px;" />
-            </RadzenColumn>
-        </RadzenRow>
-    </RadzenCard>
-</div>
+            <div class="rz-col-12 ">
+                <RadzenCard Variant="Variant.Outlined" class="rz-info rz-shade-lighte" Style="padding: 1rem;">
+                    <RadzenRow Gap="1rem" JustifyContent="JustifyContent.Start" Class="rz-mt-2">
+                        <RadzenColumn Size="3">
+                            <RadzenLabel Text="อัพโหลดวันที่" Component="UploadDatePicker" />
+                            <RadzenDatePicker @bind-Value="UploadDateFrom" Name="UploadDatePicker" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="3">
+                            <RadzenLabel Text="ถึงวันที่" Component="UploadDateToPicker" />
+                            <RadzenDatePicker @bind-Value="UploadDateTo" Name="UploadDateToPicker" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="3">
+                            <br />
+                            <RadzenButton Text="ค้นหา" Icon="search" Variant="Variant.Flat" Style="width: 100px; margin-right: 0.5rem;" Click="@OnSearch" />
+                            <RadzenButton Text="ล้าง" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Secondary" Style="width: 100px;" Click="@OnClear" />
+                        </RadzenColumn>
+                    </RadzenRow>
+
+                    <br />
+
+                    <RadzenRow Gap="1rem" JustifyContent="JustifyContent.Start" Class="rz-mt-2">
+                        <RadzenColumn Size="2">
+                            <RadzenLabel Text="กิจกรรมยังดำเนินการอยู่" Component="ActivityStatusCheckbox" />
+                            <RadzenCheckBox @bind-Value="IsActivityOngoing" Name="ActivityStatusCheckbox" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="2">
+                            <RadzenLabel Text="รหัสกิจกรรม/แคมเปญ" Component="ActivityCodeTextBox" />
+                            <RadzenTextBox @bind-Value="ActivityCode" Name="ActivityCodeTextBox" Placeholder="กรุณากรอกรหัส" Style="width: 250px;" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="2">
+                            <RadzenLabel Text="ชื่อกิจกรรม/แคมเปญ" Component="ActivityNameTextBox" />
+                            <RadzenTextBox @bind-Value="ActivityName" Name="ActivityNameTextBox" Placeholder="กรุณากรอกชื่อ" Style="width: 250px;" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                </RadzenCard>
+            </div>
+
+        </ChildContent>
+    </RadzenPanel>
+
+    <RadzenPanel  AllowCollapse="true" Collapsed="true"   >
+        <HeaderTemplate>
+            <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
+                <b>Targeted Filter</b>
+                <RadzenIcon Icon="filter_alt" class="rz-me-1" />
+            </RadzenText>
+        </HeaderTemplate>
+        <ChildContent>
+
+            <div class="rz-col-12 ">
+                <RadzenCard Variant="Variant.Outlined" class="rz-info rz-shade-lighte" Style="padding: 1rem;">
+                    <RadzenRow Gap="1rem" JustifyContent="JustifyContent.Start" Class="rz-mt-2">
+                        <RadzenColumn Size="3">
+                            <RadzenLabel Text="เลือกคำค้นหา" />
+                            <RadzenDropDown @bind-Value=@Filtering_Key style="display:block;width:100%"
+                                            Data=@dataFiltering Change="@(args => OnCallKeyChange(Filtering_Key))" Name="ddlFiltering" class="w-100" />
+                         </RadzenColumn>
+                        <RadzenColumn Size="3">
+                            <RadzenLabel Text="="  />
+                            @if (ISKeyDroupDown == false)
+                            {
+                                <RadzenTextBox @bind-Value=@Filtering_Value Name="txtFiltering_Value" Placeholder="" class="w-100" />
+                            }
+                            else
+                            {
+                                <RadzenDropDown @ref="radzenDropDown"
+                                                @bind-SearchText="SearchText"
+                                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                FilterOperator="StringFilterOperator.StartsWith"
+                                                AllowFiltering="true"
+                                                Data="@Assignworks"
+                                                TextProperty="FullName"
+                                                ValueProperty="Username"
+                                                AllowClear="true"
+                                                @bind-Value=@Filtering_Value
+                                                Name="Filtering_Value2" class="w-100" style="display: block;width: 100%" />
+
+                            }
+
+                        </RadzenColumn>
+                        <RadzenColumn Size="3">
+                            <br />
+                            <RadzenButton Text="ค้นหา" Icon="search" Variant="Variant.Flat" Style="width: 100px; margin-right: 0.5rem;" Click="@OnSearch2" />
+                            <RadzenButton Text="ล้าง" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Secondary" Style="width: 100px;" Click="@OnClear2" />
+
+                        </RadzenColumn>
+                    </RadzenRow>
+         </RadzenCard>
+            </div>
+
+        </ChildContent>
+    </RadzenPanel>
+
 
 <RadzenCard Variant="Variant.Outlined" class="rz-my-4">
     <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.SpaceBetween">
@@ -118,9 +186,9 @@
         <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.phone)" Width="180px" Title="เบอร์โทรศัพท์" />
         <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.province)" Width="130px" Title="จังหวัด" />
         <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.count_activity)" Width="100px" Title="กิจกรรม" />
-            <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.activity_code)" Width="250px" Title="กิจกรรมล่าสุด" />
-    @*     <RadzenDataGridColumn TItem="CustomerDataList" Property="Remark1" Title="หมายเหตุ" Width="150px" /> *@
-        <RadzenDataGridColumn TItem="CustomerDataList"  Property="@nameof(CustomerDataList.modified_by)" Width="180px" Title="ผู้อัพโหลด" />
+         <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.activity_code)" Width="250px" Title="กิจกรรมล่าสุด" />
+         <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.latest_assign_work)" Title="มอบหมายให้" Width="150px" />
+         <RadzenDataGridColumn TItem="CustomerDataList"  Property="@nameof(CustomerDataList.modified_by)" Width="180px" Title="ผู้อัพโหลด" />
         <RadzenDataGridColumn TItem="CustomerDataList"  Property="@nameof(CustomerDataList.modified_date)" Width="180px" Title="อัพโหลดวันที่" />
      
     </Columns>
@@ -156,6 +224,62 @@
     private string BranchCode { get; set; }
     private IEnumerable<string> _BranchCode;
 
+    private string Filtering_Key = "ค้นจากเบอร์ลูกค้า";
+    private string Filtering_Value = "";
+    private bool ISKeyDroupDown = false;
+
+
+    IEnumerable<string> dataFiltering;
+    private static readonly string[] Filterings = new[]
+      {
+           "ค้นจากเบอร์ลูกค้า", "ค้นจากชื่อลูกค้า","ค้นจากพนักงาน"
+      };
+
+    private List<Assignwork> Assignworks = new();
+    private string SearchText { get; set; }
+    private RadzenDropDown<string> radzenDropDown;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        dataFiltering = Filterings;
+
+
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            //  username = user.Identity.Name;
+            //  roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+
+        }
+        else
+        {
+            // username = "Not authenticated";
+            // roles = Enumerable.Empty<string>();
+            BranchCode = "";
+        }
+
+        await LoadUsers();
+
+        // เรียกใช้เมธอด FetchCustomerDataAsync เพื่อดึงข้อมูล
+        cus_datas = await FetchCustomerDataAsync(this.UploadDateFrom, this.UploadDateTo);
+
+        if (cus_datas != null && cus_datas.Any())
+        {
+            selectedCustomer = new List<CustomerDataList>() { cus_datas.FirstOrDefault() };
+        }
+
+
+
+    }
+
     private async Task OnSearch()
     {
         // เรียกใช้เมธอด FetchCustomerDataAsync เพื่อค้นหาข้อมูลตามวันที่ที่เลือก
@@ -169,6 +293,27 @@
         // บังคับให้ UI อัปเดตใหม่
         StateHasChanged();
     }
+
+    private async Task OnSearch2()
+    {
+
+        if (string.IsNullOrEmpty(Filtering_Value))
+        {
+            NotificationService.Notify(NotificationSeverity.Warning,
+                @"แจ้งเตือน Targeted Filter", "กรุณาใส่ข้อมูล : "+Filtering_Key);
+        }
+        else
+        {
+            cus_datas = await FetchCustomerDataTargetedFilterAsync(Filtering_Key, Filtering_Value);
+
+            if (cus_datas != null && cus_datas.Any())
+            {
+                selectedCustomer = new List<CustomerDataList>() { cus_datas.FirstOrDefault() };
+            }
+            StateHasChanged();
+        }
+    }
+
 
     private async Task OnClear()
     {
@@ -191,6 +336,14 @@
         StateHasChanged();
     }
 
+    private async Task OnClear2()
+    {
+
+        Filtering_Key = "ค้นจากเบอร์ลูกค้า";
+        Filtering_Value = "";
+        ISKeyDroupDown = false;
+        StateHasChanged();
+    }
 
 
     async Task Update()
@@ -234,7 +387,7 @@
 
         // ล้างค่า SelectedCustomerIDs แล้วเพิ่มค่าลูกค้าใหม่
         SelectedCustomerIDs.Clear();
-        if (selectedCustomer!=null)
+        if (selectedCustomer != null)
         {
             foreach (var customer in selectedCustomer)
             {
@@ -250,10 +403,10 @@
         await DialogService.OpenSideAsync<DialogCardPageCustomerCreateActivity>(
             "สร้างกิจกรรม",
             new Dictionary<string, object>
-                {
+                    {
             { "UploadID", "Activity" },
             { "customercode", SelectedCustomerIDs }
-                },
+                    },
             new SideDialogOptions
                 {
                     CloseDialogOnOverlayClick = true,
@@ -293,10 +446,10 @@
         await DialogService.OpenSideAsync<DialogCardPageCustomerCreateActivity>(
             "สร้างแคมเปญ",
             new Dictionary<string, object>
-                {
+                    {
             { "UploadID", "Campaign" },
             { "customercode", SelectedCustomerIDs }
-                },
+                    },
             new SideDialogOptions
                 {
                     CloseDialogOnOverlayClick = true,
@@ -334,40 +487,45 @@
 
     }
 
-
-
-
-    protected override async Task OnInitializedAsync()
+    private void OnCallKeyChange(string value)
     {
-        await base.OnInitializedAsync();
-
-
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        if (user.Identity.IsAuthenticated)
+        Filtering_Value = "";
+        if (value == "ค้นจากพนักงาน")
         {
-            //  username = user.Identity.Name;
-            //  roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
-            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
-            BranchCode = _BranchCode.FirstOrDefault();
-
+            ISKeyDroupDown = true;
         }
         else
         {
-            // username = "Not authenticated";
-            // roles = Enumerable.Empty<string>();
-            BranchCode = "";
+            ISKeyDroupDown = false;
         }
+    }
 
-       
+    private async Task LoadUsers()
+    {
+        string connectionString = Configuration.GetConnectionString("DefaultConnection");
+        using MySqlConnection connection = new MySqlConnection(connectionString);
+        await connection.OpenAsync();
 
-        // เรียกใช้เมธอด FetchCustomerDataAsync เพื่อดึงข้อมูล
-        cus_datas = await FetchCustomerDataAsync(this.UploadDateFrom, this.UploadDateTo);
+        using MySqlCommand command = new MySqlCommand(
+                @"SELECT id, username, firstname, lastname
+            FROM mas_users u WHERE u.organization = @organization AND u.role IN ('User', 'Supervisor')",
+            connection);
 
-        if (cus_datas != null && cus_datas.Any())
+        command.Parameters.AddWithValue("@organization", BranchCode); // replace with actual organization value
+
+        using (MySqlDataReader reader = (MySqlDataReader)await command.ExecuteReaderAsync())
         {
-            selectedCustomer = new List<CustomerDataList>() { cus_datas.FirstOrDefault() };
+            while (await reader.ReadAsync())
+            {
+                Assignworks.Add(new Assignwork
+                    {
+                        Id = "xx",
+                        Username = reader.GetString("username"),
+                        FirstName = reader.GetString("firstname"),
+                        LastName = reader.GetString("lastname"),
+                        FullName = $"{reader.GetString("firstname")} - {reader.GetString("username")}"
+                    });
+            }
         }
     }
 
@@ -414,4 +572,49 @@
         }
     }
     
+    public async Task<IEnumerable<CustomerDataList>> FetchCustomerDataTargetedFilterAsync(string key, string value)
+    {
+        try
+        {
+
+            // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
+            runProcess_wait = true;
+            StateHasChanged(); // บังคับ UI อัปเดต
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+            var searchCriteria = new
+            {
+                key1 = key,
+                value1 = value,
+                branch_code = BranchCode
+            };
+
+            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/CustomerAdmin/GetCustomerDataTargetedByKey", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // แปลงข้อมูลที่ได้รับเป็น IEnumerable<CustomerDataList>
+                var customerDataList = await response.Content.ReadFromJsonAsync<IEnumerable<CustomerDataList>>();
+                return customerDataList;
+            }
+            else
+            {
+                Console.WriteLine("Error fetching customer data.");
+                return Enumerable.Empty<CustomerDataList>();
+            }
+        }
+        finally
+        {
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
+    }
+
+
+
+
 }

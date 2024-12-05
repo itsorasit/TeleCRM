@@ -18,9 +18,10 @@
         public DateTime? created_date { get; set; }
         public string? modified_by { get; set; }
         public DateTime? modified_date { get; set; }
-        public int?  count_activity { get; set; }
+        public int? count_activity { get; set; }
         public string activity_code { get; set; }
         public DateTime? activity_lastdate { get; set; }
 
+        public string? latest_assign_work { get; set; }
     }
 }

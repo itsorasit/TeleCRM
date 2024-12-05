@@ -9,6 +9,7 @@ using MySql.Data.MySqlClient;
 using Radzen.Blazor;
 using System.Data;
 using System.Data.Common;
+using static BlazorApp_TeleCRM.Controller.CustomerAdminController;
 using static QRCoder.PayloadGenerator;
 
 namespace BlazorApp_TeleCRM.Controller
@@ -457,7 +458,6 @@ LEFT JOIN
         }
 
 
-
         [HttpPost("GetjobCalendar")]
         public async Task<IActionResult> GetjobCalendar([FromBody] SearchCriteria searchCriteria)
         {
@@ -645,6 +645,186 @@ GROUP BY
 
 
 
+        [HttpPost("GetJobDataTargetedByKey")]
+        public async Task<IActionResult> GetJobDataTargetedByKey([FromBody] SearchCriteriaByKey searchCriteria)
+        {
+
+            DateTime today = DateTime.Now;
+
+            var activitys = new List<JobDataList>();
+
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+
+                var query = "";
+
+                if (searchCriteria.key1 == "ค้นจากเบอร์ลูกค้า")
+                {
+                    query = @"SELECT 
+    ca.guid, 
+    ca.customer_code, 
+    ca.branch_code, 
+    ca.touch_point, 
+    ca.name, 
+    ca.description, 
+    ca.startdate, 
+    ca.duedate, 
+    ca.reminder_duedate,            
+    ca.assign_work, 
+    ca.assign_work_type, 
+    ca.allowagent, 
+    ca.record_status, 
+    ca.created_by , 
+    ca.created_date , 
+    ca.modified_by, 
+    ca.modified_date,     
+    '' AS activitys_code, 
+    '' AS progress, 
+    0 AS succeed, 
+    0 AS progress_total,
+    ca.status,
+    mc.name AS customer_name,
+    '' AS product_code,
+    ca.call_status, 
+    ca.call_action, 
+    mc.phone AS customer_phone, 
+    mc.province AS customer_province, 
+    ca.remark,
+    cl.contact_result2,
+    cl.created_by AS contact_created_by,
+    cl.created_at AS contact_created_at
+FROM 
+    crm_activitys ca
+INNER JOIN 
+    mas_customers mc ON mc.guid = ca.customer_code
+LEFT JOIN 
+    (SELECT customer_id, contact_result2, created_by, created_at,
+            ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY created_at DESC) AS rn
+     FROM crm_contact_logs) cl ON cl.customer_id = ca.customer_code AND cl.rn = 1
+                    WHERE ca.branch_code = @branch_code
+                    AND ca.assign_work = @assign_work
+                    AND mc.phone LIKE CONCAT('%', @value1, '%') 
+                    ORDER BY ca.startdate";
+                }
+                else if (searchCriteria.key1 == "ค้นจากชื่อลูกค้า")
+                {
+                    query = @"SELECT 
+    ca.guid, 
+    ca.customer_code, 
+    ca.branch_code, 
+    ca.touch_point, 
+    ca.name, 
+    ca.description, 
+    ca.startdate, 
+    ca.duedate, 
+    ca.reminder_duedate,            
+    ca.assign_work, 
+    ca.assign_work_type, 
+    ca.allowagent, 
+    ca.record_status, 
+    ca.created_by , 
+    ca.created_date , 
+    ca.modified_by, 
+    ca.modified_date,     
+    '' AS activitys_code, 
+    '' AS progress, 
+    0 AS succeed, 
+    0 AS progress_total,
+    ca.status,
+    mc.name AS customer_name,
+    '' AS product_code,
+    ca.call_status, 
+    ca.call_action, 
+    mc.phone AS customer_phone, 
+    mc.province AS customer_province, 
+    ca.remark,
+    cl.contact_result2,
+    cl.created_by AS contact_created_by,
+    cl.created_at AS contact_created_at
+FROM 
+    crm_activitys ca
+INNER JOIN 
+    mas_customers mc ON mc.guid = ca.customer_code
+LEFT JOIN 
+    (SELECT customer_id, contact_result2, created_by, created_at,
+            ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY created_at DESC) AS rn
+     FROM crm_contact_logs) cl ON cl.customer_id = ca.customer_code AND cl.rn = 1
+                    WHERE ca.branch_code = @branch_code
+                    AND ca.assign_work = @assign_work
+                    AND mc.name LIKE CONCAT('%', @value1, '%') 
+                    ORDER BY ca.startdate";
+                }
+
+
+
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    var value1 = searchCriteria.value1 ?? "";
+                    cmd.Parameters.AddWithValue("@value1", value1);
+
+                    var branch_code = searchCriteria.branch_code ?? "";
+                    cmd.Parameters.AddWithValue("@branch_code", branch_code);
+
+                    var assign_work = searchCriteria.assign_work ?? "";
+                    cmd.Parameters.AddWithValue("@assign_work", assign_work);
+
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            JobDataList d = new JobDataList();
+
+                            d.guid = reader["guid"].ToString();
+                            d.customer_code = reader["customer_code"].ToString();
+                            d.branch_code = reader["branch_code"].ToString();
+                            d.touch_point = reader["touch_point"].ToString();
+
+                            d.customer_name = reader["customer_name"].ToString();
+                            d.customer_phone = reader["customer_phone"].ToString();
+                            d.customer_province = reader["customer_province"].ToString();
+
+                            d.product_code = reader["product_code"].ToString();
+
+                            d.description = reader["description"].ToString();
+                            d.startdate = reader.IsDBNull(reader.GetOrdinal("startdate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("startdate"));
+                            d.duedate = reader.IsDBNull(reader.GetOrdinal("duedate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("duedate"));
+                            d.reminder_duedate = reader.IsDBNull(reader.GetOrdinal("reminder_duedate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("reminder_duedate"));
+                            d.assign_work = reader["assign_work"].ToString();
+                            d.assign_work_type = reader["assign_work_type"].ToString();
+                            d.allowagent = reader.IsDBNull(reader.GetOrdinal("allowagent")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("allowagent"));
+
+
+                            d.created_by = reader["created_by"].ToString();
+                            d.created_date = reader.GetDateTime(reader.GetOrdinal("created_date"));
+                            d.modified_by = reader.IsDBNull(reader.GetOrdinal("modified_by")) ? null : reader["modified_by"].ToString();
+                            d.modified_date = reader.IsDBNull(reader.GetOrdinal("modified_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("modified_date"));
+
+                            d.act_status = reader["status"].ToString();
+                            d.call_status = reader["call_status"].ToString();
+                            d.call_action = reader["call_action"].ToString();
+
+                            d.activitys_code = reader["activitys_code"].ToString();
+                            d.progress = reader["activitys_code"].ToString();
+                            d.succeed = reader.IsDBNull(reader.GetOrdinal("succeed")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("succeed"));
+                            d.progress_total = reader.IsDBNull(reader.GetOrdinal("progress_total")) ? (int?)null : reader.GetInt32(reader.GetOrdinal("progress_total"));
+                            d.remark = reader["remark"].ToString();
+                            d.contact_result2 = reader["contact_result2"].ToString();
+                            d.contact_created_by = reader["contact_created_by"].ToString();
+                            d.contact_created_at = reader.IsDBNull(reader.GetOrdinal("contact_created_at")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("contact_created_at"));
+
+                            activitys.Add(d);
+                        };
+
+                    }
+                }
+            }
+            return Ok(activitys);
+        }
+
+
 
         public class SearchCriteria
         {
@@ -653,6 +833,16 @@ GROUP BY
             public string? branch_code { get; set; }
             public string? assign_work { get; set; }
         }
+
+
+        public class SearchCriteriaByKey
+        {
+            public string? key1 { get; set; }
+            public string? value1 { get; set; }
+            public string? branch_code { get; set; }
+            public string? assign_work { get; set; }
+        }
+
 
 
         public class SearchCriteriaByID
