@@ -1,0 +1,752 @@
+﻿@page "/DialogCardPageUser/{Id}"
+@using System.ComponentModel.DataAnnotations
+@using Azure.Storage.Blobs
+@using BlazorApp_TeleCRM.Data
+@using BlazorApp_TeleCRM.Helper
+@using BlazorApp_TeleCRM.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using MySql.Data.MySqlClient
+@using static BlazorApp_TeleCRM.Components.Pages.Console.Console
+@inject IConfiguration Configuration
+@inject Radzen.DialogService dialogService
+@inject HttpClient Http
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UtilityConvet utility;
+@inject NotificationService NotificationService
+@inject MySqlConnection MySqlConnection
+
+<RadzenCard Variant="Variant.Outlined">
+    <RadzenTemplateForm TItem="Model" Data="@model" Submit="@HandleValidSubmit">
+
+
+        <div style="margin-top:20px ;text-align: center;">
+            @if (string.IsNullOrEmpty(model.imageurl))
+            {
+                <img src="user/profile.png" width="150px" />
+            }
+            else
+            {
+                <img src="@model.imageurl" width="150px" />
+            }
+        </div>
+        @*   <div style="margin-top:20px">
+        <RadzenLabel Text="รหัสผู้ใช้งาน" /><span class="rz-messages-error">*</span>
+        <RadzenTextBox style="display: block;width: 100%" @bind-Value="model.id" Name="id" Disabled="true" />
+        </div> *@
+
+
+        @if (isEdit == true)
+        {
+            <div style="margin-top:20px">
+                <RadzenLabel Text="บัญชีผู้ใช้งาน [Username]" /><span class="rz-messages-error">*</span>
+                <RadzenTextBox style="display: block;width: 100%" @bind-Value="model.username" Name="username" Disabled="true" class="w-100" />
+                <RadzenRequiredValidator Component="username" Text="ใส่บัญชีผู้ใช้งาน Username" Style="position: absolute" />
+            </div>
+        }
+        else
+        {
+            <div style="margin-top:20px">
+                <RadzenLabel Text="บัญชีผู้ใช้งาน [Username]" /><span class="rz-messages-error">*</span>
+                <RadzenTextBox style="display: block;width: 100%" @bind-Value="model.username" Name="username" class="w-100" />
+                <RadzenRequiredValidator Component="username" Text="ใส่บัญชีผู้ใช้งาน Username" Style="position: absolute" />
+            </div>
+        }
+
+        @if (isEdit == false)
+        {
+            <div style="margin-top:20px">
+                <RadzenLabel Text="รหัสผ่าน [Password]" /><span class="rz-messages-error">*</span>
+                <RadzenTextBox style="display: block;width: 100%" @bind-Value="model.password" Name="Password" class="w-100" />
+                @*   <RadzenRequiredValidator Component="Password" Text="ใส่รหัสผ่าน Password" Style="position: absolute" /> *@
+                <RadzenLengthValidator Component="Password" Min="6" Text="ใส่รหัสผ่าน 6 ตัวขึ้นไป" Style="position: absolute" />
+                <RadzenLengthValidator Component="Password" Max="15" Text="ใส่รหัสผ่านไม่เกิน 15 ตัว" Style="position: absolute" />
+            </div>
+        }
+
+
+        <div style="margin-top:20px">
+            <RadzenLabel Text="ชื่อผู้ใช้งาน" /><span class="rz-messages-error">*</span>
+            <RadzenTextBox style="display: block;width: 100%" @bind-Value="model.firstname" Name="firstname" class="w-100" />
+            <RadzenRequiredValidator Component="firstname" Text="ใส่ชื่อผู้ใช้งาน" Style="position: absolute" />
+        </div>
+
+        <div style="margin-top:20px">
+            <RadzenLabel Text="อีเมล" /><span class="rz-messages-error">*</span>
+            <RadzenTextBox style="display: block;width: 100%" @bind-Value="model.email" Name="Email" class="w-100" />
+            <RadzenRequiredValidator Component="Email" Text="ใส่อีเเมล์" Style="position: absolute" />
+            <RadzenEmailValidator Component="Email" Text="อีเมล ไม่ถูกต้อง" Style="position: absolute" />
+        </div>
+
+
+
+
+
+
+        @if (isEdit == true)
+        {
+            <div style="margin-top:20px">
+                <RadzenLabel Text="ร้านค้า" /><span class="rz-messages-error">*</span>
+                <RadzenDropDown @ref="radzenDropDown" Disabled="true"
+                                @bind-SearchText="SearchText"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                FilterOperator="StringFilterOperator.StartsWith"
+                                AllowFiltering="true"
+                                Data="@branches"
+                                TextProperty="name"
+                                ValueProperty="code"
+                                AllowClear="true"
+                                @bind-Value=@model.organization
+                                Name="Filtering_Value2" class="w-100" style="display: block;width: 100%" />
+            </div>
+
+        }
+        else
+        {
+            <div style="margin-top:20px">
+                <RadzenLabel Text="ร้านค้า" /><span class="rz-messages-error">*</span>
+                <RadzenDropDown @ref="radzenDropDown"
+                                @bind-SearchText="SearchText"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                FilterOperator="StringFilterOperator.StartsWith"
+                                AllowFiltering="true"
+                                Data="@branches"
+                                TextProperty="name"
+                                ValueProperty="code"
+                                AllowClear="true"
+                                @bind-Value=@model.organization
+                                Name="Filtering_Value2" class="w-100" style="display: block;width: 100%" />
+            </div>
+        }
+
+
+
+
+        <div style="margin-top:20px">
+            <RadzenLabel Text="สิทธิ์ผู้ใช้งาน" /><span class="rz-messages-error">*</span>
+            <RadzenDropDown @bind-Value=@model.role style="display:block;width:100%"
+                            Data=@datarole Name="role" class="w-100" />
+            <RadzenRequiredValidator Component="role" Text="เลือกสิทธิ์ผู้ใช้งาน" Style="position: absolute" />
+        </div>
+
+
+        <div style="margin-top:20px">
+            <RadzenLabel Text="เปิดใช้งาน" />
+            <RadzenCheckBox @bind-Value=@model.record_status Name="CheckBox1" />
+        </div>
+
+
+
+        <div style="margin-top:20px">
+            <RadzenLabel Text="อัปโหลดรูปผู้ใช้งาน" />
+            <InputFile OnChange="@UploadFile" />
+        </div>
+        <div style="margin-top:20px">
+            <RadzenButton Text="บันทึก" Style="margin-top: 10px;" ButtonType="ButtonType.Submit" />
+        </div>
+    </RadzenTemplateForm>
+</RadzenCard>
+
+@if (isEdit == true)
+{
+    <div style="margin-top:20px">
+        <RadzenCard Variant="Variant.Outlined">
+            <div style="margin-top:20px">
+                <RadzenText TextStyle="TextStyle.DisplayH6">รีเซ็ตเปลี่ยนรหัสผ่าน</RadzenText>
+                <RadzenFormField Text="Generate Password" Variant="Variant.Outlined">
+                    <ChildContent>
+                        <RadzenTextBox @bind-Value="@passwordValue" ReadOnly Visible="@(!password)" />
+                        <RadzenPassword @bind-Value="@passwordValue" ReadOnly Visible="@password" />
+                    </ChildContent>
+                    <End>
+                        <RadzenButton Icon="@(password ? "visibility" : "visibility_off")" Click="TogglePassword" Variant="Variant.Text" Size="ButtonSize.Small" />
+                    </End>
+                </RadzenFormField>
+            </div>
+            <div style="margin-top:20px">
+                <RadzenButton Click=@(args => OnResetPassword()) Text="รีเซ็ต" ButtonStyle="ButtonStyle.Info" />
+            </div>
+        </RadzenCard>
+    </div>
+}
+
+
+@code {
+    [Parameter] public string Id { get; set; }
+
+    private string? username;
+    bool isEdit = false;
+    private string? BranchCode { get; set; }
+    private IEnumerable<string>? _BranchCode;
+    private string UploadedFileUrl;
+
+
+    IEnumerable<string>? datarole;
+    private static readonly string[] data_role = new[]
+     {
+           "","Admin","Manager","Supervisor","User"
+      };
+
+    private static readonly string[] data_role2 = new[]
+       {
+           "","Manager","Supervisor","User"
+      };
+
+    //   IEnumerable<MasBranches> branches;
+    private List<MasBranches> branches = new();
+    private string SearchText { get; set; }
+    private RadzenDropDown<string> radzenDropDown;
+    private string Filtering_Value = "";
+
+
+
+
+    private Model model = new Model();
+
+
+    string passwordValue = "password";
+    bool password = true;
+    Variant variant = Variant.Outlined;
+
+    void TogglePassword()
+    {
+        password = !password;
+    }
+
+
+
+    private async Task OnResetPassword()
+    {
+
+        var confirmed = await dialogService.Confirm("คุณต้องการรีเซ็ตเปลี่ยนรหัสผ่านนี้หรือไม่?", "ยืนยัน",
+         new ConfirmOptions() { Left = "20%", OkButtonText = "Yes", CancelButtonText = "No", Draggable = true });
+
+        if (confirmed.HasValue && confirmed.Value)
+        {
+            await ResetPassAsync(model);
+        }
+
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            username = user.Identity.Name;
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+        }
+        else
+        {
+            username = "";
+            BranchCode = "";
+        }
+
+    }
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+
+
+
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            username = user.Identity.Name;
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+        }
+        else
+        {
+            username = "";
+            BranchCode = "";
+        }
+
+
+
+        if (BranchCode == "000000")
+        {
+            datarole = data_role;
+        }
+        else
+        {
+            datarole = data_role2;
+        }
+
+
+        // เรียกข้อมูลจากฐานข้อมูล
+        branches = await GetBranchesAsync();
+
+
+        if (!string.IsNullOrEmpty(Id))
+        {
+            isEdit = true;
+
+            var b = await LoadData(Id);
+            model.id = b.id.ToString();
+            model.firstname = b.firstname;
+            model.imageurl = b.imageurl;
+            model.username = b.username;
+            model.organization = b.organization;
+            model.role = b.role;
+            model.email = b.email;
+            model.record_status = b.record_status;
+        }
+        else
+        {
+            model.record_status = true;
+        }
+
+
+        passwordValue = GenerateRandomString();
+
+    }
+
+
+    private static string GenerateRandomString(int length = 6)
+    {
+        const string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+        var random = new Random();
+        var result = new char[length];
+
+        for (int i = 0; i < length; i++)
+        {
+            result[i] = chars[random.Next(chars.Length)];
+        }
+
+        return new string(result);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+
+
+        if (model.organization != "000000")
+        {
+            if (model.role == "Admin")
+            {
+                NotificationService.Notify(NotificationSeverity.Warning, "แจ้งเตือน", $"ร้านค้าไม่อนุญาตให้ใช้สิทธิ์ Admin");
+                return;
+            }
+        }
+
+
+        var confirmed = await dialogService.Confirm("คุณต้องการบันทึกข้อมูลนี้หรือไม่?", "ยืนยัน",
+           new ConfirmOptions() { Left = "20%", OkButtonText = "Yes", CancelButtonText = "No", Draggable = true });
+
+        if (confirmed.HasValue && confirmed.Value)
+        {
+            if (string.IsNullOrEmpty(Id))
+            {
+
+                var ck = await checkDuplicate(model.username, model.email);
+
+                if (ck == true)
+                {
+                    NotificationService.Notify(NotificationSeverity.Warning, "แจ้งเตือน", $"มีผู้ใช้งาน Username นี้แล้ว");
+                    return;
+                }
+
+                await SaveUserAsync(model);
+                model = new Model();
+            }
+            else
+            {
+                await UpdateUserAsync(model);
+            }
+            // Save branch to database
+        }
+
+
+
+
+
+
+    }
+
+
+    private async Task<string> GeneratePassword()
+    {
+        string runningCode = "06"; // Default starting code (ถ้าข้อมูลไม่พบจะคืนค่ากำหนดเอง)
+
+        try
+        {
+            await MySqlConnection.OpenAsync();
+
+            using var command = new MySqlCommand(
+                                                    @"SELECT CONCAT('00', LPAD(COALESCE(MAX(CAST(SUBSTRING(code, 3, 2) AS UNSIGNED)), 0) + 1, 2, '0'), '00') AS new_code
+FROM mas_branches
+WHERE parent_code = @parent_code AND level = @level
+AND CAST(SUBSTRING(code, 3, 2) AS UNSIGNED) BETWEEN 1 AND 99;",
+                MySqlConnection);
+
+            command.Parameters.AddWithValue("@parent_code", BranchCode);
+            command.Parameters.AddWithValue("@level", 1);
+
+            var result = await command.ExecuteScalarAsync();
+            if (result != null && result != DBNull.Value)
+            {
+                runningCode = result.ToString();
+            }
+        }
+        catch
+        {
+            runningCode = "06";
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+
+        return runningCode;
+    }
+
+
+    private async Task SaveUserAsync(Model u)
+    {
+        try
+        {
+            // string genid = await GenerateRunningCode();
+            //   genid = genid.Substring(2, 2);
+
+            //  branch.code = "00" + genid + "00";
+
+            if (string.IsNullOrEmpty(u.imageurl))
+            {
+                u.imageurl = "user/profile.png";
+            }
+
+            if (u.record_status == null)
+            {
+                u.record_status = false;
+            }
+
+
+
+            await MySqlConnection.OpenAsync();
+
+            using var command = new MySqlCommand(
+                                 @"INSERT INTO mas_users
+             (username, email, password, firstname, lastname, `role`, organization,imageurl,record_status)
+              VALUES (@username, @email, @password, @firstname, @lastname, @role, @organization,@imageurl,@record_status)",
+                MySqlConnection);
+
+            command.Parameters.AddWithValue("@username", u.username);
+            command.Parameters.AddWithValue("@email", u.email);
+            command.Parameters.AddWithValue("@password", u.password);
+            command.Parameters.AddWithValue("@firstname", u.firstname);
+            command.Parameters.AddWithValue("@lastname", "");
+            command.Parameters.AddWithValue("@role", u.role);
+            command.Parameters.AddWithValue("@organization", u.organization);
+            command.Parameters.AddWithValue("@imageurl", u.imageurl);
+            command.Parameters.AddWithValue("@record_status", u.record_status);
+
+            await command.ExecuteNonQueryAsync();
+
+            NotificationService.Notify(NotificationSeverity.Success, "สำเร็จ", "อัปเดตข้อมูลสำเร็จ");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Error saving branch: {ex.Message}");
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+    }
+
+    private async Task UpdateUserAsync(Model u)
+    {
+        try
+        {
+
+            if (string.IsNullOrEmpty(u.imageurl))
+            {
+                u.imageurl = "user/profile.png";
+            }
+
+
+            if (u.record_status == null)
+            {
+                u.record_status = false;
+            }
+
+            await MySqlConnection.OpenAsync();
+
+            // username=@username,
+            // organization = @organization,
+
+            using var command = new MySqlCommand(
+                                @"UPDATE mas_users
+            SET email=@email, firstname=@firstname,
+            `role`=@role, imageurl=@imageurl,record_status=@record_status
+            WHERE id=@id",
+                MySqlConnection);
+
+            command.Parameters.AddWithValue("@id", u.id);
+            command.Parameters.AddWithValue("@username", u.username);
+            command.Parameters.AddWithValue("@email", u.email);
+            command.Parameters.AddWithValue("@firstname", u.firstname);
+            command.Parameters.AddWithValue("@lastname", "");
+            command.Parameters.AddWithValue("@role", u.role);
+            command.Parameters.AddWithValue("@organization", u.organization);
+            command.Parameters.AddWithValue("@imageurl", u.imageurl);
+            command.Parameters.AddWithValue("@record_status", u.record_status);
+
+            await command.ExecuteNonQueryAsync();
+
+            NotificationService.Notify(NotificationSeverity.Success, "สำเร็จ", "อัปเดตข้อมูลสำเร็จ");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Error saving branch: {ex.Message}");
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+    }
+
+    private async Task<bool> checkDuplicate(string username, string email)
+    {
+        bool isdup = false;
+        try
+        {
+            await MySqlConnection.OpenAsync();
+
+            using var command = new MySqlCommand(
+                            @"SELECT COUNT(*) AS user_count
+              FROM mas_users
+              WHERE username = @username ", MySqlConnection);
+
+            //OR email = @email;
+            // กำหนดค่าพารามิเตอร์
+            command.Parameters.AddWithValue("@username", username);
+            command.Parameters.AddWithValue("@email", email);
+
+            // ใช้ ExecuteScalarAsync ในการรับค่าจำนวนแถว
+            var result = await command.ExecuteScalarAsync();
+            int count = Convert.ToInt32(result);
+
+            if (count > 0)
+            {
+                // ถ้ามากกว่า 0 แสดงว่ามีข้อมูลซ้ำ
+                isdup = true;
+            }
+        }
+        catch
+        {
+            // สามารถจัดการข้อผิดพลาดได้ตามต้องการ
+            isdup = true;
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+
+        return isdup;
+    }
+
+    private async Task ResetPassAsync(Model u)
+    {
+        try
+        {
+
+
+            await MySqlConnection.OpenAsync();
+
+            using var command = new MySqlCommand(
+                                    @"UPDATE mas_users
+            SET password=@password , loginkey=''
+            WHERE id=@id",
+                MySqlConnection);
+
+            command.Parameters.AddWithValue("@id", u.id);
+            command.Parameters.AddWithValue("@password", passwordValue);
+
+            await command.ExecuteNonQueryAsync();
+
+            NotificationService.Notify(NotificationSeverity.Success, "สำเร็จ", "รีเซ็ตเปลี่ยนรหัสผ่านสำเร็จ");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Error saving : {ex.Message}");
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+    }
+
+
+
+
+    private async Task UploadFile(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+
+        // ตรวจสอบขนาดไฟล์
+        if (file.Size > 5 * 1024 * 1024) // 5MB
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", "ไฟล์ใหญ่เกินไป");
+            return;
+        }
+
+        try
+        {
+            // ดึง Connection String และ Container Name จาก Configuration
+            string connectionString = Configuration["AzureBlobStorage:ConnectionString"];
+            string containerName = Configuration["AzureBlobStorage:ContainerName"];
+            string fileName = $"{Guid.NewGuid()}-{file.Name}";
+
+            // สร้าง Blob Service Client ด้วย Connection String
+            var blobServiceClient = new BlobServiceClient(connectionString);
+            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+
+            // ตรวจสอบว่ามี Container อยู่แล้วหรือไม่ (ถ้าไม่มีจะสร้างใหม่)
+            await containerClient.CreateIfNotExistsAsync();
+
+            // อัปโหลดไฟล์ไปยัง Blob Storage
+            using var stream = file.OpenReadStream();
+            var blobClient = containerClient.GetBlobClient(fileName);
+            await blobClient.UploadAsync(stream, true);
+
+            // บันทึก URL ของไฟล์
+            UploadedFileUrl = blobClient.Uri.ToString();
+            // NotificationService.Notify(NotificationSeverity.Success, "สำเร็จ", "อัปโหลดรูปภาพสำเร็จ");
+
+            model.imageurl = UploadedFileUrl;
+
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"เกิดข้อผิดพลาดในการอัปโหลดไฟล์: {ex.Message}");
+        }
+    }
+
+
+    public async Task<User> LoadData(string code)
+    {
+
+        // คำสั่ง SQL ที่จะดำเนินการ
+        string query = @"
+        select id, username, email,  firstname, lastname, `role`, organization, loginkey, lastlogin, imageurl, record_status
+        FROM allseeddbpd.mas_users
+        WHERE id = @code;
+    ";
+
+        // สร้างออบเจ็กต์ Branch เพื่อเก็บผลลัพธ์
+        User user = null;
+
+        try
+        {
+            await MySqlConnection.OpenAsync();
+            // สร้างการเชื่อมต่อกับฐานข้อมูล
+            using (var command = new MySqlCommand(query, MySqlConnection))
+            {
+                // เพิ่มพารามิเตอร์ @code
+                command.Parameters.AddWithValue("@code", code);
+
+                // ดำเนินการอ่านข้อมูล
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    if (await reader.ReadAsync())
+                    {
+                        user = new User
+                            {
+                                id = Convert.ToInt32(reader["id"].ToString()),
+                                username = reader["username"].ToString(),
+                                firstname = reader["firstname"].ToString(),
+                                email = reader["email"].ToString(),
+                                role = reader["role"].ToString(),
+                                organization = reader["organization"].ToString(),
+                                imageurl = reader["imageurl"].ToString(),
+                                record_status = reader.IsDBNull(reader.GetOrdinal("record_status")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("record_status"))
+                            };
+                    }
+                }
+
+                await MySqlConnection.CloseAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            await MySqlConnection.CloseAsync();
+        }
+
+        return user;
+    }
+
+    public class Model
+    {
+        public string? id { get; set; }
+        public string? username { get; set; }
+        public string? email { get; set; }
+        public string? password { get; set; }
+        public string? firstname { get; set; }
+        public string? role { get; set; }
+        public string? organization { get; set; }
+        public string? imageurl { get; set; }
+        public bool? record_status { get; set; }
+    }
+
+
+    private async Task<List<MasBranches>> GetBranchesAsync()
+    {
+        var mb = new List<MasBranches>();
+
+        string query = @"
+                SELECT code, name, `level`, parent_code, created_by, created_date, modified_by, modified_date,imageurl
+                FROM mas_branches
+                WHERE code = @code1
+                union all
+                SELECT code, name, `level`, parent_code, created_by, created_date, modified_by, modified_date,imageurl
+                FROM mas_branches
+                WHERE parent_code = @code2 AND level in (1)";
+        try
+        {
+            await MySqlConnection.OpenAsync();
+            // สร้างการเชื่อมต่อกับฐานข้อมูล
+            using (var command = new MySqlCommand(query, MySqlConnection))
+            {
+                // เพิ่มพารามิเตอร์ @code
+                command.Parameters.AddWithValue("@code1", BranchCode);
+                command.Parameters.AddWithValue("@code2", BranchCode);
+
+                // ดำเนินการอ่านข้อมูล
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        mb.Add(new MasBranches
+                            {
+                                code = reader["code"].ToString(),
+                                name = reader["name"].ToString()
+                            });
+                    }
+                }
+
+                await MySqlConnection.CloseAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            await MySqlConnection.CloseAsync();
+        }
+        return mb;
+    }
+
+
+}

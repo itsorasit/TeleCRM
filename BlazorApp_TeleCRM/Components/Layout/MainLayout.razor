@@ -34,13 +34,6 @@
                             <div class="rz-stack rz-display-flex rz-flex-row rz-align-items-center rz-justify-content-flex-end" style=";flex-wrap:nowrap;">
                                 <div class="rz-display-none rz-display-sm-inline-flex align-items-center">
                                     <a onclick="@(() => GoToPage("/me"))" class="rz-link rz-text-nowrap rz-mx-2 rz-mx-lg-4"><span class="rz-link-text"><RadzenImage Path="@pic_avater" Style="width:32px; height:32px; border-radius:50%; border:1px solid #ccc; background-color:#f0f0f0;" /><span> ผู้ใช้งาน : @authState.User.Identity.Name </span></span></a>
-                                    @* <a href="#" class="rz-link rz-text-nowrap rz-mx-2 rz-mx-lg-4"><span class="rz-link-text">
-                                    Shop : @organization_code </span>
-                                    </a> *@
-                                    @*  <RadzenDropDown AllowClear="true" @bind-Value=select_branch AllowVirtualization="true" Name="DropDownVirtualization"
-                                    AllowFiltering="true" Data=@branches TextProperty="@nameof(MasBranches.name)" ValueProperty="@nameof(MasBranches.code)" Style="width: 100%; max-width: 400px;" /> *@
-
-
                                     <RadzenDropDown AllowClear="true"
                                                     @bind-Value="select_branch"
                                                     AllowVirtualization="true"
@@ -188,7 +181,7 @@
                 await BusyDialog();
 
 
-                var user1 = await allseed_Db.Users.Where(u => u.username == username && u.loginkey == uid).FirstOrDefaultAsync();
+                var user1 = await allseed_Db.Users.Where(u => u.username == username && u.loginkey == uid && u.record_status==true).FirstOrDefaultAsync();
                 if (user1 != null)
                 {
 

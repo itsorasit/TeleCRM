@@ -82,27 +82,32 @@
 
         if (user != null)
         {
-
-
-            if (AuthenticationStateProvider is CustomAuthenticationStateProvider customAuthProvider)
+            if (user.record_status == true)
             {
-                await customAuthProvider.MarkUserAsAuthenticated(user);
+                if (AuthenticationStateProvider is CustomAuthenticationStateProvider customAuthProvider)
+                {
+                    await customAuthProvider.MarkUserAsAuthenticated(user);
+                }
+
+                user.loginkey = Guid.NewGuid().ToString();
+                user.lastlogin = DateTime.Now;
+
+                allseed_Db.SaveChanges();
+
+                // Save the login state in localStorage
+                await JSRuntime.InvokeVoidAsync("localStorage.setItem", "isLoggedIn", "true");
+                await JSRuntime.InvokeVoidAsync("localStorage.setItem", "username", user.username);
+                await JSRuntime.InvokeVoidAsync("localStorage.setItem", "uid", user.loginkey);
+
+                //            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "uid", string.Join(",", user.role));
+
+                NotificationService.Notify(NotificationSeverity.Success, "เข้าสู่ระบบ สำเร็จ", "สวัสดี คุณ" + user.firstname);
+                Navigation.NavigateTo("/home", forceLoad: false);
             }
-
-            user.loginkey = Guid.NewGuid().ToString();
-            user.lastlogin = DateTime.Now;
-
-            allseed_Db.SaveChanges();
-
-            // Save the login state in localStorage
-            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "isLoggedIn", "true");
-            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "username", user.username);
-            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "uid", user.loginkey);
-
-//            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "uid", string.Join(",", user.role));
-
-            NotificationService.Notify(NotificationSeverity.Success, "เข้าสู่ระบบ สำเร็จ", "สวัสดี คุณ"+user.firstname  );
-            Navigation.NavigateTo("/home", forceLoad: false);
+            else
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "เข้าสู่ระบบ ไม่สำเร็จ", "บัญชีของคุณถูกระงับ");
+            }
         }
         else
         {

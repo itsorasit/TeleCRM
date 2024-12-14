@@ -159,144 +159,149 @@
             </RadzenText>
         </HeaderTemplate>
         <ChildContent>
-            <RadzenStack Orientation="Orientation.Horizontal" Gap="0rem">
-                <RadzenRow Gap="1rem">
-                    <RadzenColumn Size="6" SizeMD="6">
-                        <RadzenChart  ColorScheme="ColorScheme.Pastel" style="height: 400px; width: 800px">
+            <RadzenStack Orientation="Orientation.Horizontal" >
+                <RadzenRow >
+                        <RadzenColumn Size="6">
+                            <RadzenStack JustifyContent="JustifyContent.Left" >
+                                <RadzenChart ColorScheme="ColorScheme.Pastel" style="margin-left:100px; height: 400px; min-width:600px">
 
 
-                            @if (revenue_wait != null)
-                            {
-                                <RadzenStackedBarSeries Data="@revenue_wait"
-                                                        CategoryProperty="staff1"
-                                                        Title="รอดำเนินการ"
-                                                        LineType="LineType.Dashed"
-                                                        ValueProperty="count1">
-                                    <RadzenSeriesDataLabels Visible="true" />
-                                </RadzenStackedBarSeries>
-                            }
+                                    @if (revenue_wait != null)
+                                    {
+                                        <RadzenStackedBarSeries Data="@revenue_wait"
+                                                                CategoryProperty="staff1"
+                                                                Title="รอดำเนินการ"
+                                                                LineType="LineType.Dashed"
+                                                                ValueProperty="count1">
+                                            <RadzenSeriesDataLabels Visible="true" />
+                                        </RadzenStackedBarSeries>
+                                    }
 
-                            @if (revenue_oncall1 != null)
-                            {
-                                <RadzenStackedBarSeries Data="@revenue_oncall1"
-                                                        CategoryProperty="staff1"
-                                                        Title="คุยจบ"
-                                                        LineType="LineType.Dashed"
-                                                        ValueProperty="count1">
-                                    <RadzenSeriesDataLabels Visible="true" />
-                                </RadzenStackedBarSeries>
-                            }
+                                    @if (revenue_oncall1 != null)
+                                    {
+                                        <RadzenStackedBarSeries Data="@revenue_oncall1"
+                                                                CategoryProperty="staff1"
+                                                                Title="คุยจบ"
+                                                                LineType="LineType.Dashed"
+                                                                ValueProperty="count1">
+                                            <RadzenSeriesDataLabels Visible="true" />
+                                        </RadzenStackedBarSeries>
+                                    }
 
-                            @if (revenue_oncall2 != null)
-                            {
-                                <RadzenStackedBarSeries Data="@revenue_oncall2"
-                                                        CategoryProperty="staff1"
-                                                        Title="ไม่สะดวก"
-                                                        LineType="LineType.Dashed"
-                                                        ValueProperty="count1">
-                                    <RadzenSeriesDataLabels Visible="true" />
-                                </RadzenStackedBarSeries>
-                            }
+                                    @if (revenue_oncall2 != null)
+                                    {
+                                        <RadzenStackedBarSeries Data="@revenue_oncall2"
+                                                                CategoryProperty="staff1"
+                                                                Title="ไม่สะดวก"
+                                                                LineType="LineType.Dashed"
+                                                                ValueProperty="count1">
+                                            <RadzenSeriesDataLabels Visible="true" />
+                                        </RadzenStackedBarSeries>
+                                    }
 
-                            @if (revenue_oncall3 != null)
-                            {
-                                <RadzenStackedBarSeries Data="@revenue_oncall3"
-                                                        CategoryProperty="staff1"
-                                                        Title="ติดตาม"
-                                                        LineType="LineType.Dashed"
-                                                        ValueProperty="count1">
-                                    <RadzenSeriesDataLabels Visible="true" />
-                                </RadzenStackedBarSeries>
-                            }
+                                    @if (revenue_oncall3 != null)
+                                    {
+                                        <RadzenStackedBarSeries Data="@revenue_oncall3"
+                                                                CategoryProperty="staff1"
+                                                                Title="ติดตาม"
+                                                                LineType="LineType.Dashed"
+                                                                ValueProperty="count1">
+                                            <RadzenSeriesDataLabels Visible="true" />
+                                        </RadzenStackedBarSeries>
+                                    }
 
-                            @if (revenue_oncall4 != null)
-                            {
-                                <RadzenStackedBarSeries Data="@revenue_oncall4"
-                                                        CategoryProperty="staff1"
-                                                        Title="ขายได้"
-                                                        LineType="LineType.Dashed"
-                                                        ValueProperty="count1">
-                                    <RadzenSeriesDataLabels Visible="true" />
-                                </RadzenStackedBarSeries>
-                            }
+                                    @if (revenue_oncall4 != null)
+                                    {
+                                        <RadzenStackedBarSeries Data="@revenue_oncall4"
+                                                                CategoryProperty="staff1"
+                                                                Title="ขายได้"
+                                                                LineType="LineType.Dashed"
+                                                                ValueProperty="count1">
+                                            <RadzenSeriesDataLabels Visible="true" />
+                                        </RadzenStackedBarSeries>
+                                    }
 
-                            @if (revenue_oncall5 != null)
-                            {
-                                <RadzenStackedBarSeries Data="@revenue_oncall5"
-                                                        CategoryProperty="staff1"
-                                                        Title="ไม่รับสาย"
-                                                        LineType="LineType.Dashed"
-                                                        ValueProperty="count1">
-                                    <RadzenSeriesDataLabels Visible="true" />
-                                </RadzenStackedBarSeries>
-                            }
-                            @if (revenue_oncall6 != null)
-                            {
-                                <RadzenStackedBarSeries Data="@revenue_oncall6"
-                                                        CategoryProperty="staff1"
-                                                        Title="โทรไม่ติด"
-                                                        LineType="LineType.Dashed"
-                                                        ValueProperty="count1">
-                                    <RadzenSeriesDataLabels Visible="true" />
-                                </RadzenStackedBarSeries>
-                            }
+                                    @if (revenue_oncall5 != null)
+                                    {
+                                        <RadzenStackedBarSeries Data="@revenue_oncall5"
+                                                                CategoryProperty="staff1"
+                                                                Title="ไม่รับสาย"
+                                                                LineType="LineType.Dashed"
+                                                                ValueProperty="count1">
+                                            <RadzenSeriesDataLabels Visible="true" />
+                                        </RadzenStackedBarSeries>
+                                    }
+                                    @if (revenue_oncall6 != null)
+                                    {
+                                        <RadzenStackedBarSeries Data="@revenue_oncall6"
+                                                                CategoryProperty="staff1"
+                                                                Title="โทรไม่ติด"
+                                                                LineType="LineType.Dashed"
+                                                                ValueProperty="count1">
+                                            <RadzenSeriesDataLabels Visible="true" />
+                                        </RadzenStackedBarSeries>
+                                    }
 
-                            <RadzenValueAxis Min="0" Max=@count_sum_all_chart>
-                                <RadzenGridLines Visible="true" />
-                                <RadzenAxisTitle Text="กิจกรรมการโทรทั้งหมด" />
-                            </RadzenValueAxis>
-                            <RadzenBarOptions Radius="5" Height="40" />
-                        </RadzenChart>
+                                    <RadzenValueAxis Min="0" Max=@count_sum_all_chart>
+                                        <RadzenGridLines Visible="true" />
+                                        <RadzenAxisTitle Text="กิจกรรมการโทรทั้งหมด" />
+                                    </RadzenValueAxis>
+                                    <RadzenBarOptions Radius="5" Height="40" />
+                                </RadzenChart>
 
+                            </RadzenStack>
+                        
                         @*                         <pre>Revenue Wait: @System.Text.Json.JsonSerializer.Serialize(revenue_wait)</pre>
                         <pre>Revenue OnCall1: @System.Text.Json.JsonSerializer.Serialize(revenue_oncall1)</pre>
                         *@
                     </RadzenColumn>
-                    <RadzenColumn Size="6" SizeMD="6">
-                        <RadzenChart ColorScheme="ColorScheme.Pastel" style="height: 400px; width: 800px">
+                        <RadzenColumn Size="6">
+                            <RadzenStack JustifyContent="JustifyContent.End" >
+                                <RadzenChart ColorScheme="ColorScheme.Pastel" style="margin-left:100px;height: 400px; min-width:600px">
 
 
 
-                            @if (revenue_oncall1 != null)
-                            {
-                                <RadzenStackedBarSeries Data="@revenue_oncall1"
-                                                        CategoryProperty="staff1"
-                                                        Title="คุยจบ"
-                                                        LineType="LineType.Dashed"
-                                                        ValueProperty="count1">
-                                    <RadzenSeriesDataLabels Visible="true" />
-                                </RadzenStackedBarSeries>
-                            }
+                                    @if (revenue_oncall1 != null)
+                                    {
+                                        <RadzenStackedBarSeries Data="@revenue_oncall1"
+                                                                CategoryProperty="staff1"
+                                                                Title="คุยจบ"
+                                                                LineType="LineType.Dashed"
+                                                                ValueProperty="count1">
+                                            <RadzenSeriesDataLabels Visible="true" />
+                                        </RadzenStackedBarSeries>
+                                    }
 
 
-                            @if (revenue_oncall3 != null)
-                            {
-                                <RadzenStackedBarSeries Data="@revenue_oncall3"
-                                                        CategoryProperty="staff1"
-                                                        Title="ติดตาม"
-                                                        LineType="LineType.Dashed"
-                                                        ValueProperty="count1">
-                                    <RadzenSeriesDataLabels Visible="true" />
-                                </RadzenStackedBarSeries>
-                            }
+                                    @if (revenue_oncall3 != null)
+                                    {
+                                        <RadzenStackedBarSeries Data="@revenue_oncall3"
+                                                                CategoryProperty="staff1"
+                                                                Title="ติดตาม"
+                                                                LineType="LineType.Dashed"
+                                                                ValueProperty="count1">
+                                            <RadzenSeriesDataLabels Visible="true" />
+                                        </RadzenStackedBarSeries>
+                                    }
 
-                            @if (revenue_oncall4 != null)
-                            {
-                                <RadzenStackedBarSeries Data="@revenue_oncall4"
-                                                        CategoryProperty="staff1"
-                                                        Title="ขายได้"
-                                                        LineType="LineType.Dashed"
-                                                        ValueProperty="count1">
-                                    <RadzenSeriesDataLabels Visible="true" />
-                                </RadzenStackedBarSeries>
-                            }
+                                    @if (revenue_oncall4 != null)
+                                    {
+                                        <RadzenStackedBarSeries Data="@revenue_oncall4"
+                                                                CategoryProperty="staff1"
+                                                                Title="ขายได้"
+                                                                LineType="LineType.Dashed"
+                                                                ValueProperty="count1">
+                                            <RadzenSeriesDataLabels Visible="true" />
+                                        </RadzenStackedBarSeries>
+                                    }
 
-                            <RadzenValueAxis Min="0" Max=@count_sum_all_chart>
-                                <RadzenGridLines Visible="true" />
-                                <RadzenAxisTitle Text="Marketing" />
-                            </RadzenValueAxis>
-                            <RadzenBarOptions Radius="5" Height="40" />
-                        </RadzenChart>
+                                    <RadzenValueAxis Min="0" Max=@count_sum_all_chart>
+                                        <RadzenGridLines Visible="true" />
+                                        <RadzenAxisTitle Text="Marketing" />
+                                    </RadzenValueAxis>
+                                    <RadzenBarOptions Radius="5" Height="40" />
+                                </RadzenChart>
+                            </RadzenStack>
                     </RadzenColumn>
                 </RadzenRow>
             </RadzenStack>

@@ -31,7 +31,11 @@
     </div>
     <div style="margin-top:20px">
         <RadzenLabel Text="รหัสร้านค้า" />
-        <RadzenTextBox style="display: block;width: 100%" @bind-Value="branch.code" Name="code" Disabled="true" />
+        <RadzenText TextStyle="TextStyle.H6">@branch.code</RadzenText>
+        @if (isEdit == false)
+        {
+            <RadzenText TextStyle="TextStyle.H6">Auto-Gen.</RadzenText>
+        }
     </div>
     <div style="margin-top:20px">
         <RadzenLabel Text="ชื่อร้านค้า" />
