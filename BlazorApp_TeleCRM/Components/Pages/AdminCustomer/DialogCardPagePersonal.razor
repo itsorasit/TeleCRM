@@ -1,0 +1,378 @@
+﻿@page "/DialogCardPagePersonal/{GUID}"
+@using System.ComponentModel.DataAnnotations
+@using Azure.Storage.Blobs
+@using BlazorApp_TeleCRM.Data
+@using BlazorApp_TeleCRM.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@using MySql.Data.MySqlClient
+@using System.Security.Claims
+@inject IConfiguration Configuration
+@inject Radzen.DialogService dialogService
+@inject HttpClient Http
+@inject IConfiguration Configuration
+@inject Radzen.DialogService dialogService
+@inject HttpClient Http
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NotificationService NotificationService
+@inject MySqlConnection MySqlConnection
+
+
+<RadzenCard Variant="Variant.Outlined">
+    <RadzenTemplateForm TItem="Model" Data="@model" Submit="@HandleValidSubmit">
+
+
+
+        <div style="margin-top:5px">
+            <RadzenLabel Text="วันเดือนปีเกิด" />
+            <RadzenMask Mask="**/**/****" CharacterPattern="[0-9]" Placeholder="00/00/0000" Name="birth_date" @bind-Value=@model.birth_date
+                        Style="width: 100%;" aria-label="birth_date" />
+            <RadzenRegexValidator Component="birth_date"
+                                  Pattern="^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/\d{4}$"
+                                  Text="รูปแบบวันที่ไม่ถูกต้อง (ต้องเป็น วว/ดด/ปปปป)"
+                                  Style="color:red;" />
+        </div>
+
+        <div style="margin-top:15px">
+            <RadzenLabel Text="อายุ" />
+            <RadzenNumeric Min="0" Max="99" @bind-Value=@model.age InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "enter value" }})" Style="width: 100%" />
+        </div>
+
+        <div style="margin-top:15px">
+            <RadzenLabel Text="น้ำหนัก" />
+            <RadzenNumeric Min="0" Max="200" @bind-Value=@model.weight InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "enter value" }})" Style="width: 100%" />
+        </div>
+
+        <div style="margin-top:15px">
+            <RadzenLabel Text="โรคประจำตัว" />
+            <RadzenTextBox @bind-Value=@model.chronic_disease Style="width: 100%" />
+        </div>
+
+        <div style="margin-top:15px">
+            <RadzenLabel Text="ยาที่ทานประจำ" />
+            <RadzenTextBox @bind-Value=@model.regular_medication Style="width: 100%" />
+        </div>
+
+        <div style="margin-top:15px">
+            <RadzenLabel Text="แพ้ยา" />
+            <RadzenTextBox @bind-Value=@model.drug_allergy Style="width: 100%" />
+        </div>
+
+        <div style="margin-top:15px">
+            <RadzenLabel Text="แพ้อาหาร" />
+            <RadzenTextBox @bind-Value=@model.food_allergy Style="width: 100%" />
+        </div>
+
+
+        <div style="margin-top:15px">
+            <b>คนในครอบครัว</b>
+            <RadzenLabel Text="ความดันโลหิตสูง" />
+            <RadzenCheckBox @bind-Value=@model.hypertension Name="CheckBox1" />
+
+            <RadzenLabel Text="เบาหวาน" />
+            <RadzenCheckBox @bind-Value=@model.diabetes Name="CheckBox2" />
+
+            <RadzenLabel Text="ไขมันในเลือดสูง" />
+            <RadzenCheckBox @bind-Value=@model.hyperlipidemia Name="CheckBox3" />
+
+            <RadzenLabel Text="หัวใจ" />
+            <RadzenCheckBox @bind-Value=@model.heart_disease Name="CheckBox4" />
+
+            <RadzenLabel Text="หลอดเลือดสมอง" />
+            <RadzenCheckBox @bind-Value=@model.stroke Name="CheckBox5" />
+        </div>
+
+        <div style="margin-top:15px">
+            <RadzenLabel Text="มะเร็ง" />
+            <RadzenTextBox @bind-Value=@model.cancer Style="width: 100%" />
+        </div>
+
+        <div style="margin-top:15px">
+            <RadzenButton Text="บันทึก" Style="margin-top: 10px;" ButtonType="ButtonType.Submit" />
+        </div>
+    </RadzenTemplateForm>
+</RadzenCard>
+
+
+
+@code {
+
+    [Parameter] public string GUID { get; set; }
+
+    private Model model = new Model();
+
+    private string BranchCode { get; set; }
+    private IEnumerable<string> _BranchCode;
+    private string username;
+
+    public class Model
+    {
+        public string? guid { get; set; }
+        public string? birth_date { get; set; }
+        public string? age { get; set; }
+        public string? weight { get; set; }
+        public string? chronic_disease { get; set; }
+        public string? regular_medication { get; set; }
+        public string? drug_allergy { get; set; }
+        public string? food_allergy { get; set; }
+        public bool? hypertension { get; set; }
+        public bool? diabetes { get; set; }
+        public bool? hyperlipidemia { get; set; }
+        public bool? heart_disease { get; set; }
+        public bool? stroke { get; set; }
+        public string? cancer { get; set; }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            username = user.Identity.Name;
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+        }
+        else
+        {
+            BranchCode = "";
+        }
+
+
+        model = (await LoadPersonal_infoDataEdit(GUID)) ?? new Model();
+
+        model.hypertension ??= false;
+        model.diabetes ??= false;
+        model.hyperlipidemia ??= false;
+        model.heart_disease ??= false;
+        model.stroke ??= false;
+
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var confirmed = await dialogService.Confirm("คุณต้องการบันทึกข้อมูลนี้หรือไม่?", "ยืนยัน",
+           new ConfirmOptions() {  OkButtonText = "Yes", CancelButtonText = "No", Draggable = true });
+
+        if (confirmed.HasValue && confirmed.Value)
+        {
+            var ck = await checkDuplicate(GUID, BranchCode);
+
+            if (ck == true)
+            {
+                await UpdateUserAsync(model);
+            }
+            else
+            {
+                await SaveUserAsync(model);
+              //  model = new Model();
+            }
+        }
+
+    }
+
+    private async Task SaveUserAsync(Model u)
+    {
+        try
+        {
+            // ตรวจสอบค่าสถานะโรค ถ้าเป็น null ให้ default เป็น false
+            u.hypertension ??= false;
+            u.diabetes ??= false;
+            u.hyperlipidemia ??= false;
+            u.heart_disease ??= false;
+            u.stroke ??= false;
+
+            await MySqlConnection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+            INSERT INTO personal_info
+            (guid, birth_date, branch_code, age, weight, chronic_disease, regular_medication, drug_allergy, food_allergy, hypertension, diabetes, hyperlipidemia, heart_disease, stroke, cancer, modified_by, modified_at)
+            VALUES
+            (@guid, @birth_date, @branch_code, @age, @weight, @chronic_disease, @regular_medication, @drug_allergy, @food_allergy, @hypertension, @diabetes, @hyperlipidemia, @heart_disease, @stroke, @cancer, @modified_by, @modified_at)",
+                MySqlConnection);
+
+            command.Parameters.AddWithValue("@guid", GUID);
+            command.Parameters.AddWithValue("@birth_date", u.birth_date ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@branch_code", BranchCode);
+            command.Parameters.AddWithValue("@age", u.age ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@weight", u.weight ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@chronic_disease", string.IsNullOrEmpty(u.chronic_disease) ? (object)DBNull.Value : u.chronic_disease);
+            command.Parameters.AddWithValue("@regular_medication", string.IsNullOrEmpty(u.regular_medication) ? (object)DBNull.Value : u.regular_medication);
+            command.Parameters.AddWithValue("@drug_allergy", string.IsNullOrEmpty(u.drug_allergy) ? (object)DBNull.Value : u.drug_allergy);
+            command.Parameters.AddWithValue("@food_allergy", string.IsNullOrEmpty(u.food_allergy) ? (object)DBNull.Value : u.food_allergy);
+            command.Parameters.AddWithValue("@hypertension", u.hypertension.Value);
+            command.Parameters.AddWithValue("@diabetes", u.diabetes.Value);
+            command.Parameters.AddWithValue("@hyperlipidemia", u.hyperlipidemia.Value);
+            command.Parameters.AddWithValue("@heart_disease", u.heart_disease.Value);
+            command.Parameters.AddWithValue("@stroke", u.stroke.Value);
+            command.Parameters.AddWithValue("@cancer", string.IsNullOrEmpty(u.cancer) ? (object)DBNull.Value : u.cancer);
+            command.Parameters.AddWithValue("@modified_by", username);
+            command.Parameters.AddWithValue("@modified_at", DateTime.Now);
+
+            await command.ExecuteNonQueryAsync();
+
+            NotificationService.Notify(NotificationSeverity.Success, "สำเร็จ", "บันทึกข้อมูลสำเร็จ");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Error saving personal info: {ex.Message}");
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+    }
+
+    private async Task UpdateUserAsync(Model u)
+    {
+        try
+        {
+            await MySqlConnection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+            UPDATE personal_info
+            SET birth_date=@birth_date,
+                branch_code=@branch_code,
+                age=@age,
+                weight=@weight,
+                chronic_disease=@chronic_disease,
+                regular_medication=@regular_medication,
+                drug_allergy=@drug_allergy,
+                food_allergy=@food_allergy,
+                hypertension=@hypertension,
+                diabetes=@diabetes,
+                hyperlipidemia=@hyperlipidemia,
+                heart_disease=@heart_disease,
+                stroke=@stroke,
+                cancer=@cancer,
+                modified_by=@modified_by,
+                modified_at=@modified_at
+            WHERE guid=@guid
+        ", MySqlConnection);
+
+            command.Parameters.AddWithValue("@guid", GUID);
+            command.Parameters.AddWithValue("@birth_date", u.birth_date ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@branch_code", BranchCode);
+            command.Parameters.AddWithValue("@age", u.age ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@weight", u.weight ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@chronic_disease", string.IsNullOrEmpty(u.chronic_disease) ? (object)DBNull.Value : u.chronic_disease);
+            command.Parameters.AddWithValue("@regular_medication", string.IsNullOrEmpty(u.regular_medication) ? (object)DBNull.Value : u.regular_medication);
+            command.Parameters.AddWithValue("@drug_allergy", string.IsNullOrEmpty(u.drug_allergy) ? (object)DBNull.Value : u.drug_allergy);
+            command.Parameters.AddWithValue("@food_allergy", string.IsNullOrEmpty(u.food_allergy) ? (object)DBNull.Value : u.food_allergy);
+            command.Parameters.AddWithValue("@hypertension", u.hypertension.Value);
+            command.Parameters.AddWithValue("@diabetes", u.diabetes.Value);
+            command.Parameters.AddWithValue("@hyperlipidemia", u.hyperlipidemia.Value);
+            command.Parameters.AddWithValue("@heart_disease", u.heart_disease.Value);
+            command.Parameters.AddWithValue("@stroke", u.stroke.Value);
+            command.Parameters.AddWithValue("@cancer", string.IsNullOrEmpty(u.cancer) ? (object)DBNull.Value : u.cancer);
+            command.Parameters.AddWithValue("@modified_by", username);
+            command.Parameters.AddWithValue("@modified_at", DateTime.Now);
+
+            await command.ExecuteNonQueryAsync();
+
+            NotificationService.Notify(NotificationSeverity.Success, "สำเร็จ", "อัปเดตข้อมูลสำเร็จ");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Error updating personal_info: {ex.Message}");
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+    }
+
+    private async Task<bool> checkDuplicate(string guid, string branch_code)
+    {
+        bool isdup = false;
+        try
+        {
+            await MySqlConnection.OpenAsync();
+
+            using var command = new MySqlCommand(
+                                        @"SELECT COUNT(*) AS personal_info_count
+              FROM personal_info
+              WHERE guid = @guid and branch_code = @branch_code  ", MySqlConnection);
+
+            command.Parameters.AddWithValue("@guid", guid);
+            command.Parameters.AddWithValue("@branch_code", branch_code);
+
+            // ใช้ ExecuteScalarAsync ในการรับค่าจำนวนแถว
+            var result = await command.ExecuteScalarAsync();
+            int count = Convert.ToInt32(result);
+
+            if (count > 0)
+            {
+                // ถ้ามากกว่า 0 แสดงว่ามีข้อมูลซ้ำ
+                isdup = true;
+            }
+        }
+        catch
+        {
+            // สามารถจัดการข้อผิดพลาดได้ตามต้องการ
+            isdup = true;
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+
+        return isdup;
+    }
+
+    public async Task<Model> LoadPersonal_infoDataEdit(string guid)
+    {
+        string query = @"
+        SELECT guid, birth_date, branch_code, age, weight, chronic_disease, regular_medication, drug_allergy, food_allergy,
+               hypertension, diabetes, hyperlipidemia, heart_disease, stroke, cancer, modified_by, modified_at
+        FROM personal_info
+        WHERE guid = @guid";
+        Model m = null;
+        try
+        {
+            await MySqlConnection.OpenAsync();
+
+            using (var command = new MySqlCommand(query, MySqlConnection))
+            {
+                command.Parameters.AddWithValue("@guid", guid);
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    if (await reader.ReadAsync())
+                    {
+                        m = new Model
+                            {
+                                guid = reader["guid"].ToString(),
+                                birth_date = reader.IsDBNull(reader.GetOrdinal("birth_date")) ? null : reader["birth_date"].ToString(),
+                                age = reader.IsDBNull(reader.GetOrdinal("age")) ? null : reader["age"].ToString(),
+                                weight = reader.IsDBNull(reader.GetOrdinal("weight")) ? null : reader["weight"].ToString(),
+                                chronic_disease = reader.IsDBNull(reader.GetOrdinal("chronic_disease")) ? null : reader["chronic_disease"].ToString(),
+                                regular_medication = reader.IsDBNull(reader.GetOrdinal("regular_medication")) ? null : reader["regular_medication"].ToString(),
+                                drug_allergy = reader.IsDBNull(reader.GetOrdinal("drug_allergy")) ? null : reader["drug_allergy"].ToString(),
+                                food_allergy = reader.IsDBNull(reader.GetOrdinal("food_allergy")) ? null : reader["food_allergy"].ToString(),
+                                hypertension = reader.GetBoolean(reader.GetOrdinal("hypertension")),
+                                diabetes = reader.GetBoolean(reader.GetOrdinal("diabetes")),
+                                hyperlipidemia = reader.GetBoolean(reader.GetOrdinal("hyperlipidemia")),
+                                heart_disease = reader.GetBoolean(reader.GetOrdinal("heart_disease")),
+                                stroke = reader.GetBoolean(reader.GetOrdinal("stroke")),
+                                cancer = reader.IsDBNull(reader.GetOrdinal("cancer")) ? null : reader["cancer"].ToString()
+                            };
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await MySqlConnection.CloseAsync();
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+
+        return m;
+    }
+
+}

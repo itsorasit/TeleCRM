@@ -8,43 +8,120 @@
 @using MySql.Data.MySqlClient
 @using static BlazorApp_TeleCRM.Components.Pages.AdminCustomer.AdminCustomer
 @inject IConfiguration Configuration
-@inject Radzen.DialogService dialogService
+@inject DialogService DialogService
 @inject HttpClient Http
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UtilityConvet utility ;
 @inject NotificationService NotificationService
 @inject MySqlConnection MySqlConnection
 
+<style>
+    .rz-dialog-side {
+        z-index: 10 !important;
+    }
+</style>
 
 <RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
     <RadzenStack>
 
-        <RadzenTabs @bind-SelectedIndex=@selectedIndex2 >
+        <RadzenTabs @bind-SelectedIndex=@selectedIndex2>
             <Tabs>
                 <RadzenTabsItem Text="ข้อมูลลูกค้า">
                     <RadzenRow>
                         <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
-                           
-                            <RadzenRow Gap="0">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                                <RadzenStack Gap="0">
+                                    <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">เบอร์ติดต่อลูกค้า</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1"><b><a href="tel:@utility.FormatPhoneNumberWithCountryCode(model.customer_phone)"><RadzenIcon Icon="smartphone" /> @utility.FormatPhoneNumber(model.customer_phone) </a></b></RadzenText>
+                                    <img width="150px" style="margin-top:20px" src="data:image/png;base64,@qrCodeImage" alt="QR Code" />
+                                </RadzenStack>
+                                <RadzenStack Gap="0">
+                                    <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ชื่อลูกค้า</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@model.customer_name</b></RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ที่อยู่</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>@model.customer_address1 @model.customer_sub_district @model.customer_district @model.customer_province @model.customer_zipcode</b></RadzenText>
+                                </RadzenStack>
+                            </RadzenStack>
+                        </RadzenColumn>
+                        <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween" Gap="20px">
+                                <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="5px">
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">วันเดือนปีเกิด</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.birth_date</b></RadzenText>
 
-                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                                    <RadzenStack Gap="0">
-                                        <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">เบอร์ติดต่อลูกค้า</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Body1"><b><a href="tel:@utility.FormatPhoneNumberWithCountryCode(model.customer_phone)"><RadzenIcon Icon="smartphone" /> @utility.FormatPhoneNumber(model.customer_phone) </a></b></RadzenText>
-                                        <img width="150px" style="margin-top:20px" src="data:image/png;base64,@qrCodeImage" alt="QR Code" />
-                                    </RadzenStack>
-                                    <RadzenStack Gap="0">
-                                        <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ชื่อลูกค้า</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@model.customer_name</b></RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ที่อยู่</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Caption"><b>@model.customer_address1 @model.customer_sub_district @model.customer_district @model.customer_province @model.customer_zipcode</b></RadzenText>
-                                    </RadzenStack>
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">อายุ</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.age</b></RadzenText>
+
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">น้ำหนัก</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.weight</b></RadzenText>
+
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">โรคประจำตัว</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.chronic_disease</b></RadzenText>
                                 </RadzenStack>
 
-                            </RadzenRow>
+                                <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="0px">
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">ยาที่ทานประจำ</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.regular_medication</b></RadzenText>
 
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">แพ้ยา</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.drug_allergy</b></RadzenText>
 
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">แพ้อาหาร</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.food_allergy</b></RadzenText>
+                                </RadzenStack>
+
+                                <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="0px">
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">โรคความดันโลหิตสูง</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>
+                                            @if (model_Personal.hypertension.HasValue)
+                                            {
+                                                @(model_Personal.hypertension.Value ? "มี" : "ไม่มี")
+                                            }
+
+                                    </b></RadzenText>
+
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">เบาหวาน</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>
+                                            @if (model_Personal.diabetes.HasValue)
+                                            {
+                                                @(model_Personal.diabetes.Value ? "มี" : "ไม่มี")
+                                            }
+
+                                    </b></RadzenText>
+
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">ไขมันในเลือดสูง</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>
+                                            @if (model_Personal.hyperlipidemia.HasValue)
+                                            {
+                                                @(model_Personal.hyperlipidemia.Value ? "มี" : "ไม่มี")
+                                            }
+                                    </b></RadzenText>
+
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">โรคหัวใจ</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>
+                                            @if (model_Personal.heart_disease.HasValue)
+                                            {
+                                                @(model_Personal.heart_disease.Value ? "มี" : "ไม่มี")
+                                            }
+
+                                    </b></RadzenText>
+                                  
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">โรคหลอดเลือดสมอง</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>
+                                            @if (model_Personal.stroke.HasValue)
+                                            {
+                                                @(model_Personal.stroke.Value ? "มี" : "ไม่มี")
+                                            }
+                                    </b></RadzenText>
+
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">มะเร็ง</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.cancer</b></RadzenText>
+                                </RadzenStack>
+                            </RadzenStack>
+                            <RadzenButton Click=@(args => OnEditCusInfo(CustomerId)) Icon="edit" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.ExtraSmall" />
+                            <RadzenButton Click=@(args => OnRefresh(CustomerId)) Icon="refresh" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.ExtraSmall" />
                         </RadzenColumn>
+
                     </RadzenRow>
                     <RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnChange>
                         <Tabs>
@@ -108,7 +185,7 @@
                         </Tabs>
                     </RadzenTabs>
                 </RadzenTabsItem>
-                   <RadzenTabsItem Text="ข้อมูลกิจกรรม">
+                <RadzenTabsItem Text="ข้อมูลกิจกรรม">
                     <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
                                     FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                     @bind-Value=@selecteActivitys
@@ -154,7 +231,7 @@
                             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.duedate)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Width="180px" Title="วันครบกำหนด" />
                         </Columns>
                     </RadzenDataGrid>
-                   </RadzenTabsItem>
+                </RadzenTabsItem>
                 <RadzenTabsItem Text="ประวัติการซื้อ">
                     <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
                                     FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
@@ -221,7 +298,7 @@
                         </RadzenStack>
                     </RadzenCard>
 
-                
+
                 </RadzenTabsItem>
             </Tabs>
         </RadzenTabs>
@@ -240,6 +317,7 @@
 
     Model model = new Model();
     Model2 model2 = new Model2();
+    ModelPersonal_info model_Personal = new ModelPersonal_info();
 
     private string? username;
     private string? BranchCode { get; set; }
@@ -310,6 +388,7 @@
     }
 
 
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -343,21 +422,7 @@
             if (selectedCus != null)
             {
                 model.activities_id = selectedCus.guid;
-                // model.activities_touch_point = selectedAct.touch_point;
-                // model.activities_name = selectedAct.act_name;
-                // model.activities_created_by = selectedAct.created_by;
-                // model.activities_description = selectedAct.description;
-                // model.activities_startdate = selectedAct.startdate;
-                // model.activities_duedate = selectedAct.duedate;
-                // model.activities_reminder_duedate = selectedAct.reminder_duedate;
-                // model.activities_assign_work = selectedAct.assign_work;
-                // model.allowagent = selectedAct.allowagent;
-                // model.status = selectedAct.act_status;
-                // model.call_action = selectedAct.call_action;
-                // model.call_status = selectedAct.call_status;
-                // model.sale_order_no = selectedAct.sale_order_no;
-                // model.remark = selectedAct.remark;
-                // model.statusparticipation = selectedAct.statusparticipation.Value;
+                
 
                 model.customer_name = selectedCus.name;
                 model.customer_phone = selectedCus.phone;
@@ -367,14 +432,7 @@
                 model.customer_district = selectedCus.district;
                 model.customer_zipcode = selectedCus.zipcode;
 
-                // model.contact_by = selectedAct.contact_by;
-                // model.contact_date = selectedAct.contact_date;
-                // model.contact_use_phone = selectedAct.contact_use_phone;
-                // model.new_activity_ref_guid = selectedAct.new_activity_ref_guid;
-                // model.appointment_date = selectedAct.appointment_date;
-                // model.old_activity_guid = selectedAct.old_activity_guid;
-                // model.re_activity = selectedAct.re_activity;
-
+               
                 string phoneNumber = "tel:" + @utility.FormatPhoneNumberWithCountryCode(selectedCus.phone);
 
                 // สร้าง QR Code
@@ -389,6 +447,10 @@
                 }
 
             }
+
+
+            model_Personal = (await LoadPersonal_infoData(selectedCus.guid)) ?? new ModelPersonal_info();
+
             contacts = await FetchCrmContactLogDataAsync(selectedCus.guid);
             selecteContact = new List<CrmContactLog>() { contacts.FirstOrDefault() };
 
@@ -400,6 +462,8 @@
 
             crmOrders = await FetchOrderDataAsync(selectedCus.phone);
             selecteCrmOrders = new List<CrmOrder>() { crmOrders.FirstOrDefault() };
+
+          
 
         }
 
@@ -502,7 +566,7 @@
             var searchCriteria = new
             {
                 guid = Guid,
-                branch_code = BranchCode 
+                branch_code = BranchCode
             };
 
             // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
@@ -637,7 +701,7 @@
             var searchCriteria = new
             {
                 guid = phone,
-                branch_code =BranchCode
+                branch_code = BranchCode
             };
 
 
@@ -663,5 +727,101 @@
         }
     }
 
+    async Task OnEditCusInfo(string id)
+    {
+          StateHasChanged();  // บังคับให้ UI อัปเดตใหม่
+
+        await DialogService.OpenAsync<DialogCardPagePersonal>($"ข้อมูลส่วนตัว",
+                 new Dictionary<string, object>() { { "GUID", id } },
+               new DialogOptions()
+                   {
+                       Width = "650px",
+                       Height = "800px",
+                       CloseDialogOnOverlayClick = false,  // Disable closing on clicking outside
+                       CloseDialogOnEsc = true,           // Disable closing by pressing ESC
+                       ShowClose = true  ,
+                       Draggable = true
+                   });
+
+     }
+
+    public async Task<ModelPersonal_info> LoadPersonal_infoData(string guid)
+    {
+        string query = @"
+        SELECT guid, birth_date, branch_code, age, weight, chronic_disease, regular_medication, drug_allergy, food_allergy,
+               hypertension, diabetes, hyperlipidemia, heart_disease, stroke, cancer, modified_by, modified_at
+        FROM personal_info
+        WHERE guid = @guid";
+        ModelPersonal_info m = null;
+        try
+        {
+            await MySqlConnection.OpenAsync();
+
+            using (var command = new MySqlCommand(query, MySqlConnection))
+            {
+                command.Parameters.AddWithValue("@guid", guid);
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    if (await reader.ReadAsync())
+                    {
+                        m = new ModelPersonal_info
+                            {
+                                guid = reader["guid"].ToString(),
+                                birth_date = reader.IsDBNull(reader.GetOrdinal("birth_date")) ? null : reader["birth_date"].ToString(),
+                                age = reader.IsDBNull(reader.GetOrdinal("age")) ? null : reader["age"].ToString(),
+                                weight = reader.IsDBNull(reader.GetOrdinal("weight")) ? null : reader["weight"].ToString(),
+                                chronic_disease = reader.IsDBNull(reader.GetOrdinal("chronic_disease")) ? null : reader["chronic_disease"].ToString(),
+                                regular_medication = reader.IsDBNull(reader.GetOrdinal("regular_medication")) ? null : reader["regular_medication"].ToString(),
+                                drug_allergy = reader.IsDBNull(reader.GetOrdinal("drug_allergy")) ? null : reader["drug_allergy"].ToString(),
+                                food_allergy = reader.IsDBNull(reader.GetOrdinal("food_allergy")) ? null : reader["food_allergy"].ToString(),
+                                hypertension = reader.GetBoolean(reader.GetOrdinal("hypertension")),
+                                diabetes = reader.GetBoolean(reader.GetOrdinal("diabetes")),
+                                hyperlipidemia = reader.GetBoolean(reader.GetOrdinal("hyperlipidemia")),
+                                heart_disease = reader.GetBoolean(reader.GetOrdinal("heart_disease")),
+                                stroke = reader.GetBoolean(reader.GetOrdinal("stroke")),
+                                cancer = reader.IsDBNull(reader.GetOrdinal("cancer")) ? null : reader["cancer"].ToString()
+                            };
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await MySqlConnection.CloseAsync();
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+
+        return m;
+    }
+
+
+    private async Task OnRefresh(string guid)
+    {
+        model_Personal = (await LoadPersonal_infoData(selectedCus.guid)) ?? new ModelPersonal_info();
+        StateHasChanged();
+    }
+
+
+    public class ModelPersonal_info
+    {
+        public string? guid { get; set; }
+        public string? birth_date { get; set; }
+        public string? age { get; set; }
+        public string? weight { get; set; }
+        public string? chronic_disease { get; set; }
+        public string? regular_medication { get; set; }
+        public string? drug_allergy { get; set; }
+        public string? food_allergy { get; set; }
+        public bool? hypertension { get; set; }
+        public bool? diabetes { get; set; }
+        public bool? hyperlipidemia { get; set; }
+        public bool? heart_disease { get; set; }
+        public bool? stroke { get; set; }
+        public string? cancer { get; set; }
+    }
 
 }

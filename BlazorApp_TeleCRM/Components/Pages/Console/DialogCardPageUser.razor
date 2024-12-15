@@ -643,7 +643,7 @@ AND CAST(SUBSTRING(code, 3, 2) AS UNSIGNED) BETWEEN 1 AND 99;",
         // คำสั่ง SQL ที่จะดำเนินการ
         string query = @"
         select id, username, email,  firstname, lastname, `role`, organization, loginkey, lastlogin, imageurl, record_status
-        FROM allseeddbpd.mas_users
+        FROM mas_users
         WHERE id = @code;
     ";
 

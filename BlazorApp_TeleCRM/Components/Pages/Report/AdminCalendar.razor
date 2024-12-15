@@ -2,6 +2,7 @@
 @using BlazorApp_TeleCRM.Data
 @using BlazorApp_TeleCRM.Models
 @using System.Security.Claims
+@using BlazorApp_TeleCRM.Service
 @using MySql.Data.MySqlClient
 @using Microsoft.AspNetCore.Components.Authorization
 @inject IConfiguration Configuration
@@ -9,7 +10,7 @@
 @inject DialogService DialogService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject MySqlConnection MySqlConnection
-
+@inject ITimeZoneService TimeZoneService
 
 <PageTitle>ปฏิทิน</PageTitle>
 
@@ -116,8 +117,8 @@
 
     private async Task OnLoad()
     {
-        lastUpdated = DateTime.Now; // อัปเดตเวลา
-     
+      //  lastUpdated = DateTime.Now; // อัปเดตเวลา
+        lastUpdated = TimeZoneService.ToLocalTime(DateTime.UtcNow);
         // เรียกใช้เมธอด FetchCustomerDataAsync เพื่อดึงข้อมูล
         appointments = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo, string.Join(",", staff_values));
 

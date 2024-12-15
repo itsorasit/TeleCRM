@@ -1,11 +1,13 @@
 ﻿@page "/overview-report"
 @using BlazorApp_TeleCRM.Models
+@using BlazorApp_TeleCRM.Service
 @using MySql.Data.MySqlClient
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 @inject IConfiguration Configuration
 @inject MySqlConnection MySqlConnection
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ITimeZoneService TimeZoneService
 
 <AuthorizeView Roles="Admin,Manager,Supervisor">
 
@@ -679,7 +681,7 @@
                                     #endregion
                                 }
 
-                            
+
                             }
                         }
                     }
@@ -719,7 +721,11 @@
 
     private async Task OnLoad()
     {
-        lastUpdated = DateTime.Now; // อัปเดตเวลา
+
+
+
+        //  lastUpdated = DateTime.Now; // อัปเดตเวลา
+        lastUpdated = TimeZoneService.ToLocalTime(DateTime.UtcNow);
         count_sum_all = 0;
         count_sum_wait = 0;
         count_sum_finished = 0;

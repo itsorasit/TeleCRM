@@ -37,6 +37,13 @@ builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddControllers();
 
 
+// ลงทะเบียน TimeZoneInfo ที่ต้องการ
+builder.Services.AddSingleton(TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
+
+// หรือหากคุณมี Helper/Service ที่จัดการการแปลงเวลา
+builder.Services.AddSingleton<ITimeZoneService, TimeZoneService>();
+
+
 var connectionString_allseeddbPD = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Register DbContext for EF Core with MySQL
