@@ -110,6 +110,19 @@
                                     </RadzenRow>
 
 
+                                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                        <RadzenColumn Size="12" SizeMD="4">
+                                            <RadzenText TextStyle="TextStyle.Subtitle2" Component="TouchPoint" Style="color:mediumseagreen" TagName="TagName.H3">Touch Point <span class="rz-messages-error">*</span> </RadzenText>
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="8">
+                                            <RadzenDropDown @bind-Value=@next_touch_point style="display:block;width:100%"
+                                                            Data=@datachannel Name="TouchPoint" class="w-100" />
+                                            <RadzenRequiredValidator Component="TouchPoint" Text="เลือก Touch Point" Style="position: absolute" />
+
+                                        </RadzenColumn>
+                                    </RadzenRow>
+
+
 
                                     <!-- Submit Button -->
                                     @if (model.status == "")
@@ -169,6 +182,8 @@
                                     <RadzenText TextStyle="TextStyle.Caption"><b>@model.customer_address1 @model.customer_sub_district @model.customer_district @model.customer_province @model.customer_zipcode</b></RadzenText>
                                 </RadzenStack>
                             </RadzenStack>
+                            @if (BranchCode == "000100" || BranchCode == "000700")
+                            {
 
                             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween" Gap="20px">
                                 <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="5px">
@@ -256,7 +271,7 @@
                             </RadzenStack>
                             <RadzenButton Click=@(args => OnEditCusInfo(@model.customer_code)) Icon="edit" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.ExtraSmall" />
                             <RadzenButton Click=@(args => OnRefresh(@model.customer_code)) Icon="refresh" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.ExtraSmall" />
-
+                            }
 
 
                         </RadzenColumn>
@@ -624,6 +639,9 @@
     IEnumerable<string>? StatusTelData;
     IEnumerable<string>? StatusConversationData;
 
+    string next_touch_point = "";
+    IEnumerable<string> datachannel;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -669,6 +687,9 @@
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
+
+        datachannel = data_channels;
+
 
         act_data = await FetchCustomerDataAsync(this.OrderID);
         if (act_data != null && act_data.Any())
@@ -801,6 +822,13 @@
 
 
     }
+
+    private static readonly string[] data_channels = new[]
+      {
+           "","Up-Sale", "Re-Sale","ลูกค้าขุด","Cross-Sale"
+      };
+
+
 
     private void OnCallActionChange(string value)
     {
@@ -1188,7 +1216,7 @@
             command.Parameters.AddWithValue("@guid", new_activity_ref_guid);
             command.Parameters.AddWithValue("@customer_code", selectedAct.customer_code);
             command.Parameters.AddWithValue("@branch_code", BranchCode ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("@touch_point", model.activities_touch_point ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@touch_point", next_touch_point ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@name", model.activities_name ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@description", model.activities_description ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@startdate", model.appointment_date ?? (object)DBNull.Value);

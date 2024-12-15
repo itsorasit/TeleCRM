@@ -43,6 +43,9 @@
                                 </RadzenStack>
                             </RadzenStack>
                         </RadzenColumn>
+
+                        @if (BranchCode == "000100" || BranchCode == "000700")
+                            {
                         <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
                             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween" Gap="20px">
                                 <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="5px">
@@ -121,7 +124,7 @@
                             <RadzenButton Click=@(args => OnEditCusInfo(CustomerId)) Icon="edit" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.ExtraSmall" />
                             <RadzenButton Click=@(args => OnRefresh(CustomerId)) Icon="refresh" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.ExtraSmall" />
                         </RadzenColumn>
-
+                            }
                     </RadzenRow>
                     <RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnChange>
                         <Tabs>
