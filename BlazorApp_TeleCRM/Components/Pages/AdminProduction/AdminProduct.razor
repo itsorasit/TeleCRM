@@ -36,8 +36,8 @@
                 <RadzenButton Text="รีเฟรช" Icon="refresh" ButtonStyle="ButtonStyle.Info" Click="@OnRefresh" />
 
             </RadzenStack>
-            
-        <RadzenButton Disabled="true" style="width: 200px" Icon="add_circle" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Success" Text="เพิ่มสินค้า" Click=@OpenUpload />
+
+            <RadzenButton style="width: 200px" Icon="add_circle" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Success" Text="เพิ่มสินค้า" Click="@(args => OpenSideDialog(""))" />
     </RadzenStack>
 </RadzenCard>
 
@@ -52,27 +52,29 @@
     PagerPosition="PagerPosition.Bottom"
                 FilterMode="FilterMode.SimpleWithMenu" PageSize="10"
                 SelectionMode="DataGridSelectionMode.Single"
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                 AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
                     AllowSorting="true" ColumnWidth="300px"
                     ShowPagingSummary="true"
                     PageSizeOptions="@pageSizeOptions">
     <Columns>
 
-        <RadzenDataGridColumn Width="60px" Filterable="false" Property="@nameof(MasProductions.production_code)" Title="">
+        <RadzenDataGridColumn Width="25px" Filterable="false" Property="@nameof(MasProductions.production_code)" Title="">
             <Template Context="data">
                 <RadzenButton ButtonStyle="ButtonStyle.Light" Click="@(args => OpenSideDialog(data.guid))" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" />
             </Template>
         </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn Width="100px" Filterable="false" TItem="MasProductions" Property="@nameof(MasProductions.image_url)" Title="">
-            <Template Context="data">
-                <RadzenImage Path="@data.image_url" Style="width: 60px; height: 60px;" class="rz-border-radius-2" AlternateText="" />
+        <RadzenDataGridColumn Width="30px" TextAlign="TextAlign.Center" Filterable="false" TItem="MasProductions" Property="@nameof(MasProductions.image_url)" Title="">
+            <Template Context="data" >
+                    <RadzenImage Path="@data.image_url" class="rz-gravatar" AlternateText="" />
             </Template>
         </RadzenDataGridColumn>
 
         <RadzenDataGridColumn TItem="MasProductions" Property="@nameof(MasProductions.production_code)" Width="100px" Title="รหัสสินค้า" />
         <RadzenDataGridColumn TItem="MasProductions" Property="@nameof(MasProductions.production_name)" Width="180px" Title="ชื่อสินค้า" />
         <RadzenDataGridColumn TItem="MasProductions" Property="@nameof(MasProductions.price)" Width="150px" Title="ราคาสินค้า" />
+        <RadzenDataGridColumn TItem="MasProductions" Property="@nameof(MasProductions.category)" Width="180px" Title="ประเภทสินค้า" />
     </Columns>
 </RadzenDataGrid>
 
@@ -176,34 +178,6 @@
             StateHasChanged(); // บังคับ UI อัปเดต
         }
     }
-
-
-
-    async Task OpenUpload()
-    {
-        if (isDialogOpen)
-        {
-            DialogService.Close();
-            // await Task.Delay(200);
-        }
-        StateHasChanged();
-        await DialogService.OpenSideAsync<DialogCardPageProduct>(
-            "ข้อมูลสินค้า",
-            new Dictionary<string, object>
-                                            {
-            { "OrderID", "New" }
-                                            },
-            new SideDialogOptions
-                {
-                    CloseDialogOnOverlayClick = true,
-                    Position = DialogPosition.Right,
-                    ShowMask = false,
-                    Width = "850px"
-                });
-
-        isDialogOpen = true;
-    }
-
 
 
     async Task OpenSideDialog(string ProductID)

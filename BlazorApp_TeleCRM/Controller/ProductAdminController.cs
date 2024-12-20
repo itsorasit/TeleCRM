@@ -31,10 +31,11 @@ namespace BlazorApp_TeleCRM.Controller
             {
                 await connection.OpenAsync();
 
-                var query = @"SELECT guid, branch_code, production_code, production_name, 
-                     description, image_url, created_by, created_date, modified_by, modified_date, price
-                      FROM mas_productions 
-                      WHERE  branch_code = @branch_code";
+                var query = @"SELECT p.guid, p.branch_code, p.production_code, p.production_name, 
+                p.description, p.image_url, p.created_by, p.created_date, p.modified_by, p.modified_date, p.price ,mc.category_name  
+                FROM mas_productions p
+                left join mas_categorys mc on mc.guid =p.category  
+                WHERE  p.branch_code = @branch_code";
 
                 using (var cmd = new MySqlCommand(query, connection))
                 {
@@ -53,8 +54,9 @@ namespace BlazorApp_TeleCRM.Controller
                             productions.production_name = reader.GetString(reader.GetOrdinal("production_name"));
                             productions.image_url = reader.GetString(reader.GetOrdinal("image_url"));
                             productions.price = decimal.Parse(reader["price"].ToString());
-                               
-                           
+                            productions.category = reader["category_name"].ToString();
+
+
                             product.Add(productions);
                         }
                     }

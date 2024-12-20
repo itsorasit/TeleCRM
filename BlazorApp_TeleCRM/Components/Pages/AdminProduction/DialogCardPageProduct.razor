@@ -18,54 +18,87 @@
 @inject MySqlConnection MySqlConnection
 
 <RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
-    <RadzenCard Variant="Variant.Outlined">
-        <RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnChange>
-            <Tabs>
-                <RadzenTabsItem Text="ข้อมูลสินค้า">
+    <RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnChange>
+        <Tabs>
+            <RadzenTabsItem Text="ข้อมูลสินค้า">
 
-                    <RadzenTemplateForm TItem="MasProductions" Data="@product" Submit="@HandleValidSubmit">
+                <RadzenTemplateForm TItem="MasProductions" Data="@product" Submit="@HandleValidSubmit">
 
 
-                        <div style="margin-top:20px ;text-align: center;">
-                            @if (string.IsNullOrEmpty(product.image_url))
-                            {
-                                <img src="image/system/new.png" width="150px" />
-                            }
-                            else
-                            {
-                                <img src="@product.image_url" width="150px" />
-                            }
-                        </div>
-                        <div style="margin-top:20px">
+                    <div style="margin-top:20px ;text-align: center;">
+                        @if (string.IsNullOrEmpty(product.image_url))
+                        {
+                            <img src="image/system/new.png" width="150px" />
+                        }
+                        else
+                        {
+                            <img src="@product.image_url" width="150px" />
+                        }
+                    </div>
+                    <div style="margin-top:20px">
+
+                        @if (isEdit == true)
+                        {
                             <RadzenLabel Text="รหัสสินค้า" />
+
+                            <span class="rz-messages-error">*</span>
                             <RadzenTextBox style="display: block;width: 100%" @bind-Value="product.production_code" Name="code" Disabled="true" />
                             <RadzenRequiredValidator Component="code" Text="ใส่รหัสสินค้า" Style="position: absolute" />
-                        </div>
-                        <div style="margin-top:20px">
-                            <RadzenLabel Text="ชื่อสินค้า" />
-                            <RadzenTextBox style="display: block;width: 100%" @bind-Value="product.production_name" Name="name" class="w-100" />
-                            <RadzenRequiredValidator Component="name" Text="ใส่ชื่อสินค้า" Style="position: absolute" />
-                        </div>
-                        <div style="margin-top:20px">
-                            <RadzenLabel Text="ราคา" />
-                            <RadzenNumeric TValue="decimal" Format="c" @bind-Value="product.price" Name="price" class="w-100" />
-                            <RadzenRequiredValidator Component="price" Text="ใส่ราคา" Style="position: absolute" /> 
-                        </div>
-                        <div style="margin-top:20px">
-                            <RadzenLabel Text="อัปโหลดรูปภาพสินค้า" />
-                            <InputFile OnChange="@UploadFile" />
-                        </div>
-                        <div style="margin-top:20px">
-                            <RadzenButton Text="บันทึก" Style="margin-top: 10px;" ButtonType="ButtonType.Submit" />
-                        </div>
-                    </RadzenTemplateForm>
+                        }
+                        else
+                        {
+                            <RadzenLabel Text="รหัสสินค้า" />
+                            <span class="rz-messages-error">*</span>
+                            <RadzenTextBox style="display: block;width: 100%" @bind-Value="product.production_code" Name="code" />
+                            <RadzenRequiredValidator Component="code" Text="ใส่รหัสสินค้า" Style="position: absolute" />
+                        }
+
+                    </div>
+                    <div style="margin-top:20px">
+                        <RadzenLabel Text="ชื่อสินค้า" /><span class="rz-messages-error">*</span>
+                        <RadzenTextBox style="display: block;width: 100%" @bind-Value="product.production_name" Name="name" class="w-100" />
+                        <RadzenRequiredValidator Component="name" Text="ใส่ชื่อสินค้า" Style="position: absolute" />
+                    </div>
+                    <div style="margin-top:20px">
+                        <RadzenLabel Text="ประเภทสินค้า" /><span class="rz-messages-error">*</span>
+                        <RadzenDropDown @ref=@radzenDropDown
+                                        @bind-SearchText=@SearchText
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                        FilterOperator="StringFilterOperator.StartsWith"
+                                        AllowFiltering="true"
+                                        Data="@categorys"
+                                        TextProperty="category_name"
+                                        ValueProperty="guid"
+                                        AllowClear="true"
+                                        @bind-Value=@product.category
+                                        Name="category" class="w-100" style="display: block;width: 100%" />
+                        <RadzenRequiredValidator Component="category" Text="ใส่ประเภทสินค้า" Style="position: absolute" />
+                    </div>
+                    <div style="margin-top:20px">
+                        <RadzenLabel Text="ราคา" />
+                        <RadzenNumeric TValue="decimal" Format="c" @bind-Value="product.price" Name="price" class="w-100" />
+                        <RadzenRequiredValidator Component="price" Text="ใส่ราคา" Style="position: absolute" />
+                    </div>
+                    <div style="margin-top:20px">
+                        <RadzenLabel Text="อัปโหลดรูปภาพสินค้า" />
+                        <InputFile OnChange="@UploadFile" />
+                    </div>
+
+                    <div style="margin-top:20px">
+                        <RadzenLabel Text="Tag" /><span> ใช้เครื่องหมาย "," ในการแบ่ง  </span>
+                        <RadzenTextArea @bind-Value="product.tags" Name="tags" Style="width: 100%" aria-label="TextArea with placeholder" />
+                    </div>
+
+                    <div style="margin-top:20px">
+                        <RadzenButton Text="บันทึก" Style="margin-top: 10px;" ButtonType="ButtonType.Submit" />
+                    </div>
+                </RadzenTemplateForm>
 
 
-                 
-                </RadzenTabsItem>
-            </Tabs>
-        </RadzenTabs>
-    </RadzenCard>
+
+            </RadzenTabsItem>
+        </Tabs>
+    </RadzenTabs>
 </RadzenStack>
 
 
@@ -84,6 +117,11 @@
 
     private RadzenTemplateForm<MasProductions> form;
 
+    private List<MasCategorys> categorys = new();
+    private string SearchText { get; set; }
+    private RadzenDropDown<string> radzenDropDown;
+    private string Filtering_Value = "";
+
 
 
 
@@ -92,12 +130,15 @@
 
         if (string.IsNullOrEmpty(ProductID))
         {
-            ///   await SaveBranchAsync(branch);
-            //   branch = new MasProductions();
+            product.guid = Guid.NewGuid().ToString();
+            product.branch_code = BranchCode;
+
+            await SaveProductAsync(product);
+            product = new MasProductions();
         }
         else
         {
-         
+
             await UpdateProductAsync(product);
         }
     }
@@ -130,16 +171,34 @@
     {
         await base.OnParametersSetAsync();
 
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            username = user.Identity.Name;
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+        }
+        else
+        {
+            username = "";
+            BranchCode = "";
+        }
+
+        categorys = await GetCategorysAsync();
+
         if (!string.IsNullOrEmpty(ProductID))
         {
             isEdit = true;
-
             var b = await LoadData(ProductID);
             product.guid = b.guid;
             product.production_code = b.production_code;
             product.production_name = b.production_name;
             product.image_url = b.image_url;
             product.price = b.price;
+            product.category = b.category;
+            product.tags = b.tags;
         }
 
     }
@@ -156,6 +215,55 @@
 
     }
 
+    private async Task SaveProductAsync(MasProductions p)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(p.image_url))
+            {
+                p.image_url = "image/system/new.png";
+            }
+
+            await MySqlConnection.OpenAsync();
+
+            using var command = new MySqlCommand(
+                 @"INSERT INTO mas_productions
+         (guid, branch_code, production_code, production_name, description, image_url, created_by, created_date, price, category, tags)
+         VALUES (@guid, @branch_code, @production_code, @production_name, @description, @image_url, @created_by, @created_date, @price, @category, @tags)",
+                MySqlConnection);
+
+
+            
+
+            // Map Parameters
+            command.Parameters.AddWithValue("@guid", p.guid);
+            command.Parameters.AddWithValue("@branch_code", p.branch_code);
+            command.Parameters.AddWithValue("@production_code", p.production_code);
+            command.Parameters.AddWithValue("@production_name", p.production_name);
+            command.Parameters.AddWithValue("@description", p.description);
+            command.Parameters.AddWithValue("@image_url", p.image_url);
+            command.Parameters.AddWithValue("@created_by", username);
+            command.Parameters.AddWithValue("@created_date", DateTime.Now);
+            command.Parameters.AddWithValue("@price", p.price);
+            command.Parameters.AddWithValue("@category", p.category);
+            command.Parameters.AddWithValue("@tags", p.tags);
+
+            await command.ExecuteNonQueryAsync();
+
+            NotificationService.Notify(NotificationSeverity.Success, "สำเร็จ", "อัปเดตข้อมูลสำเร็จ");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Error saving product: {ex.Message}");
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+    }
+
+
+
     private async Task UpdateProductAsync(MasProductions data)
     {
         try
@@ -171,9 +279,8 @@
 
             using var command = new MySqlCommand(
              @"UPDATE mas_productions SET  production_code=@production_code, production_name=@production_name,
-             image_url=@image_url, modified_by=@modified_by, modified_date=@modified_date, price=@price
-WHERE guid=@guid",
-                MySqlConnection);
+             image_url=@image_url, modified_by=@modified_by, modified_date=@modified_date, price=@price ,category=@category
+             ,tags=@tags WHERE guid=@guid", MySqlConnection);
 
             command.Parameters.AddWithValue("@production_code", data.production_code);
             command.Parameters.AddWithValue("@production_name", data.production_name);
@@ -182,6 +289,8 @@ WHERE guid=@guid",
             command.Parameters.AddWithValue("@modified_by", username);
             command.Parameters.AddWithValue("@modified_date", DateTime.Now);
             command.Parameters.AddWithValue("@guid", data.guid);
+            command.Parameters.AddWithValue("@category", data.category);
+            command.Parameters.AddWithValue("@tags", data.tags);
 
             await command.ExecuteNonQueryAsync();
 
@@ -189,7 +298,7 @@ WHERE guid=@guid",
         }
         catch (Exception ex)
         {
-            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Error saving branch: {ex.Message}");
+            NotificationService.Notify(NotificationSeverity.Error, "Error", $"Error saving Product: {ex.Message}");
         }
         finally
         {
@@ -249,7 +358,7 @@ WHERE guid=@guid",
         string query = @"
         SELECT guid, branch_code, production_code, production_name, 
         description, image_url, created_by,
-        created_date, modified_by, modified_date, price 
+        created_date, modified_by, modified_date, price  ,category ,tags
         FROM mas_productions
         WHERE guid = @guid;
     ";
@@ -276,7 +385,9 @@ WHERE guid=@guid",
                                 production_code = reader["production_code"].ToString(),
                                 production_name = reader["production_name"].ToString(),
                                 price =  Convert.ToDecimal(reader["price"].ToString()),
-                                image_url = reader["image_url"].ToString()
+                                image_url = reader["image_url"].ToString(),
+                                category = reader["category"].ToString(),
+                                tags = reader["tags"].ToString()
                             };
                     }
                 }
@@ -290,6 +401,49 @@ WHERE guid=@guid",
         }
 
         return masProductions;
+    }
+
+    private async Task<List<MasCategorys>> GetCategorysAsync()
+    {
+        var cs = new List<MasCategorys>();
+
+        string query = @"SELECT guid, branch_code, category_name 
+                         FROM mas_categorys where branch_code=@branch_code";
+        try
+        {
+            await MySqlConnection.OpenAsync();
+            // สร้างการเชื่อมต่อกับฐานข้อมูล
+            using (var command = new MySqlCommand(query, MySqlConnection))
+            {
+                command.Parameters.AddWithValue("@branch_code", BranchCode);
+               
+                // ดำเนินการอ่านข้อมูล
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    cs.Add(new MasCategorys
+                        {
+                            guid = "0000000000",
+                            category_name = "ทั่วไป"
+                        });
+
+                    while (await reader.ReadAsync())
+                    {
+                        cs.Add(new MasCategorys
+                            {
+                                guid = reader["guid"].ToString(),
+                                category_name = reader["category_name"].ToString()
+                            });
+                    }
+                }
+
+                await MySqlConnection.CloseAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            await MySqlConnection.CloseAsync();
+        }
+        return cs;
     }
 
 

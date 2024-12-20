@@ -37,54 +37,62 @@
             <RadzenNumeric Min="0" Max="99" @bind-Value=@model.age InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "enter value" }})" Style="width: 100%" />
         </div>
 
-        <div style="margin-top:15px">
-            <RadzenLabel Text="น้ำหนัก" />
-            <RadzenNumeric Min="0" Max="200" @bind-Value=@model.weight InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "enter value" }})" Style="width: 100%" />
-        </div>
+        @if (BranchesConfig.personal == "Nutritional & Dietary")
+        {
+            <div style="margin-top:15px">
+                <RadzenLabel Text="น้ำหนัก" />
+                <RadzenNumeric Min="0" Max="200" @bind-Value=@model.weight InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "enter value" }})" Style="width: 100%" />
+            </div>
+
+            <div style="margin-top:15px">
+                <RadzenLabel Text="โรคประจำตัว" />
+                <RadzenTextBox @bind-Value=@model.chronic_disease Style="width: 100%" />
+            </div>
+
+            <div style="margin-top:15px">
+                <RadzenLabel Text="ยาที่ทานประจำ" />
+                <RadzenTextBox @bind-Value=@model.regular_medication Style="width: 100%" />
+            </div>
+
+            <div style="margin-top:15px">
+                <RadzenLabel Text="แพ้ยา" />
+                <RadzenTextBox @bind-Value=@model.drug_allergy Style="width: 100%" />
+            </div>
+
+            <div style="margin-top:15px">
+                <RadzenLabel Text="แพ้อาหาร" />
+                <RadzenTextBox @bind-Value=@model.food_allergy Style="width: 100%" />
+            </div>
+
+            <div style="margin-top:15px">
+                <b>คนในครอบครัว</b>
+                <RadzenLabel Text="ความดันโลหิตสูง" />
+                <RadzenCheckBox @bind-Value=@model.hypertension Name="CheckBox1" />
+
+                <RadzenLabel Text="เบาหวาน" />
+                <RadzenCheckBox @bind-Value=@model.diabetes Name="CheckBox2" />
+
+                <RadzenLabel Text="ไขมันในเลือดสูง" />
+                <RadzenCheckBox @bind-Value=@model.hyperlipidemia Name="CheckBox3" />
+
+                <RadzenLabel Text="หัวใจ" />
+                <RadzenCheckBox @bind-Value=@model.heart_disease Name="CheckBox4" />
+
+                <RadzenLabel Text="หลอดเลือดสมอง" />
+                <RadzenCheckBox @bind-Value=@model.stroke Name="CheckBox5" />
+            </div>
+
+            <div style="margin-top:15px">
+                <RadzenLabel Text="มะเร็ง" />
+                <RadzenTextBox @bind-Value=@model.cancer Style="width: 100%" />
+            </div>
+        }
 
         <div style="margin-top:15px">
-            <RadzenLabel Text="โรคประจำตัว" />
-            <RadzenTextBox @bind-Value=@model.chronic_disease Style="width: 100%" />
+            <RadzenLabel Text="ความชอบ" /><span> ใช้เครื่องหมาย "," ในการแบ่ง  </span>
+            <RadzenTextArea @bind-Value="@model.interests" Name="interests" Style="width: 100%" aria-label="TextArea with placeholder" />
         </div>
 
-        <div style="margin-top:15px">
-            <RadzenLabel Text="ยาที่ทานประจำ" />
-            <RadzenTextBox @bind-Value=@model.regular_medication Style="width: 100%" />
-        </div>
-
-        <div style="margin-top:15px">
-            <RadzenLabel Text="แพ้ยา" />
-            <RadzenTextBox @bind-Value=@model.drug_allergy Style="width: 100%" />
-        </div>
-
-        <div style="margin-top:15px">
-            <RadzenLabel Text="แพ้อาหาร" />
-            <RadzenTextBox @bind-Value=@model.food_allergy Style="width: 100%" />
-        </div>
-
-
-        <div style="margin-top:15px">
-            <b>คนในครอบครัว</b>
-            <RadzenLabel Text="ความดันโลหิตสูง" />
-            <RadzenCheckBox @bind-Value=@model.hypertension Name="CheckBox1" />
-
-            <RadzenLabel Text="เบาหวาน" />
-            <RadzenCheckBox @bind-Value=@model.diabetes Name="CheckBox2" />
-
-            <RadzenLabel Text="ไขมันในเลือดสูง" />
-            <RadzenCheckBox @bind-Value=@model.hyperlipidemia Name="CheckBox3" />
-
-            <RadzenLabel Text="หัวใจ" />
-            <RadzenCheckBox @bind-Value=@model.heart_disease Name="CheckBox4" />
-
-            <RadzenLabel Text="หลอดเลือดสมอง" />
-            <RadzenCheckBox @bind-Value=@model.stroke Name="CheckBox5" />
-        </div>
-
-        <div style="margin-top:15px">
-            <RadzenLabel Text="มะเร็ง" />
-            <RadzenTextBox @bind-Value=@model.cancer Style="width: 100%" />
-        </div>
 
         <div style="margin-top:15px">
             <RadzenButton Text="บันทึก" Style="margin-top: 10px;" ButtonType="ButtonType.Submit" />
@@ -104,6 +112,9 @@
     private IEnumerable<string> _BranchCode;
     private string username;
 
+    private MasBranches BranchesConfig = new();
+
+
     public class Model
     {
         public string? guid { get; set; }
@@ -120,6 +131,7 @@
         public bool? heart_disease { get; set; }
         public bool? stroke { get; set; }
         public string? cancer { get; set; }
+        public string? interests { get; set; }
     }
 
     protected override async Task OnParametersSetAsync()
@@ -140,6 +152,7 @@
             BranchCode = "";
         }
 
+        BranchesConfig = await GetBranchesConfigAsync();
 
         model = (await LoadPersonal_infoDataEdit(GUID)) ?? new Model();
 
@@ -154,7 +167,7 @@
     private async Task HandleValidSubmit()
     {
         var confirmed = await dialogService.Confirm("คุณต้องการบันทึกข้อมูลนี้หรือไม่?", "ยืนยัน",
-           new ConfirmOptions() {  OkButtonText = "Yes", CancelButtonText = "No", Draggable = true });
+           new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No", Draggable = true });
 
         if (confirmed.HasValue && confirmed.Value)
         {
@@ -167,7 +180,7 @@
             else
             {
                 await SaveUserAsync(model);
-              //  model = new Model();
+                //  model = new Model();
             }
         }
 
@@ -188,9 +201,9 @@
 
             using var command = new MySqlCommand(@"
             INSERT INTO personal_info
-            (guid, birth_date, branch_code, age, weight, chronic_disease, regular_medication, drug_allergy, food_allergy, hypertension, diabetes, hyperlipidemia, heart_disease, stroke, cancer, modified_by, modified_at)
+            (guid, birth_date, branch_code, age, weight, chronic_disease, regular_medication, drug_allergy, food_allergy, hypertension, diabetes, hyperlipidemia, heart_disease, stroke, cancer, modified_by, modified_at ,interests)
             VALUES
-            (@guid, @birth_date, @branch_code, @age, @weight, @chronic_disease, @regular_medication, @drug_allergy, @food_allergy, @hypertension, @diabetes, @hyperlipidemia, @heart_disease, @stroke, @cancer, @modified_by, @modified_at)",
+            (@guid, @birth_date, @branch_code, @age, @weight, @chronic_disease, @regular_medication, @drug_allergy, @food_allergy, @hypertension, @diabetes, @hyperlipidemia, @heart_disease, @stroke, @cancer, @modified_by, @modified_at ,@interests)",
                 MySqlConnection);
 
             command.Parameters.AddWithValue("@guid", GUID);
@@ -210,6 +223,7 @@
             command.Parameters.AddWithValue("@cancer", string.IsNullOrEmpty(u.cancer) ? (object)DBNull.Value : u.cancer);
             command.Parameters.AddWithValue("@modified_by", username);
             command.Parameters.AddWithValue("@modified_at", DateTime.Now);
+            command.Parameters.AddWithValue("@interests", string.IsNullOrEmpty(u.interests) ? (object)DBNull.Value : u.interests);
 
             await command.ExecuteNonQueryAsync();
 
@@ -248,7 +262,8 @@
                 stroke=@stroke,
                 cancer=@cancer,
                 modified_by=@modified_by,
-                modified_at=@modified_at
+                modified_at=@modified_at,
+                interests = @interests
             WHERE guid=@guid
         ", MySqlConnection);
 
@@ -269,6 +284,8 @@
             command.Parameters.AddWithValue("@cancer", string.IsNullOrEmpty(u.cancer) ? (object)DBNull.Value : u.cancer);
             command.Parameters.AddWithValue("@modified_by", username);
             command.Parameters.AddWithValue("@modified_at", DateTime.Now);
+            command.Parameters.AddWithValue("@interests", string.IsNullOrEmpty(u.interests) ? (object)DBNull.Value : u.interests);
+
 
             await command.ExecuteNonQueryAsync();
 
@@ -292,7 +309,7 @@
             await MySqlConnection.OpenAsync();
 
             using var command = new MySqlCommand(
-                                        @"SELECT COUNT(*) AS personal_info_count
+                                            @"SELECT COUNT(*) AS personal_info_count
               FROM personal_info
               WHERE guid = @guid and branch_code = @branch_code  ", MySqlConnection);
 
@@ -326,7 +343,7 @@
     {
         string query = @"
         SELECT guid, birth_date, branch_code, age, weight, chronic_disease, regular_medication, drug_allergy, food_allergy,
-               hypertension, diabetes, hyperlipidemia, heart_disease, stroke, cancer, modified_by, modified_at
+               hypertension, diabetes, hyperlipidemia, heart_disease, stroke, cancer, modified_by, modified_at ,interests
         FROM personal_info
         WHERE guid = @guid";
         Model m = null;
@@ -357,7 +374,8 @@
                                 hyperlipidemia = reader.GetBoolean(reader.GetOrdinal("hyperlipidemia")),
                                 heart_disease = reader.GetBoolean(reader.GetOrdinal("heart_disease")),
                                 stroke = reader.GetBoolean(reader.GetOrdinal("stroke")),
-                                cancer = reader.IsDBNull(reader.GetOrdinal("cancer")) ? null : reader["cancer"].ToString()
+                                cancer = reader.IsDBNull(reader.GetOrdinal("cancer")) ? null : reader["cancer"].ToString(),
+                                interests = reader.IsDBNull(reader.GetOrdinal("interests")) ? null : reader["interests"].ToString()
                             };
                     }
                 }
@@ -373,6 +391,47 @@
         }
 
         return m;
+    }
+
+    private async Task<MasBranches> GetBranchesConfigAsync()
+    {
+        var cs = new MasBranches();
+        cs.personal = "General";
+
+        string query = @"SELECT personal FROM mas_branches where code=@branch_code";
+        try
+        {
+            await MySqlConnection.OpenAsync();
+            // สร้างการเชื่อมต่อกับฐานข้อมูล
+            using (var command = new MySqlCommand(query, MySqlConnection))
+            {
+                command.Parameters.AddWithValue("@branch_code", BranchCode);
+
+                // ดำเนินการอ่านข้อมูล
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+
+                        if (string.IsNullOrEmpty(reader["personal"].ToString()))
+                        {
+                            cs.personal = "General";
+                        }
+                        else
+                        {
+                            cs.personal = reader["personal"].ToString();
+                        }
+                    }
+                }
+
+                await MySqlConnection.CloseAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            await MySqlConnection.CloseAsync();
+        }
+        return cs;
     }
 
 }

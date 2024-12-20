@@ -182,7 +182,7 @@
                                     <RadzenText TextStyle="TextStyle.Caption"><b>@model.customer_address1 @model.customer_sub_district @model.customer_district @model.customer_province @model.customer_zipcode</b></RadzenText>
                                 </RadzenStack>
                             </RadzenStack>
-                            @if (BranchCode == "000100" || BranchCode == "000700")
+                            @if (BranchesConfig.personal == "Nutritional & Dietary")
                             {
 
                             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween" Gap="20px">
@@ -269,8 +269,29 @@
                                     <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.cancer</b></RadzenText>
                                 </RadzenStack>
                             </RadzenStack>
+                                <RadzenStack Gap="0px">
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">ความชอบ <span> ใช้เครื่องหมาย "," ในการแบ่ง  </span> </RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.interests</b></RadzenText>
+
+                                </RadzenStack>
                             <RadzenButton Click=@(args => OnEditCusInfo(@model.customer_code)) Icon="edit" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.ExtraSmall" />
                             <RadzenButton Click=@(args => OnRefresh(@model.customer_code)) Icon="refresh" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.ExtraSmall" />
+                            }
+
+                            @if (BranchesConfig.personal == "General")
+                            {
+                                <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                                    <RadzenStack Gap="0px">
+                                        <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">วันเดือนปีเกิด</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.birth_date</b></RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">อายุ</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.age</b></RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">ความชอบ <span> ใช้เครื่องหมาย "," ในการแบ่ง  </span> </RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.interests</b></RadzenText>
+                                    </RadzenStack>
+                                    <RadzenButton Click=@(args => OnEditCusInfo(@model.customer_code)) Icon="edit" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.ExtraSmall" />
+                                    <RadzenButton Click=@(args => OnRefresh(@model.customer_code)) Icon="refresh" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.ExtraSmall" />
+                                </RadzenColumn>
                             }
 
 
@@ -642,6 +663,7 @@
     string next_touch_point = "";
     IEnumerable<string> datachannel;
 
+    private MasBranches BranchesConfig = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -750,6 +772,7 @@
 
             }
 
+            BranchesConfig = await GetBranchesConfigAsync();
             model_Personal = (await LoadPersonal_infoData(selectedAct.customer_code)) ?? new ModelPersonal_info();
 
 
@@ -828,8 +851,6 @@
            "","Up-Sale", "Re-Sale","ลูกค้าขุด","Cross-Sale"
       };
 
-
-
     private void OnCallActionChange(string value)
     {
         if (model.call_status == "รับสาย" && value == "ขายได้")
@@ -845,8 +866,6 @@
             model.sale_amount = 0;
         }
     }
-
-
 
     public async Task<IEnumerable<JobDataList>> FetchCustomerDataAsync(string Guid)
     {
@@ -967,9 +986,6 @@
         }
     }
 
-
-
-
     private void OnInvalidSubmit()
     {
 
@@ -980,12 +996,10 @@
 
     }
 
-
     void OnChange(int index)
     {
 
     }
-
 
     private async Task OnSubmit()
     {
@@ -999,8 +1013,6 @@
         notes = await FetchCrmNotesDataAsync(selectedAct.customer_code);
         selectenote = new List<CrmNote>() { notes.FirstOrDefault() };
     }
-
-
 
     private async Task ConfirmSubmit()
     {
@@ -1018,7 +1030,6 @@
         }
 
     }
-
 
     private async Task UpdateBatchToDatabaseWithTransaction()
     {
@@ -1153,8 +1164,6 @@
 
     private async Task UpdateNote()
     {
-
-
         DateTime today = DateTime.Now;
 
         await MySqlConnection.OpenAsync();
@@ -1194,8 +1203,6 @@
             model2.note = "";
         }
     }
-
-
 
     private async Task SaveBatchToDatabaseWithTransaction(string new_activity_ref_guid, string old_activity_guid)
     {
@@ -1374,12 +1381,11 @@
         }
     }
 
-
     public async Task<ModelPersonal_info> LoadPersonal_infoData(string guid)
     {
         string query = @"
         SELECT guid, birth_date, branch_code, age, weight, chronic_disease, regular_medication, drug_allergy, food_allergy,
-               hypertension, diabetes, hyperlipidemia, heart_disease, stroke, cancer, modified_by, modified_at
+               hypertension, diabetes, hyperlipidemia, heart_disease, stroke, cancer, modified_by, modified_at ,interests 
         FROM personal_info
         WHERE guid = @guid";
         ModelPersonal_info m = null;
@@ -1410,7 +1416,8 @@
                                 hyperlipidemia = reader.GetBoolean(reader.GetOrdinal("hyperlipidemia")),
                                 heart_disease = reader.GetBoolean(reader.GetOrdinal("heart_disease")),
                                 stroke = reader.GetBoolean(reader.GetOrdinal("stroke")),
-                                cancer = reader.IsDBNull(reader.GetOrdinal("cancer")) ? null : reader["cancer"].ToString()
+                                cancer = reader.IsDBNull(reader.GetOrdinal("cancer")) ? null : reader["cancer"].ToString(),
+                                interests = reader.IsDBNull(reader.GetOrdinal("interests")) ? null : reader["interests"].ToString()
                             };
                     }
                 }
@@ -1427,7 +1434,6 @@
 
         return m;
     }
-
 
     async Task OnEditCusInfo(string id)
     {
@@ -1447,13 +1453,11 @@
 
     }
 
-
     private async Task OnRefresh(string guid)
     {
         model_Personal = (await LoadPersonal_infoData(model.customer_code)) ?? new ModelPersonal_info();
         StateHasChanged();
     }
-
 
     public class ModelPersonal_info
     {
@@ -1471,6 +1475,49 @@
         public bool? heart_disease { get; set; }
         public bool? stroke { get; set; }
         public string? cancer { get; set; }
+        public string? interests { get; set; }
+
+    }
+
+    private async Task<MasBranches> GetBranchesConfigAsync()
+    {
+        var cs = new MasBranches();
+        cs.personal = "General";
+
+        string query = @"SELECT personal FROM mas_branches where code=@branch_code";
+        try
+        {
+            await MySqlConnection.OpenAsync();
+            // สร้างการเชื่อมต่อกับฐานข้อมูล
+            using (var command = new MySqlCommand(query, MySqlConnection))
+            {
+                command.Parameters.AddWithValue("@branch_code", BranchCode);
+
+                // ดำเนินการอ่านข้อมูล
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+
+                        if (string.IsNullOrEmpty(reader["personal"].ToString()))
+                        {
+                            cs.personal = "General";
+                        }
+                        else
+                        {
+                            cs.personal = reader["personal"].ToString();
+                        }
+                    }
+                }
+
+                await MySqlConnection.CloseAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            await MySqlConnection.CloseAsync();
+        }
+        return cs;
     }
 
 }
