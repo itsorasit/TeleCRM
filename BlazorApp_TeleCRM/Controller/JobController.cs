@@ -43,13 +43,8 @@ namespace BlazorApp_TeleCRM.Controller
 
                 var query = "";
 
-                if (searchCriteria.fdate == null || searchCriteria.ldate == null)
-                {
-
-                }
-                else
-                {
-                    query = @"SELECT 
+                #region
+                query = @"SELECT 
     ca.guid, 
     ca.customer_code, 
     ca.branch_code, 
@@ -92,15 +87,15 @@ LEFT JOIN
      FROM crm_contact_logs) cl ON cl.customer_id = ca.customer_code AND cl.rn = 1
                     WHERE ca.branch_code = @branch_code
                     AND ca.assign_work = @assign_work
-                    AND DATE(@ToDate) between DATE(ca.startdate) and DATE(ca.duedate) 
                     AND DATE(ca.startdate) <= DATE(@ToDate)
+                    AND DATE(ca.duedate)   >=  DATE(@FromDate)
                     ORDER BY ca.startdate";
 
-                }
+                #endregion
 
-                  //  AND DATE(@ToDate) between DATE(ca.startdate) and DATE(ca.duedate)
-                 //   AND DATE(ca.startdate) <= DATE(@ToDate)
-                 //   ORDER BY ca.startdate";
+                //  AND DATE(@ToDate) between DATE(ca.startdate) and DATE(ca.duedate)
+                //   AND DATE(ca.startdate) <= DATE(@ToDate)
+                //   ORDER BY ca.startdate";
 
 
                 /*
@@ -787,6 +782,7 @@ LEFT JOIN
             public DateTime? ldate { get; set; }
             public string? branch_code { get; set; }
             public string? assign_work { get; set; }
+            public string? filtering_type { get; set; }
         }
 
 

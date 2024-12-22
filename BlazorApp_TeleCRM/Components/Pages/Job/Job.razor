@@ -1,6 +1,7 @@
 ﻿@page "/job"
 @using BlazorApp_TeleCRM.Data
 @using System.Security.Claims
+@using BlazorApp_TeleCRM.Service
 @using Microsoft.AspNetCore.Components.Authorization
 @using MySql.Data.MySqlClient
 @inject IConfiguration Configuration
@@ -9,7 +10,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject MySqlConnection MySqlConnection
 @inject NotificationService NotificationService
-
+@inject ITimeZoneService TimeZoneService
 
 <PageTitle>My Job</PageTitle>
 
@@ -40,11 +41,11 @@
                     </RadzenColumn>
                     <RadzenColumn>
                         <RadzenLabel Text="วันที่ " Component="RadzenDatePickerBindValue" />
-                        <RadzenDatePicker @bind-Value="CreateDateFrom" Name="CreateDateFrom" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
+                        <RadzenDatePicker @bind-Value="CreateDateFrom" Name="CreateDateFrom" Disabled="@usedate" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
                     </RadzenColumn>
                     <RadzenColumn>
                         <RadzenLabel Text="ถึงวันที่ " Component="RadzenDatePickerBindValue" />
-                        <RadzenDatePicker @bind-Value="CreateDateTo" Name="CreateDateTo" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
+                        <RadzenDatePicker @bind-Value="CreateDateTo" Name="CreateDateTo" Disabled="@usedate" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
                     </RadzenColumn>
                     <RadzenColumn Size="3">
                         <br />
@@ -138,6 +139,10 @@
         <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="@count_completed.ToString()" class="rz-ms-2" />
     </RadzenButton>
 
+    <RadzenButton Variant="Variant.Outlined" ButtonStyle="ButtonStyle.Info" Click=@(() => OnSearch_Sale())>
+        ปิดการขาย
+        <RadzenBadge  BadgeStyle="BadgeStyle.Info" Text="@count_sale.ToString()" class="rz-ms-2" />
+    </RadzenButton>
 </RadzenStack>
 
 <RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
@@ -148,18 +153,20 @@
                 FilterMode="FilterMode.SimpleWithMenu" PageSize="10"
                 SelectionMode="DataGridSelectionMode.Single"
                 @bind-Value=@selectedAct
+                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                AllowColumnPicking="true"
                 AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
                 AllowSorting="true" ColumnWidth="300px"
                 ShowPagingSummary="true"
                 PageSizeOptions="@pageSizeOptions">
     <Columns>
-        <RadzenDataGridColumn Width="100px" Filterable="false" Property="JobID" Title="">
+        <RadzenDataGridColumn Width="55px" TextAlign="TextAlign.Center" Filterable="false" Property="JobID" Title="">
             <Template Context="data">
                 <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" Click=@(() => OpenSideDialog(data.guid)) />
             </Template>
         </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn Width="160px" Property="act_status" Title="ความคืบหน้า">
+        <RadzenDataGridColumn Width="140px" Property="act_status" Title="ความคืบหน้า">
             <Template Context="data">
 
                 @if (data.act_status == "สำเร็จ")
@@ -186,7 +193,7 @@
             </Template>
         </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.touch_point)" Width="180px" Title="Touch Point" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.touch_point)" Width="120px" Title="Touch Point" />
 
         <RadzenDataGridColumn Width="100px" Filterable="false" Property="product_code" Title="สินค้า">
             <Template Context="data">
@@ -197,19 +204,17 @@
             </Template>
         </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.call_status)" Width="180px" Title="สถานะการโทร" />
-        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.call_action)" Width="180px" Title="สถานะการสนทนา" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.call_status)" Width="130px" Title="สถานะการโทร" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.call_action)" Width="130px" Title="สถานะการสนทนา" />
         <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.customer_name)" Width="180px" Title="ชื่อลูกค้า" />
-        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.customer_phone)" Width="150px" Title="เบอร์ลูกค้า" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.customer_phone)" Width="120px" Title="เบอร์ลูกค้า" />
         <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.customer_province)" Width="120px" Title="จังหวัด" />
-        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.assign_work)" Width="150px" Title="พนักงานติดต่อ" />
-        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.startdate)" Width="180px" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Title="วันที่ติดต่อลูกค้า" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.assign_work)" Visible="false" Width="150px" Title="พนักงานติดต่อ" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.startdate)" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Title="วันที่ติดต่อลูกค้า" />
         <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.contact_created_by)" Width="150px" Title="พนักงานติดต่อครั้งก่อน" />
-        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.contact_created_at)" Width="180px" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Title="วันที่ติดต่อครั้งก่อน" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.contact_created_at)" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Title="วันที่ติดต่อครั้งก่อน" />
         <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.contact_result2)" Width="150px" Title="ผลตอบรับครั้งก่อน" />
-
-
-        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.startdate)" Width="180px" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Title="วันที่มอบหมายงาน" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.startdate)" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Title="วันที่มอบหมายงาน" />
         <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.remark)" Title="หมายเหตุ" />
     </Columns>
 </RadzenDataGrid>
@@ -221,6 +226,9 @@
     private int count_CrossSale = 0;
     private int count_x = 0;
     private int count_completed = 0;
+    private int count_sale = 0;
+
+    bool usedate = true;
 
     bool runProcess_wait = false;
     bool isDialogOpen = false;
@@ -259,7 +267,7 @@
     IEnumerable<string> dataFiltering_main;
     private static readonly string[] Filterings_main = new[]
       {
-           "งานวันนี้","งานประจำเดือน","งานตกค้างทั้งหมด","งานทั้งหมด"
+           "งานวันนี้","งานประจำเดือนนี้","งานประจำเดือนเดือนที่แล้ว","งานตกค้างทั้งหมด","งานทั้งหมด","ค้นเอง"
       };
 
 
@@ -280,16 +288,78 @@
         }
     }
 
-    private void OnCallKeyChange2(string value)
+    private async void OnCallKeyChange2(string value)
     {
-       
+        usedate = false;
+        var today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+
+        if (value == "งานวันนี้")
+        {
+            usedate = true;
+            CreateDateFrom = today.Date;
+            CreateDateTo = today.Date;
+            await OnSearch();
+        }
+        if (value == "งานประจำเดือนนี้")
+        {
+            usedate = true;
+            // วันแรกของเดือน
+            var startOfMonth = new DateTime(today.Year, today.Month, 1);
+            // วันสุดท้ายของเดือน = วันแรกของเดือนถัดไป - 1 วัน
+            var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+            CreateDateFrom = startOfMonth;
+            CreateDateTo = endOfMonth;
+            await OnSearch();
+        }
+
+        if (value == "งานประจำเดือนเดือนที่แล้ว")
+        {
+            usedate = true;
+            // เลือกข้อมูลตามเดือนที่แล้ว
+            var lastMonth = today.AddMonths(-1);
+
+            // วันแรกของเดือนที่แล้ว
+            var startOfLastMonth = new DateTime(lastMonth.Year, lastMonth.Month, 1);
+
+            // วันสุดท้ายของเดือนที่แล้ว
+            var endOfLastMonth = startOfLastMonth.AddMonths(1).AddDays(-1);
+
+            CreateDateFrom = startOfLastMonth;
+            CreateDateTo = endOfLastMonth;
+            await OnSearch();
+        }
+
+        if (value == "งานตกค้างทั้งหมด")
+        {
+            usedate = true;
+            // ย้อนกลับไป 365 วัน
+            CreateDateFrom = today.AddDays(-365).Date;
+            // สิ้นสุดคือวันนี้
+            CreateDateTo = today.Date;
+            await OnSearch();
+        }
+
+        if (value == "งานทั้งหมด")
+        {
+            usedate = true;
+            // ย้อนกลับไป 365 วัน
+            CreateDateFrom = today.AddDays(-365).Date;
+            // สิ้นสุดคือวันนี้
+            CreateDateTo = today.AddDays(365).Date;
+            await OnSearch();
+        }
+
+        if (value == "ค้นเอง")
+        {
+            usedate = false;
+        }
     }
 
 
 
     private async Task OnSearch()
     {
-        act_data = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo);
+        act_data = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo, Filtering_Key_main);
 
         if (act_data != null && act_data.Any())
         {
@@ -338,7 +408,7 @@
             column1.SetFilterOperator(FilterOperator.StartsWith);
         }
 
-        grid.Reload();
+        await grid.Reload();
     }
 
     private async Task OnSearch_JobCompleted()
@@ -353,17 +423,32 @@
         {
             column1.SetFilterOperator(FilterOperator.IsNotEmpty);
         }
-        grid.Reload();
+        await grid.Reload();
+    }
+
+    private async Task OnSearch_Sale()
+    {
+      
+        var column = grid.ColumnsCollection.Where(c => c.Property == "act_status").FirstOrDefault();
+        if (column != null)
+        {
+            column.SetFilterOperator(FilterOperator.StartsWith);
+            column.SetFilterValue("ปิดการขาย");
+        }
+       await grid.Reload();
     }
 
 
     private async Task OnClear()
     {
 
-        CreateDateFrom = DateTime.Now.Date;
-        CreateDateTo = DateTime.Now.Date;
+        var today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
 
-        act_data = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo);
+        CreateDateFrom = today.Date;
+        CreateDateTo = today.Date;
+
+
+        act_data = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo, Filtering_Key_main);
 
         if (act_data != null && act_data.Any())
         {
@@ -382,14 +467,13 @@
             column1.SetFilterOperator(FilterOperator.IsNotEmpty);
         }
 
-        grid.Reload();
+        await grid.Reload();
         // บังคับให้ UI อัปเดตใหม่
         StateHasChanged();
     }
 
     private async Task OnClear2()
     {
-
         Filtering_Key = "ค้นจากเบอร์ลูกค้า";
         Filtering_Value = "";
         ISKeyDroupDown = false;
@@ -432,8 +516,10 @@
 
         dataFiltering_main = Filterings_main;
 
-        CreateDateFrom = DateTime.Now.Date;
-        CreateDateTo = DateTime.Now.Date;
+        var today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+
+        CreateDateFrom = today.Date;
+        CreateDateTo = today.Date;
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
@@ -454,7 +540,7 @@
         }
 
         // เรียกใช้เมธอด FetchCustomerDataAsync เพื่อดึงข้อมูล
-        act_data = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo);
+        act_data = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo, Filtering_Key_main);
 
         if (act_data != null && act_data.Any())
         {
@@ -481,7 +567,7 @@
 
 
 
-    public async Task<IEnumerable<JobDataList>> FetchJobDataAsync(DateTime? fdate, DateTime? ldate)
+    public async Task<IEnumerable<JobDataList>> FetchJobDataAsync(DateTime? fdate, DateTime? ldate, string filtering_type)
     {
         try
         {
@@ -498,7 +584,8 @@
                 fdate = fdate,
                 ldate = ldate,
                 branch_code = BranchCode,
-                assign_work = username
+                assign_work = username,
+                filtering_type = filtering_type
             };
 
             // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
@@ -511,6 +598,7 @@
                 count_x = 0;
                 count_completed = 0;
                 count_CrossSale = 0;
+                count_sale = 0;
 
                 var jobDataList = await response.Content.ReadFromJsonAsync<IEnumerable<JobDataList>>();
                 if (jobDataList.Count() > 0)
@@ -533,12 +621,19 @@
                         {
                             count_CrossSale++;
                         }
-
                         if (!string.IsNullOrEmpty( i.act_status))
                         {
                             count_completed++;
                         }
 
+                        if (!string.IsNullOrEmpty(i.act_status))
+                        {
+                            if (i.act_status == "ปิดการขาย")
+                            {
+                               count_sale++;
+                            }
+                           
+                        }
                     }
                 }
 
@@ -590,6 +685,7 @@
                 count_x = 0;
                 count_completed = 0;
                 count_CrossSale = 0;
+                count_sale = 0;
 
                 var jobDataList = await response.Content.ReadFromJsonAsync<IEnumerable<JobDataList>>();
                 if (jobDataList.Count() > 0)
@@ -618,6 +714,14 @@
                             count_completed++;
                         }
 
+                        if (!string.IsNullOrEmpty(i.act_status))
+                        {
+                            if (i.act_status == "ปิดการขาย")
+                            {
+                                count_sale++;
+                            }
+
+                        }
                     }
                 }
 
