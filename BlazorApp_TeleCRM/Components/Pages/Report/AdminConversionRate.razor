@@ -17,7 +17,7 @@
             <HeaderTemplate>
                 <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
                     <RadzenIcon Icon="filter_alt" class="rz-me-1" /><b>ข้อมูลวันที่ @lastUpdated.ToString("dd/MM/yyyy HH:mm:ss")</b>
-                    <RadzenButton Click=@(args => OnLoad()) Icon="search" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Primary" />
+                    <RadzenButton Click=@(args => OnLoad()) Icon="search"  ButtonStyle="ButtonStyle.Primary" />
                 </RadzenText>
             </HeaderTemplate>
             <ChildContent>
@@ -86,32 +86,30 @@
 
                                     @if (revenue_total != null)
                                     {
-                                        <RadzenLineSeries  Smooth="true" Data="@revenue_total" CategoryProperty="staff1"
+                                        <RadzenColumnSeries Fill="#89CFEF" Data="@revenue_total" CategoryProperty="staff1"
                                             Title="งานโทรทั้งหมด" LineType="LineType.Solid"
                                                           ValueProperty="count1">
-                                            <RadzenMarkers Fill="#4ABBF3" Visible="true" MarkerType="MarkerType.Square" />
                                             <RadzenSeriesDataLabels />
-                                        </RadzenLineSeries>
+                                        </RadzenColumnSeries>
 
-                                        <RadzenLineSeries Smooth="true" Data="@revenue_total" CategoryProperty="staff1"
+                                        <RadzenColumnSeries Fill="#E2F2D5" Data="@revenue_total" CategoryProperty="staff1"
                                                           Title="ดำเนินการแล้ว" LineType="LineType.Solid"
                                                           ValueProperty="successCount">
-                                            <RadzenMarkers Fill="#61BFBE" Visible="true" MarkerType="MarkerType.Square" />
-                                            <RadzenSeriesDataLabels />
-                                        </RadzenLineSeries>
+                                             <RadzenSeriesDataLabels />
+                                        </RadzenColumnSeries>
 
 
-                                        <RadzenLineSeries Smooth="true"  Data="@revenue_total" CategoryProperty="staff1"
+                                        <RadzenLineSeries  Smooth="true"  Data="@revenue_total" CategoryProperty="staff1"
                                                           Title="Conversion Rate %" LineType="LineType.Dashed"
                                                           ValueProperty="conversionRate">
-                                            <RadzenMarkers Fill="#E25D6E" Visible="true" MarkerType="MarkerType.Square" />
+                                            <RadzenMarkers  Fill="#FF2400" Visible="true" MarkerType="MarkerType.Square" />
                                             <RadzenSeriesDataLabels  />
                                         </RadzenLineSeries>
                                     }
 
 
-                                  
 
+                                    <RadzenColumnOptions Radius="5" />
                                     <RadzenCategoryAxis  LabelAutoRotation="-90"  />
                                     <RadzenValueAxis >
                                         <RadzenGridLines Visible="true" />
@@ -122,43 +120,41 @@
                         </RadzenColumn>
                         <RadzenColumn Size="12">
                             <RadzenStack JustifyContent="JustifyContent.Left">
-                                <RadzenChart style="margin-left:20px; height: 400px; min-width:800px">
+                                <RadzenChart  style="margin-left:20px; height: 400px; min-width:800px">
 
                                     @if (revenue_sale_total != null)
                                     {
-                                        <RadzenLineSeries Smooth="true" Data="@revenue_sale_total" CategoryProperty="staff1"
-                                                          Title="ลูกค้ารับสาย" LineType="LineType.Solid"
-                                                          ValueProperty="count1">
-                                            <RadzenMarkers Fill="#4ABBF3" Visible="true" MarkerType="MarkerType.Square" />
-                                            <RadzenSeriesDataLabels />
-                                        </RadzenLineSeries>
+                                        <RadzenColumnSeries Fill="#89CFEF" Data="@revenue_sale_total" CategoryProperty="staff1"
+                                                            Title="ลูกค้ารับสาย" LineType="LineType.Solid"
+                                                            ValueProperty="count1">
+                                            <RadzenSeriesDataLabels  />
+                                        </RadzenColumnSeries>
 
-                                        <RadzenLineSeries Smooth="true" Data="@revenue_sale_total" CategoryProperty="staff1"
-                                                          Title="ขายได้" LineType="LineType.Solid"
-                                                          ValueProperty="successCount">
-                                            <RadzenMarkers Fill="#61BFBE" Visible="true" MarkerType="MarkerType.Square" />
+                                        <RadzenColumnSeries Fill="#E2F2D5" Data="@revenue_sale_total" CategoryProperty="staff1"
+                                                            Title="ขายได้" LineType="LineType.Solid"
+                                                            ValueProperty="successCount">
+                                            <RadzenMarkers  Visible="true" MarkerType="MarkerType.Square" />
                                             <RadzenSeriesDataLabels />
-                                        </RadzenLineSeries>
+                                        </RadzenColumnSeries>
 
 
                                         <RadzenLineSeries Smooth="true" Data="@revenue_sale_total" CategoryProperty="staff1"
                                                           Title="Conversion Rate %" LineType="LineType.Dashed"
                                                           ValueProperty="conversionRate">
-                                            <RadzenMarkers Fill="#E25D6E" Visible="true" MarkerType="MarkerType.Square" />
+                                            <RadzenMarkers Fill="#FF2400" Visible="true" MarkerType="MarkerType.Square" />
                                             <RadzenSeriesDataLabels />
                                         </RadzenLineSeries>
                                     }
 
 
 
-
+                                    <RadzenColumnOptions Radius="5" />
                                     <RadzenCategoryAxis LabelAutoRotation="-90" />
                                     <RadzenValueAxis>
                                         <RadzenGridLines Visible="true" />
                                         <RadzenAxisTitle Text="ปิดการขาย" />
                                     </RadzenValueAxis>
                                 </RadzenChart>
-                            
                             </RadzenStack>
                         </RadzenColumn>
                     </RadzenRow>
@@ -353,7 +349,7 @@ GROUP BY
                                 staff1 = reader["firstname"].ToString(),
                                 count1 = totalCount,
                                 successCount = successCount,
-                                conversionRate = conversionRate
+                                conversionRate = Math.Round(conversionRate, 2)
                             };
 
                         // 3) จัดการ array ต่อ เช่นใส่ใน revenue_total หรือ Array/List อื่น
@@ -434,7 +430,7 @@ GROUP BY
                                 staff1 = reader["firstname"].ToString(),
                                 count1 = totalCount,
                                 successCount = successCount,
-                                conversionRate = conversionRate
+                                conversionRate = Math.Round(conversionRate, 2)
                             };
 
                         // 3) จัดการ array ต่อ เช่นใส่ใน revenue_sale_total หรือ Array/List อื่น

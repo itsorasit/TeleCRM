@@ -19,56 +19,8 @@
 </div>
 
 
-@* <div class="rz-col-12">
-
-    <RadzenCard Variant="Variant.Outlined" class="rz-info rz-shade-lighte" Style="padding: 1rem;">
-        <strong>ค้นหา</strong>
-        <RadzenRow Gap="1rem" JustifyContent="JustifyContent.Start" Class="rz-mt-2">
-            <RadzenColumn>
-                <RadzenLabel Text="งานวันที่ " Component="RadzenDatePickerBindValue" />
-                <RadzenDatePicker @bind-Value="CreateDateFrom" Name="CreateDateFrom" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
-            </RadzenColumn>
-            <RadzenColumn>
-                <RadzenLabel Text="ถึงวันที่ " Component="RadzenDatePickerBindValue" />
-                <RadzenDatePicker @bind-Value="CreateDateTo" Name="CreateDateTo" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
-            </RadzenColumn>
-            <RadzenColumn Size="3">
-                <br />
-                <RadzenButton Text="ค้นหา" Icon="search" Variant="Variant.Flat" Style="width: 100px; margin-right: 0.5rem;" Click="@OnSearch" />
-                <RadzenButton Text="ล้าง" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Secondary" Style="width: 100px;" Click="@OnClear" />
-            </RadzenColumn>
-        </RadzenRow>
-    </RadzenCard>
 
 
-</div> *@
-
-
-
-@*
-    <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" class="rz-p-1" Gap="2rem">
-    <RadzenButton ButtonStyle="ButtonStyle.Primary" Click=@(() => OnSearch_Touch_point("Up-Sale"))>
-        Up-Sale
-        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="@count_UpSale.ToString()" class="rz-ms-2" />
-    </RadzenButton>
-
-    <RadzenButton ButtonStyle="ButtonStyle.Secondary" Click=@(() => OnSearch_Touch_point("Re-Sale"))>
-        Re-Sale
-        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="@count_ReSale.ToString()" class="rz-ms-2" />
-    </RadzenButton>
-
-    <RadzenButton ButtonStyle="ButtonStyle.Base" Click=@(() => OnSearch_Touch_point("ลูกค้าขุด"))>
-        ลูกค้าขุด
-        <RadzenBadge Variant="Variant.Outlined" Text="@count_x.ToString()" class="rz-ms-2" />
-    </RadzenButton>
-
-    <RadzenButton ButtonStyle="ButtonStyle.Info" Click=@(() => OnSearch_JobCompleted())>
-        จัดการแล้ว
-        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="@count_completed.ToString()" class="rz-ms-2" />
-    </RadzenButton>
-
-</RadzenStack>
- *@
 <RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
     <Template>โหลด</Template>
 </RadzenProgressBarCircular>
@@ -77,9 +29,6 @@
                  TextProperty="Text" SelectedIndex="0"
                  SlotSelect=@OnSlotSelect AppointmentSelect=@OnAppointmentSelect AppointmentRender=@OnAppointmentRender
                  AppointmentMove=@OnAppointmentMove  >
-
-@*     <RadzenDayView   />
-    <RadzenWeekView /> *@
     <RadzenMonthView />
 </RadzenScheduler>
 
