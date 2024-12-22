@@ -40,7 +40,8 @@ namespace BlazorApp_TeleCRM.Models
         public string? product_names { get; set; }
         [NotMapped]
         public string? product_qtys { get; set; }
-
+        [NotMapped]
+        public string? seller { get; set; }
 
     }
 }

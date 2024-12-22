@@ -28,7 +28,7 @@
         <RadzenPanel AllowCollapse="true">
             <HeaderTemplate>
                 <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
-                    <RadzenIcon Icon="filter_alt" class="rz-me-1" /><b>ข้อมูลวันที่ @lastUpdated</b>
+                    <RadzenIcon Icon="filter_alt" class="rz-me-1" /><b>ข้อมูลวันที่ @lastUpdated.ToString("dd/MM/yyyy HH:mm:ss")</b>
                     <RadzenButton Click=@(args => OnLoad()) Icon="search" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Primary" />
                 </RadzenText>
             </HeaderTemplate>

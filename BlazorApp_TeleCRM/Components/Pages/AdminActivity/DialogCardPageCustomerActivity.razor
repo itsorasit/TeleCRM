@@ -18,6 +18,11 @@
 @inject UtilityConvet utility ;
 
 
+<style>
+    .rz-dialog-side {
+        z-index: 10 !important;
+    }
+</style>
 
 
 
@@ -442,7 +447,7 @@
     private async Task ConfirmSubmit()
     {
         var confirmed = await dialogService.Confirm("คุณต้องการบันทึกข้อมูลนี้หรือไม่?", "ยืนยัน",
-            new ConfirmOptions() { Left = "20%", OkButtonText = "Yes", CancelButtonText = "No", Draggable = true });
+            new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No", Draggable = true });
 
         if (confirmed.HasValue && confirmed.Value)
         {
@@ -453,7 +458,7 @@
     private async Task ConfirmCancel()
     {
         var confirmed = await dialogService.Confirm("คุณต้องการยกเลิกข้อมูลนี้หรือไม่?", "ยืนยัน",
-            new ConfirmOptions() { Left = "20%", OkButtonText = "Yes", CancelButtonText = "No", Draggable = true });
+            new ConfirmOptions() {  OkButtonText = "Yes", CancelButtonText = "No", Draggable = true });
 
         if (confirmed.HasValue && confirmed.Value)
         {

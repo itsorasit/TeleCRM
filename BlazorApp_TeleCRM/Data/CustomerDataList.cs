@@ -21,7 +21,8 @@
         public int? count_activity { get; set; }
         public string activity_code { get; set; }
         public DateTime? activity_lastdate { get; set; }
-
         public string? latest_assign_work { get; set; }
+        public string? latest_seller { get; set; }
+        public string? latest_buy { get; set; }
     }
 }

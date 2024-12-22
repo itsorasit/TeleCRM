@@ -15,7 +15,7 @@
     <RadzenPanel AllowCollapse="true">
         <HeaderTemplate>
             <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
-                    <RadzenIcon Icon="filter_alt" class="rz-me-1" /><b>ข้อมูลวันที่ @lastUpdated</b>
+                    <RadzenIcon Icon="filter_alt" class="rz-me-1" /><b>ข้อมูลวันที่ @lastUpdated.ToString("dd/MM/yyyy HH:mm:ss")</b>
                     <RadzenButton Click=@(args => OnLoad()) Icon="search" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Primary" />
               </RadzenText>
         </HeaderTemplate>
@@ -174,6 +174,7 @@
                                                                 CategoryProperty="staff1"
                                                                 Title="รอดำเนินการ"
                                                                 LineType="LineType.Dashed"
+                                                                Fill="#FFD10A" 
                                                                 ValueProperty="count1">
                                             <RadzenSeriesDataLabels Visible="true" />
                                         </RadzenStackedBarSeries>
@@ -184,6 +185,7 @@
                                         <RadzenStackedBarSeries Data="@revenue_oncall1"
                                                                 CategoryProperty="staff1"
                                                                 Title="คุยจบ"
+                                                                Fill="#C0E4F6"
                                                                 LineType="LineType.Dashed"
                                                                 ValueProperty="count1">
                                             <RadzenSeriesDataLabels Visible="true" />
@@ -195,6 +197,7 @@
                                         <RadzenStackedBarSeries Data="@revenue_oncall2"
                                                                 CategoryProperty="staff1"
                                                                 Title="ไม่สะดวก"
+                                                                Fill="#E57A72"
                                                                 LineType="LineType.Dashed"
                                                                 ValueProperty="count1">
                                             <RadzenSeriesDataLabels Visible="true" />
@@ -206,6 +209,7 @@
                                         <RadzenStackedBarSeries Data="@revenue_oncall3"
                                                                 CategoryProperty="staff1"
                                                                 Title="ติดตาม"
+                                                                Fill="#C1F0B4"
                                                                 LineType="LineType.Dashed"
                                                                 ValueProperty="count1">
                                             <RadzenSeriesDataLabels Visible="true" />
@@ -217,6 +221,7 @@
                                         <RadzenStackedBarSeries Data="@revenue_oncall4"
                                                                 CategoryProperty="staff1"
                                                                 Title="ขายได้"
+                                                                Fill="#92CEA8"
                                                                 LineType="LineType.Dashed"
                                                                 ValueProperty="count1">
                                             <RadzenSeriesDataLabels Visible="true" />
@@ -228,6 +233,7 @@
                                         <RadzenStackedBarSeries Data="@revenue_oncall5"
                                                                 CategoryProperty="staff1"
                                                                 Title="ไม่รับสาย"
+                                                                Fill="#A1ACB0"
                                                                 LineType="LineType.Dashed"
                                                                 ValueProperty="count1">
                                             <RadzenSeriesDataLabels Visible="true" />
@@ -238,6 +244,7 @@
                                         <RadzenStackedBarSeries Data="@revenue_oncall6"
                                                                 CategoryProperty="staff1"
                                                                 Title="โทรไม่ติด"
+                                                                Fill="#FAB3AD"
                                                                 LineType="LineType.Dashed"
                                                                 ValueProperty="count1">
                                             <RadzenSeriesDataLabels Visible="true" />
@@ -250,12 +257,7 @@
                                     </RadzenValueAxis>
                                     <RadzenBarOptions Radius="5" Height="40" />
                                 </RadzenChart>
-
                             </RadzenStack>
-                        
-                        @*                         <pre>Revenue Wait: @System.Text.Json.JsonSerializer.Serialize(revenue_wait)</pre>
-                        <pre>Revenue OnCall1: @System.Text.Json.JsonSerializer.Serialize(revenue_oncall1)</pre>
-                        *@
                     </RadzenColumn>
                         <RadzenColumn Size="6">
                             <RadzenStack JustifyContent="JustifyContent.End" >
@@ -268,6 +270,7 @@
                                         <RadzenStackedBarSeries Data="@revenue_oncall1"
                                                                 CategoryProperty="staff1"
                                                                 Title="คุยจบ"
+                                                                Fill="#C0E4F6"
                                                                 LineType="LineType.Dashed"
                                                                 ValueProperty="count1">
                                             <RadzenSeriesDataLabels Visible="true" />
@@ -280,6 +283,7 @@
                                         <RadzenStackedBarSeries Data="@revenue_oncall3"
                                                                 CategoryProperty="staff1"
                                                                 Title="ติดตาม"
+                                                                Fill="#C1F0B4"
                                                                 LineType="LineType.Dashed"
                                                                 ValueProperty="count1">
                                             <RadzenSeriesDataLabels Visible="true" />
@@ -292,6 +296,7 @@
                                                                 CategoryProperty="staff1"
                                                                 Title="ขายได้"
                                                                 LineType="LineType.Dashed"
+                                                                Fill="#92CEA8"
                                                                 ValueProperty="count1">
                                             <RadzenSeriesDataLabels Visible="true" />
                                         </RadzenStackedBarSeries>

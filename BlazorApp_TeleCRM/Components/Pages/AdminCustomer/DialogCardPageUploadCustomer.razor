@@ -218,8 +218,8 @@
                         payment_type = worksheet.Cell(row, 12).GetValue<string>(), //การชำระเงิน
                         product_codes = worksheet.Cell(row, 31).GetValue<string>(), //รหัสสินค้า (SKU)
                         product_names = worksheet.Cell(row, 27).GetValue<string>(), //ชื่อสินค้า
-                        product_qtys = worksheet.Cell(row, 34).GetValue<string>() //จำนวนสินค้า
-
+                        product_qtys = worksheet.Cell(row, 34).GetValue<string>(), //จำนวนสินค้า
+                        seller = worksheet.Cell(row, 48).GetValue<string>() //พนักงานขาย
                     };
 
                 data.Add(employee);
@@ -390,7 +390,8 @@
                             product_names = customers.product_names,
                             product_qtys = customers.product_qtys,
                             modified_by = username,
-                            modified_date = customers.modified_date
+                            modified_date = customers.modified_date,
+                            seller = customers.seller
                         };
 
                     GetGenerateCrmOrder getGenerateCrmOrder = new GetGenerateCrmOrder(Configuration);

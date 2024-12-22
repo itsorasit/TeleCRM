@@ -14,21 +14,29 @@
 @inject NotificationService NotificationService
 
 
+
+<style>
+    .wrap-text {
+        white-space: normal;
+        word-wrap: break-word;
+    }
+</style>
+
 <PageTitle>ข้อมูลรายชื่อลูกค้า</PageTitle>
 
 <AuthorizeView Roles="Admin,Manager,Supervisor">
 
 
-<div class="rz-6">
-    <RadzenBreadCrumb>
-        <RadzenBreadCrumbItem  Text="CRM - Admin" />
-        <RadzenBreadCrumbItem Path="/uploadjob" Text="ข้อมูลลูกค้า" />
-    </RadzenBreadCrumb>
-    <RadzenText TextStyle="TextStyle.DisplayH5">ข้อมูลรายชื่อลูกค้า</RadzenText>
-</div>
+    <div class="rz-6">
+        <RadzenBreadCrumb>
+            <RadzenBreadCrumbItem Text="CRM - Admin" />
+            <RadzenBreadCrumbItem Path="/uploadjob" Text="ข้อมูลลูกค้า" />
+        </RadzenBreadCrumb>
+        <RadzenText TextStyle="TextStyle.DisplayH5">ข้อมูลรายชื่อลูกค้า</RadzenText>
+    </div>
 
 
-    <RadzenPanel  Style="background-color: rgba(255, 255, 255, 0.5); " AllowCollapse="true">
+    <RadzenPanel Style="background-color: rgba(255, 255, 255, 0.5); " AllowCollapse="true">
         <HeaderTemplate>
             <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
                 <b>Filter</b>
@@ -77,7 +85,7 @@
         </ChildContent>
     </RadzenPanel>
 
-    <RadzenPanel  AllowCollapse="true" Collapsed="true"   >
+    <RadzenPanel AllowCollapse="true" Collapsed="true">
         <HeaderTemplate>
             <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
                 <b>Targeted Filter</b>
@@ -93,9 +101,9 @@
                             <RadzenLabel Text="เลือกคำค้นหา" />
                             <RadzenDropDown @bind-Value=@Filtering_Key style="display:block;width:100%"
                                             Data=@dataFiltering Change="@(args => OnCallKeyChange(Filtering_Key))" Name="ddlFiltering" class="w-100" />
-                         </RadzenColumn>
+                        </RadzenColumn>
                         <RadzenColumn Size="3">
-                            <RadzenLabel Text="="  />
+                            <RadzenLabel Text="=" />
                             @if (ISKeyDroupDown == false)
                             {
                                 <RadzenTextBox @bind-Value=@Filtering_Value Name="txtFiltering_Value" Placeholder="" class="w-100" />
@@ -124,75 +132,98 @@
 
                         </RadzenColumn>
                     </RadzenRow>
-         </RadzenCard>
+                </RadzenCard>
             </div>
 
         </ChildContent>
     </RadzenPanel>
 
 
-<RadzenCard Variant="Variant.Outlined" class="rz-my-4">
-    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.SpaceBetween">
-        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
-             <RadzenCheckBox @bind-Value=@allowRowSelectOnRowClick Name="CheckBox1" />
-            <RadzenLabel Text="" Component="CheckBox1" />
+    <RadzenCard Variant="Variant.Outlined" class="rz-my-4">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
+                <RadzenCheckBox @bind-Value=@allowRowSelectOnRowClick Name="CheckBox1" />
+                <RadzenLabel Text="" Component="CheckBox1" />
                 <RadzenButton Icon="clear_all" ButtonStyle="ButtonStyle.Secondary" Variant="Variant.Flat" Click="@(args => selectedCustomer = null)" />
                 <RadzenButton Text="สร้างกิจกรรม" ButtonStyle="ButtonStyle.Info" Click="@OpenSideDialog" />
-                <RadzenButton Text="สร้างแคมเปญ" ButtonStyle="ButtonStyle.Info" Click="@OpenSideDialog2" />
+                <RadzenButton Text="สร้างแคมเปญ" Disabled="true" ButtonStyle="ButtonStyle.Info" Click="@OpenSideDialog2" />
             </RadzenStack>
 
-        <!-- Upload button aligned to the right -->
-        <RadzenButton style="width: 200px" Icon="upload" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Success" Text="อัพโหลดรายชื่อลูกค้า" Click=@OpenUpload />
-    </RadzenStack>
-</RadzenCard>
+            <!-- Upload button aligned to the right -->
+            <RadzenButton style="width: 200px" Icon="upload" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Success" Text="อัพโหลดรายชื่อลูกค้า" Click=@OpenUpload />
+        </RadzenStack>
+    </RadzenCard>
 
     <RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
         <Template>โหลด</Template>
     </RadzenProgressBarCircular>
 
 
-  <RadzenDataGrid @ref="grid" TItem="CustomerDataList" Data="@cus_datas" PagerPosition="PagerPosition.Bottom"
-                 AllowRowSelectOnRowClick="@allowRowSelectOnRowClick"
-                FilterMode="FilterMode.SimpleWithMenu" PageSize="10"
-                SelectionMode="DataGridSelectionMode.Multiple"
-                @bind-Value=@selectedCustomer
-                AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
-                    AllowSorting="true" ColumnWidth="300px" 
-                    ShowPagingSummary="true"
+    <RadzenDataGrid @ref="grid" TItem="CustomerDataList" Data="@cus_datas"
+                    PagerPosition="PagerPosition.Bottom"
+                    AllowRowSelectOnRowClick="@allowRowSelectOnRowClick"
+                    FilterMode="FilterMode.SimpleWithMenu" PageSize="10"
+                    SelectionMode="DataGridSelectionMode.Multiple"
+                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                    @bind-Value=@selectedCustomer
+                    AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
+                    AllowSorting="true" ColumnWidth="300px"
+                    ShowPagingSummary="true" AllowColumnPicking="true"
                     PageSizeOptions="@pageSizeOptions">
-    <Columns>
-        <RadzenDataGridColumn Width="60px" Sortable="false" Filterable="false">
-            <HeaderTemplate>
-                <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
-                                Value="@(selectedCustomer == null || selectedCustomer?.Any() != true ? false : !cus_datas.All(i => selectedCustomer.Contains(i)) ? null : cus_datas.Any(i => selectedCustomer.Contains(i)))"
-                                Change="@(args => selectedCustomer = args == true ? cus_datas.ToList() : null)" />
-            </HeaderTemplate>
-            <Template Context="data">
-                <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(selectedCustomer != null && selectedCustomer.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
-                                TValue="bool" Change=@(args => { if(!allowRowSelectOnRowClick) { grid.SelectRow(data); }}) />
-            </Template>
-        </RadzenDataGridColumn>
+        <Columns>
+            <RadzenDataGridColumn Width="40px" TextAlign="TextAlign.Center" Sortable="false" Filterable="false">
+                <HeaderTemplate>
+                    <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
+                                    Value="@(selectedCustomer == null || selectedCustomer?.Any() != true ? false : !cus_datas.All(i => selectedCustomer.Contains(i)) ? null : cus_datas.Any(i => selectedCustomer.Contains(i)))"
+                                    Change="@(args => selectedCustomer = args == true ? cus_datas.ToList() : null)" />
+                </HeaderTemplate>
+                <Template Context="data">
+                    <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(selectedCustomer != null && selectedCustomer.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
+                                    TValue="bool" Change=@(args => { if(!allowRowSelectOnRowClick) { grid.SelectRow(data); }}) />
+                </Template>
+            </RadzenDataGridColumn>
 
 
-        <RadzenDataGridColumn Width="60px" Filterable="false" Property="@nameof(CustomerDataList.guid)" >
-            <Template Context="data">
+            <RadzenDataGridColumn Width="50px" TextAlign="TextAlign.Center" Filterable="false" Property="@nameof(CustomerDataList.guid)">
+                <Template Context="data">
                     <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" Click=@(() => OpenSideDialogInfo(data.guid)) />
-            </Template>
-        </RadzenDataGridColumn>
+                </Template>
+            </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn TItem="CustomerDataList"  Property="@nameof(CustomerDataList.code)" Width="180px" Title="รหัสลูกค้า" />
-        <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.datasource_platform)" Width="120px" Title="แหล่งข้อมูล" />
-        <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.name)" Width="200px" Title="ชื่อลูกค้า" />
-        <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.phone)" Width="180px" Title="เบอร์โทรศัพท์" />
-        <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.province)" Width="130px" Title="จังหวัด" />
-        <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.count_activity)" Width="100px" Title="กิจกรรม" />
-         <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.activity_code)" Width="250px" Title="กิจกรรมล่าสุด" />
-         <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.latest_assign_work)" Title="มอบหมายให้" Width="150px" />
-         <RadzenDataGridColumn TItem="CustomerDataList"  Property="@nameof(CustomerDataList.modified_by)" Width="180px" Title="ผู้อัพโหลด" />
-        <RadzenDataGridColumn TItem="CustomerDataList"  Property="@nameof(CustomerDataList.modified_date)" Width="180px" Title="อัพโหลดวันที่" />
-     
-    </Columns>
-</RadzenDataGrid>
+            <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.code)" Width="140px" Title="รหัสลูกค้า" />
+            <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.datasource_platform)" Width="100px" Title="แหล่งข้อมูล" />
+            <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.name)" Width="180px" Title="ชื่อลูกค้า" />
+            <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.phone)" Width="120px" Title="เบอร์โทรศัพท์" />
+            <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.province)" Width="130px" Title="จังหวัด" />
+            <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.count_activity)" Width="90px" Title="กิจกรรม" />
+
+
+            <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.activity_code)" Width="150px" Title="กิจกรรมล่าสุด">
+                <Template Context="data">
+                    <div class="wrap-text">
+                        @data.activity_code
+                    </div>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.latest_assign_work)" Title="มอบหมายให้" Width="150px" />
+            <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.modified_by)" Width="100px" Title="ผู้อัพโหลด" />
+            <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.modified_date)" Width="180px" Title="อัพโหลดวันที่" />
+            <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.latest_seller)" Width="180px" Title="ผู้ขาย">
+                <Template Context="data">
+                    <div class="wrap-text">
+                        @data.latest_seller
+                    </div>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.latest_buy)" Width="180px" Title="ซื้อสินค้าล่าสุด">
+                <Template Context="data">
+                    <div class="wrap-text">
+                        @data.latest_buy
+                    </div>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
 
 </AuthorizeView>
 
@@ -208,7 +239,7 @@
 
     bool value1 = false;
 
-    IEnumerable<int> pageSizeOptions = new int[] { 10, 20, 30, 50,100 };
+    IEnumerable<int> pageSizeOptions = new int[] { 10, 20, 30, 50, 100 };
 
     private IEnumerable<CustomerDataList> cus_datas;
     IList<CustomerDataList> selectedCustomer;
@@ -238,6 +269,7 @@
     private List<Assignwork> Assignworks = new();
     private string SearchText { get; set; }
     private RadzenDropDown<string> radzenDropDown;
+
 
 
     protected override async Task OnInitializedAsync()
@@ -300,7 +332,7 @@
         if (string.IsNullOrEmpty(Filtering_Value))
         {
             NotificationService.Notify(NotificationSeverity.Warning,
-                @"แจ้งเตือน Targeted Filter", "กรุณาใส่ข้อมูล : "+Filtering_Key);
+                @"แจ้งเตือน Targeted Filter", "กรุณาใส่ข้อมูล : " + Filtering_Key);
         }
         else
         {
@@ -403,10 +435,10 @@
         await DialogService.OpenSideAsync<DialogCardPageCustomerCreateActivity>(
             "สร้างกิจกรรม",
             new Dictionary<string, object>
-                    {
+                        {
             { "UploadID", "Activity" },
             { "customercode", SelectedCustomerIDs }
-                    },
+                        },
             new SideDialogOptions
                 {
                     CloseDialogOnOverlayClick = true,
@@ -446,10 +478,10 @@
         await DialogService.OpenSideAsync<DialogCardPageCustomerCreateActivity>(
             "สร้างแคมเปญ",
             new Dictionary<string, object>
-                    {
+                        {
             { "UploadID", "Campaign" },
             { "customercode", SelectedCustomerIDs }
-                    },
+                        },
             new SideDialogOptions
                 {
                     CloseDialogOnOverlayClick = true,
@@ -507,7 +539,7 @@
         await connection.OpenAsync();
 
         using MySqlCommand command = new MySqlCommand(
-                @"SELECT id, username, firstname, lastname
+                    @"SELECT id, username, firstname, lastname
             FROM mas_users u WHERE u.organization = @organization AND u.role IN ('User', 'Supervisor')",
             connection);
 
@@ -571,7 +603,7 @@
             StateHasChanged(); // บังคับ UI อัปเดต
         }
     }
-    
+
     public async Task<IEnumerable<CustomerDataList>> FetchCustomerDataTargetedFilterAsync(string key, string value)
     {
         try

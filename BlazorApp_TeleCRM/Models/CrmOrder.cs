@@ -34,6 +34,8 @@
         public string? modified_by { get; set; }
 
         public DateTime? modified_date { get; set; }
+
+        public string? seller { get; set; }
     }
 
 }

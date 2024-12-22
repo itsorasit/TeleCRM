@@ -71,7 +71,17 @@ namespace BlazorApp_TeleCRM.Controller
         Left Join mas_users mu on mu.username = ca_sub.assign_work and mu.organization = ca_sub.branch_code  
         WHERE ca_sub.customer_code = mc.guid  and  ca_sub.branch_code =  mc.branch_code
         ORDER BY ca_sub.created_date DESC 
-        LIMIT 1) AS latest_assign_work
+        LIMIT 1) AS latest_assign_work,
+(SELECT co.seller 
+        FROM crm_orders co 
+        WHERE co.customer_code = mc.phone  and  co.branch_code =  mc.branch_code
+        ORDER BY co.order_date DESC 
+        LIMIT 1) AS latest_seller ,
+(SELECT co.product_names 
+        FROM crm_orders co 
+        WHERE co.customer_code = mc.phone  and  co.branch_code =  mc.branch_code
+        ORDER BY co.order_date DESC 
+        LIMIT 1) AS latest_buy 
 FROM mas_customers mc
 LEFT JOIN crm_activitys ca ON ca.customer_code = mc.guid
 WHERE  mc.branch_code = @branch_code
@@ -124,7 +134,17 @@ GROUP BY mc.guid,
         Left Join mas_users mu on mu.username = ca_sub.assign_work and mu.organization = ca_sub.branch_code  
         WHERE ca_sub.customer_code = mc.guid  and  ca_sub.branch_code =  mc.branch_code
         ORDER BY ca_sub.created_date DESC 
-        LIMIT 1) AS latest_assign_work
+        LIMIT 1) AS latest_assign_work,
+(SELECT co.seller 
+        FROM crm_orders co 
+        WHERE co.customer_code = mc.phone  and  co.branch_code =  mc.branch_code
+        ORDER BY co.order_date DESC 
+        LIMIT 1) AS latest_seller ,
+(SELECT co.product_names 
+        FROM crm_orders co 
+        WHERE co.customer_code = mc.phone  and  co.branch_code =  mc.branch_code
+        ORDER BY co.order_date DESC 
+        LIMIT 1) AS latest_buy 
 FROM mas_customers mc
 LEFT JOIN crm_activitys ca ON ca.customer_code = mc.guid
 WHERE mc.modified_date >= @FromDate 
@@ -188,7 +208,9 @@ GROUP BY mc.guid,
                                 modified_date = reader.IsDBNull(15) ? (DateTime?)null : reader.GetDateTime(15),
                                 count_activity = reader.IsDBNull(16) ? (int?)null : reader.GetInt32(16),
                                 activity_code = reader.IsDBNull(17) ? null : reader.GetString(17),
-                                latest_assign_work = reader["latest_assign_work"].ToString()
+                                latest_assign_work = reader["latest_assign_work"].ToString(),
+                                latest_seller = reader["latest_seller"].ToString(),
+                                latest_buy = reader["latest_buy"].ToString()
                             };
 
                             customers.Add(customer);
@@ -314,7 +336,17 @@ GROUP BY mc.guid,
         Left Join mas_users mu on mu.username = ca_sub.assign_work and mu.organization = ca_sub.branch_code  
         WHERE ca_sub.customer_code = mc.guid  and  ca_sub.branch_code =  mc.branch_code
         ORDER BY ca_sub.created_date DESC 
-        LIMIT 1) AS latest_assign_work
+        LIMIT 1) AS latest_assign_work,
+(SELECT co.seller 
+        FROM crm_orders co 
+        WHERE co.customer_code = mc.phone  and  co.branch_code =  mc.branch_code
+        ORDER BY co.order_date DESC 
+        LIMIT 1) AS latest_seller ,
+(SELECT co.product_names 
+        FROM crm_orders co 
+        WHERE co.customer_code = mc.phone  and  co.branch_code =  mc.branch_code
+        ORDER BY co.order_date DESC 
+        LIMIT 1) AS latest_buy 
 FROM mas_customers mc
 LEFT JOIN crm_activitys ca ON ca.customer_code = mc.guid
 WHERE  mc.branch_code = @branch_code  
@@ -366,7 +398,17 @@ GROUP BY mc.guid,
         Left Join mas_users mu on mu.username = ca_sub.assign_work and mu.organization = ca_sub.branch_code  
         WHERE ca_sub.customer_code = mc.guid  and  ca_sub.branch_code =  mc.branch_code
         ORDER BY ca_sub.created_date DESC 
-        LIMIT 1) AS latest_assign_work
+        LIMIT 1) AS latest_assign_work,
+(SELECT co.seller 
+        FROM crm_orders co 
+        WHERE co.customer_code = mc.phone  and  co.branch_code =  mc.branch_code
+        ORDER BY co.order_date DESC 
+        LIMIT 1) AS latest_seller ,
+(SELECT co.product_names 
+        FROM crm_orders co 
+        WHERE co.customer_code = mc.phone  and  co.branch_code =  mc.branch_code
+        ORDER BY co.order_date DESC 
+        LIMIT 1) AS latest_buy 
 FROM mas_customers mc
 LEFT JOIN crm_activitys ca ON ca.customer_code = mc.guid
 WHERE mc.branch_code = @branch_code  
@@ -415,7 +457,17 @@ GROUP BY mc.guid,
             ON mu.username = ca_sub.assign_work AND mu.organization = ca_sub.branch_code  
             WHERE ca_sub.customer_code = mc.guid AND ca_sub.branch_code = mc.branch_code
             ORDER BY ca_sub.created_date DESC 
-            LIMIT 1) AS latest_assign_work
+            LIMIT 1) AS latest_assign_work,
+(SELECT co.seller 
+        FROM crm_orders co 
+        WHERE co.customer_code = mc.phone  and  co.branch_code =  mc.branch_code
+        ORDER BY co.order_date DESC 
+        LIMIT 1) AS latest_seller ,
+(SELECT co.product_names 
+        FROM crm_orders co 
+        WHERE co.customer_code = mc.phone  and  co.branch_code =  mc.branch_code
+        ORDER BY co.order_date DESC 
+        LIMIT 1) AS latest_buy 
     FROM mas_customers mc
     LEFT JOIN crm_activitys ca ON ca.customer_code = mc.guid
     WHERE mc.branch_code = @branch_code  
@@ -474,7 +526,9 @@ ORDER BY modified_date DESC";
                                 modified_date = reader.IsDBNull(15) ? (DateTime?)null : reader.GetDateTime(15),
                                 count_activity = reader.IsDBNull(16) ? (int?)null : reader.GetInt32(16),
                                 activity_code = reader.IsDBNull(17) ? null : reader.GetString(17),
-                                latest_assign_work = reader["latest_assign_work"].ToString()
+                                latest_assign_work = reader["latest_assign_work"].ToString(),
+                                latest_seller = reader["latest_seller"].ToString(),
+                                latest_buy = reader["latest_buy"].ToString()
                             };
 
                             customers.Add(customer);

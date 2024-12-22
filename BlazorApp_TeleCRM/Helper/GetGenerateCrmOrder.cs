@@ -70,11 +70,11 @@ namespace BlazorApp_TeleCRM.Helper
                         INSERT INTO crm_orders 
                         (guid, customer_code, branch_code, order_no, order_date, channel, 
                          tracking_no, amount, payment_type, product_codes, product_names, 
-                         product_qtys, modified_by, modified_date) 
+                         product_qtys, modified_by, modified_date , seller) 
                         VALUES 
                         (@guid, @customer_code, @branch_code, @order_no, @order_date, @channel, 
                          @tracking_no, @amount, @payment_type, @product_codes, @product_names, 
-                         @product_qtys, @modified_by, @modified_date)";
+                         @product_qtys, @modified_by, @modified_date ,@seller)";
 
                             using (var insertCommand = new MySqlCommand(insertQuery, connection))
                             {
@@ -93,6 +93,7 @@ namespace BlazorApp_TeleCRM.Helper
                                 insertCommand.Parameters.AddWithValue("@product_qtys", data.product_qtys);
                                 insertCommand.Parameters.AddWithValue("@modified_by", data.modified_by);
                                 insertCommand.Parameters.AddWithValue("@modified_date", data.modified_date);
+                                insertCommand.Parameters.AddWithValue("@seller", data.seller);
 
                                 // Execute คำสั่ง Insert
                                 int rowsAffected = insertCommand.ExecuteNonQuery();

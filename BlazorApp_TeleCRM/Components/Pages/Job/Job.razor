@@ -33,8 +33,13 @@
         <div class="rz-col-12">
             <RadzenCard Variant="Variant.Outlined" class="rz-info rz-shade-lighte" Style="padding: 1rem;">
                 <RadzenRow Gap="1rem" JustifyContent="JustifyContent.Start" Class="rz-mt-2">
+                    <RadzenColumn Size="3">
+                        <RadzenLabel Text="เลือกคำค้นหา" />
+                        <RadzenDropDown @bind-Value=@Filtering_Key_main style="display:block;width:100%"
+                                        Data=@dataFiltering_main Change="@(args => OnCallKeyChange2(Filtering_Key_main))" Name="ddlFiltering_main" class="w-100" />
+                    </RadzenColumn>
                     <RadzenColumn>
-                        <RadzenLabel Text="งานวันที่ " Component="RadzenDatePickerBindValue" />
+                        <RadzenLabel Text="วันที่ " Component="RadzenDatePickerBindValue" />
                         <RadzenDatePicker @bind-Value="CreateDateFrom" Name="CreateDateFrom" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
                     </RadzenColumn>
                     <RadzenColumn>
@@ -247,6 +252,17 @@
            "ค้นจากเบอร์ลูกค้า", "ค้นจากชื่อลูกค้า"
       };
 
+
+    private string Filtering_Key_main = "งานวันนี้";
+    private string Filtering_Value_main = "";
+    private bool ISKeyDroupDown_main = false;
+    IEnumerable<string> dataFiltering_main;
+    private static readonly string[] Filterings_main = new[]
+      {
+           "งานวันนี้","งานประจำเดือน","งานตกค้างทั้งหมด","งานทั้งหมด"
+      };
+
+
     private List<Assignwork> Assignworks = new();
     private string SearchText { get; set; }
     private RadzenDropDown<string> radzenDropDown;
@@ -263,6 +279,12 @@
             ISKeyDroupDown = false;
         }
     }
+
+    private void OnCallKeyChange2(string value)
+    {
+       
+    }
+
 
 
     private async Task OnSearch()
@@ -407,6 +429,8 @@
         await base.OnInitializedAsync();
 
         dataFiltering = Filterings;
+
+        dataFiltering_main = Filterings_main;
 
         CreateDateFrom = DateTime.Now.Date;
         CreateDateTo = DateTime.Now.Date;
