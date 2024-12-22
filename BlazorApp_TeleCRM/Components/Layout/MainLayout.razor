@@ -78,10 +78,11 @@
                             <RadzenPanelMenuItem Text="3. สินค้า" Icon="category" Click="@(() => GoToPage("/adminproduct"))" Selected="@IsMenuItemSelected("/adminproduct")" />
                         </RadzenPanelMenuItem>
 
-                        <RadzenPanelMenuItem Text="Report - Admin" Icon="analytics" Expanded="@((IsMenuItemSelected("/overview-report") || IsMenuItemSelected("/admin-calendar") ))">
+                        <RadzenPanelMenuItem Text="Report - Admin" Icon="analytics" Expanded="@((IsMenuItemSelected("/overview-report") || IsMenuItemSelected("/admin-calendar")  || IsMenuItemSelected("/overview-kpi") ))">
                             <RadzenPanelMenuItem Text="Job Monitor" Icon="finance" Click="@(() => GoToPage("/overview-report"))" Selected="@IsMenuItemSelected("/overview-report")" />
                             <RadzenPanelMenuItem Text="ปฏิทิน" Icon="calendar_month" Click="@(() => GoToPage("/admin-calendar"))" Selected="@IsMenuItemSelected("/admin-calendar")" />
-
+                            <RadzenPanelMenuItem Text="KPI" Icon="finance" Click="@(() => GoToPage("/overview-kpi"))" Selected="@IsMenuItemSelected("/overview-kpi")" />
+                                
 
                         </RadzenPanelMenuItem>
 

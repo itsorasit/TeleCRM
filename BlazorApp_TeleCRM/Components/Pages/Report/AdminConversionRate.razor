@@ -1,0 +1,501 @@
+﻿@page "/overview-kpi"
+@using BlazorApp_TeleCRM.Models
+@using BlazorApp_TeleCRM.Service
+@using MySql.Data.MySqlClient
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject IConfiguration Configuration
+@inject MySqlConnection MySqlConnection
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ITimeZoneService TimeZoneService
+
+
+<AuthorizeView Roles="Admin,Manager,Supervisor">
+
+    <RadzenStack class="rz-8" Style="margin-bottom: 0;">
+        <RadzenPanel AllowCollapse="true">
+            <HeaderTemplate>
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
+                    <RadzenIcon Icon="filter_alt" class="rz-me-1" /><b>ข้อมูลวันที่ @lastUpdated.ToString("dd/MM/yyyy HH:mm:ss")</b>
+                    <RadzenButton Click=@(args => OnLoad()) Icon="search" Size="ButtonSize.ExtraSmall" ButtonStyle="ButtonStyle.Primary" />
+                </RadzenText>
+            </HeaderTemplate>
+            <ChildContent>
+                <RadzenCardGroup Responsive="true">
+                    <RadzenCard Variant="Variant.Filled">
+                        <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                            <RadzenLabel Text="วันที่เริ่มกิจกรรม" />
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
+                                <RadzenDatePicker @bind-Value="@Fdate" DateFormat="dd/MM/yyyy" Name="FDatePickerDateOnlyType" class="w-100" />
+                                <RadzenLabel Text="ถึง" Component="DropDownBindValue" />
+                                <RadzenDatePicker @bind-Value="@Ldate" DateFormat="dd/MM/yyyy" Name="LDatePickerDateOnlyType" class="w-100" />
+                            </RadzenStack>
+                        </RadzenStack>
+                    </RadzenCard>
+                    <RadzenCard Variant="Variant.Filled">
+                        <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                            <RadzenLabel Text="Touch Point" />
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
+                                <RadzenDropDown @bind-Value=@touch_point Multiple=true AllowClear=true Chips=true
+                                                Data=@datachannel Name="touch_point" class="w-100" />
+                            </RadzenStack>
+                        </RadzenStack>
+                    </RadzenCard>
+                    <RadzenCard Variant="Variant.Filled">
+                        <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                            <RadzenLabel Text="พนักงาน CRM" />
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
+                                <RadzenDropDown @bind-Value=@staff_values Data=@users_staff Name="Staff"
+                                                TextProperty="firstname" ValueProperty="username" Chips=true
+                                                Multiple=true AllowClear=true class="w-100" />
+                            </RadzenStack>
+                        </RadzenStack>
+                    </RadzenCard>
+                </RadzenCardGroup>
+            </ChildContent>
+        </RadzenPanel>
+    </RadzenStack>
+    <RadzenStack Style="margin-bottom: 0;">
+        <RadzenPanel AllowCollapse="true">
+            <HeaderTemplate>
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
+                    <RadzenIcon Icon="pie_chart" class="rz-me-1" /><b>Summary</b>
+                </RadzenText>
+            </HeaderTemplate>
+            <ChildContent>
+                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Style="height:90px" Gap="0rem">
+                   
+                </RadzenStack>
+            </ChildContent>
+        </RadzenPanel>
+    </RadzenStack>
+   
+    <RadzenStack Style="margin-bottom: 0;">
+        <RadzenPanel AllowCollapse="true">
+            <HeaderTemplate>
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
+                    <RadzenIcon Icon="equalizer" class="rz-me-1" /><b>Team Actives</b>
+                </RadzenText>
+            </HeaderTemplate>
+            <ChildContent>
+                <RadzenStack Orientation="Orientation.Horizontal">
+                    <RadzenRow>
+                        <RadzenColumn Size="12">
+                            <RadzenStack JustifyContent="JustifyContent.Left">
+                                <RadzenChart  style="margin-left:20px; height: 400px; min-width:800px">
+
+                                    @if (revenue_total != null)
+                                    {
+                                        <RadzenLineSeries  Smooth="true" Data="@revenue_total" CategoryProperty="staff1"
+                                            Title="งานโทรทั้งหมด" LineType="LineType.Solid"
+                                                          ValueProperty="count1">
+                                            <RadzenMarkers Fill="#4ABBF3" Visible="true" MarkerType="MarkerType.Square" />
+                                            <RadzenSeriesDataLabels />
+                                        </RadzenLineSeries>
+
+                                        <RadzenLineSeries Smooth="true" Data="@revenue_total" CategoryProperty="staff1"
+                                                          Title="ดำเนินการแล้ว" LineType="LineType.Solid"
+                                                          ValueProperty="successCount">
+                                            <RadzenMarkers Fill="#61BFBE" Visible="true" MarkerType="MarkerType.Square" />
+                                            <RadzenSeriesDataLabels />
+                                        </RadzenLineSeries>
+
+
+                                        <RadzenLineSeries Smooth="true"  Data="@revenue_total" CategoryProperty="staff1"
+                                                          Title="Conversion Rate %" LineType="LineType.Dashed"
+                                                          ValueProperty="conversionRate">
+                                            <RadzenMarkers Fill="#E25D6E" Visible="true" MarkerType="MarkerType.Square" />
+                                            <RadzenSeriesDataLabels  />
+                                        </RadzenLineSeries>
+                                    }
+
+
+                                  
+
+                                    <RadzenCategoryAxis  LabelAutoRotation="-90"  />
+                                    <RadzenValueAxis >
+                                        <RadzenGridLines Visible="true" />
+                                        <RadzenAxisTitle Text="กิจกรรมการโทร" />
+                                    </RadzenValueAxis>
+                                </RadzenChart>
+                            </RadzenStack>
+                        </RadzenColumn>
+                        <RadzenColumn Size="12">
+                            <RadzenStack JustifyContent="JustifyContent.Left">
+                                <RadzenChart style="margin-left:20px; height: 400px; min-width:800px">
+
+                                    @if (revenue_sale_total != null)
+                                    {
+                                        <RadzenLineSeries Smooth="true" Data="@revenue_sale_total" CategoryProperty="staff1"
+                                                          Title="ลูกค้ารับสาย" LineType="LineType.Solid"
+                                                          ValueProperty="count1">
+                                            <RadzenMarkers Fill="#4ABBF3" Visible="true" MarkerType="MarkerType.Square" />
+                                            <RadzenSeriesDataLabels />
+                                        </RadzenLineSeries>
+
+                                        <RadzenLineSeries Smooth="true" Data="@revenue_sale_total" CategoryProperty="staff1"
+                                                          Title="ขายได้" LineType="LineType.Solid"
+                                                          ValueProperty="successCount">
+                                            <RadzenMarkers Fill="#61BFBE" Visible="true" MarkerType="MarkerType.Square" />
+                                            <RadzenSeriesDataLabels />
+                                        </RadzenLineSeries>
+
+
+                                        <RadzenLineSeries Smooth="true" Data="@revenue_sale_total" CategoryProperty="staff1"
+                                                          Title="Conversion Rate %" LineType="LineType.Dashed"
+                                                          ValueProperty="conversionRate">
+                                            <RadzenMarkers Fill="#E25D6E" Visible="true" MarkerType="MarkerType.Square" />
+                                            <RadzenSeriesDataLabels />
+                                        </RadzenLineSeries>
+                                    }
+
+
+
+
+                                    <RadzenCategoryAxis LabelAutoRotation="-90" />
+                                    <RadzenValueAxis>
+                                        <RadzenGridLines Visible="true" />
+                                        <RadzenAxisTitle Text="ปิดการขาย" />
+                                    </RadzenValueAxis>
+                                </RadzenChart>
+                            
+                            </RadzenStack>
+                        </RadzenColumn>
+                    </RadzenRow>
+                </RadzenStack>
+            </ChildContent>
+        </RadzenPanel>
+    </RadzenStack>
+
+</AuthorizeView>
+
+@code {
+
+    private bool isAutoRefreshing = true; // ตัวแปรควบคุมการทำงาน
+    private DateTime lastUpdated; // เวลาอัปเดตล่าสุด
+
+    IEnumerable<string> datachannel;
+
+
+
+
+    private string BranchCode { get; set; }
+    private IEnumerable<string> _BranchCode;
+
+
+
+
+    int count_sum_all_chart = 10;
+
+    decimal sale_amount = 0;
+
+
+    // string touch_point = "เลือกทั้งหมด";
+    List<string> touch_point = new List<string> { "Up-Sale", "Re-Sale", "ลูกค้าขุด", "Cross-Sale" };
+
+    List<string> staff_values = new List<string>();
+    List<User> users_staff = new List<User>();
+
+    private DateTime? Fdate { get; set; }
+    private DateTime? Ldate { get; set; }
+
+
+    DataItem[]? revenue_total = null;
+    DataItem[]? revenue_sale_total = null;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            //  username = user.Identity.Name;
+            //  roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+
+        }
+        else
+        {
+            // username = "Not authenticated";
+            // roles = Enumerable.Empty<string>();
+            BranchCode = "";
+        }
+
+        Fdate = DateTime.Now.Date;
+        Ldate = DateTime.Now.Date;
+
+        datachannel = data_channels;
+        await LoadUsersAsync();
+
+        foreach (var i in users_staff)
+        {
+            staff_values.Add(i.username);
+        }
+
+        await OnLoad();
+
+        // เริ่ม Auto Refresh
+        _ = AutoRefreshLoop();
+
+    }
+
+    private void ToggleAutoRefresh()
+    {
+        isAutoRefreshing = !isAutoRefreshing; // เปิด/ปิด Auto Refresh
+        if (isAutoRefreshing)
+        {
+            _ = AutoRefreshLoop(); // เริ่มใหม่หากเปิดใช้งาน
+        }
+    }
+
+
+    private async Task AutoRefreshLoop()
+    {
+        while (isAutoRefreshing)
+        {
+            await Task.Delay(15000); // รอ 15 วินาที
+            await OnLoad(); // โหลดข้อมูลใหม่
+            StateHasChanged(); // บังคับให้ UI อัปเดต
+        }
+    }
+
+
+    private static readonly string[] data_channels = new[]
+      {
+        "Up-Sale", "Re-Sale","ลูกค้าขุด","Cross-Sale"
+      };
+
+    private async Task LoadUsersAsync()
+    {
+        try
+        {
+            await MySqlConnection.OpenAsync();
+            string query = "SELECT username, firstname FROM mas_users WHERE organization = @BranchCode";
+            using (var cmd = new MySqlCommand(query, MySqlConnection))
+            {
+                cmd.Parameters.AddWithValue("@BranchCode", BranchCode);
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        users_staff.Add(new User
+                            {
+                                username = reader["username"].ToString(),
+                                firstname = reader["firstname"].ToString()
+                            });
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching users: {ex.Message}");
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+    }
+
+    private async Task LoadSummary(DateTime fdate, DateTime ldate, string touch_point, string user)
+    {
+     try
+        {
+            await MySqlConnection.OpenAsync();
+
+            string query = @"SELECT
+    mu.firstname,
+    COUNT(*) AS total_activities,
+    SUM(CASE WHEN ca.status IS not NULL OR ca.status <>'' THEN 1 ELSE 0 END) AS success_count,
+    (
+       SUM(CASE WHEN ca.status IS not NULL OR ca.status <>'' THEN 1 ELSE 0 END)
+       / COUNT(*)
+       * 100
+    ) AS conversion_rate
+FROM
+    crm_activitys ca
+    LEFT JOIN mas_users mu
+       ON mu.username = ca.assign_work
+       AND mu.organization = ca.branch_code
+WHERE
+    ca.branch_code = @branch_code
+    AND FIND_IN_SET(ca.assign_work, @user)
+    AND DATE(ca.startdate) BETWEEN DATE(@fdate) AND DATE(@ldate)
+    AND FIND_IN_SET(IFNULL(ca.touch_point, ''), @touch_point)
+GROUP BY
+    mu.firstname";
+
+            using (var cmd = new MySqlCommand(query, MySqlConnection))
+            {
+                cmd.Parameters.AddWithValue("@branch_code", BranchCode);
+                cmd.Parameters.AddWithValue("@fdate", fdate);
+                cmd.Parameters.AddWithValue("@ldate", ldate);
+                cmd.Parameters.AddWithValue("@user", user); // Ensure `user` is comma-separated for FIND_IN_SET
+                cmd.Parameters.AddWithValue("@touch_point", touch_point); // Ensure `touch_point` is comma-separated for FIND_IN_SET
+
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        int totalCount = Convert.ToInt32(reader["total_activities"]);
+                        int successCount = Convert.ToInt32(reader["success_count"]);
+                        double conversionRate = Convert.ToDouble(reader["conversion_rate"]);
+                       
+
+                        // 2) สร้างหรือเก็บลง DataItem ตามต้องการ
+                        DataItem newItem = new DataItem
+                            {
+                                staff1 = reader["firstname"].ToString(),
+                                count1 = totalCount,
+                                successCount = successCount,
+                                conversionRate = conversionRate
+                            };
+
+                        // 3) จัดการ array ต่อ เช่นใส่ใน revenue_total หรือ Array/List อื่น
+                        if (revenue_total == null)
+                        {
+                            revenue_total = new DataItem[1] { newItem };
+                        }
+                        else
+                        {
+                            Array.Resize(ref revenue_total, revenue_total.Length + 1);
+                            revenue_total[revenue_total.Length - 1] = newItem;
+                        }
+                    }
+                }
+
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching sum activities: {ex.Message}");
+            // Optionally log the error with a logging framework
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+    }
+
+    private async Task LoadSummary2(DateTime fdate, DateTime ldate, string touch_point, string user)
+    {
+        try
+        {
+            await MySqlConnection.OpenAsync();
+
+            string query = @"SELECT
+    mu.firstname,
+    COUNT(*) AS total_activities,
+    SUM(CASE WHEN ca.call_action ='ขายได้' THEN 1 ELSE 0 END) AS success_count,
+    (
+       SUM(CASE WHEN ca.call_action ='ขายได้' THEN 1 ELSE 0 END)
+       / COUNT(*)
+       * 100
+    ) AS conversion_rate
+FROM
+    crm_activitys ca
+    LEFT JOIN mas_users mu
+       ON mu.username = ca.assign_work
+       AND mu.organization = ca.branch_code
+WHERE
+    ca.branch_code = @branch_code
+    AND FIND_IN_SET(ca.assign_work, @user)
+    AND DATE(ca.startdate) BETWEEN DATE(@fdate) AND DATE(@ldate)
+    AND FIND_IN_SET(IFNULL(ca.touch_point, ''), @touch_point)
+    AND ca.call_status='รับสาย'
+GROUP BY
+    mu.firstname";
+
+            using (var cmd = new MySqlCommand(query, MySqlConnection))
+            {
+                cmd.Parameters.AddWithValue("@branch_code", BranchCode);
+                cmd.Parameters.AddWithValue("@fdate", fdate);
+                cmd.Parameters.AddWithValue("@ldate", ldate);
+                cmd.Parameters.AddWithValue("@user", user); // Ensure `user` is comma-separated for FIND_IN_SET
+                cmd.Parameters.AddWithValue("@touch_point", touch_point); // Ensure `touch_point` is comma-separated for FIND_IN_SET
+
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        int totalCount = Convert.ToInt32(reader["total_activities"]);
+                        int successCount = Convert.ToInt32(reader["success_count"]);
+                        double conversionRate = Convert.ToDouble(reader["conversion_rate"]);
+
+
+                        // 2) สร้างหรือเก็บลง DataItem ตามต้องการ
+                        DataItem newItem = new DataItem
+                            {
+                                staff1 = reader["firstname"].ToString(),
+                                count1 = totalCount,
+                                successCount = successCount,
+                                conversionRate = conversionRate
+                            };
+
+                        // 3) จัดการ array ต่อ เช่นใส่ใน revenue_sale_total หรือ Array/List อื่น
+                        if (revenue_sale_total == null)
+                        {
+                            revenue_sale_total = new DataItem[1] { newItem };
+                        }
+                        else
+                        {
+                            Array.Resize(ref revenue_sale_total, revenue_sale_total.Length + 1);
+                            revenue_sale_total[revenue_sale_total.Length - 1] = newItem;
+                        }
+                    }
+                }
+
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching sum activities: {ex.Message}");
+            // Optionally log the error with a logging framework
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+    }
+
+
+    private async Task TimerElapsed()
+    {
+        await InvokeAsync(async () =>
+        {
+            await OnLoad();
+            StateHasChanged(); // บังคับให้ UI อัปเดต
+        });
+    }
+
+
+
+    class DataItem
+    {
+        public string staff1 { get; set; }
+        public double count1 { get; set; }
+        public double successCount { get; set; }
+        public double conversionRate { get; set; }
+    }
+
+    private async Task OnLoad()
+    {
+        //  lastUpdated = DateTime.Now; // อัปเดตเวลา
+        lastUpdated = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+        //  StateHasChanged();
+       
+        revenue_total = null;
+        revenue_sale_total = null;
+        
+        await LoadSummary(this.Fdate.Value, this.Ldate.Value, string.Join(",", touch_point), string.Join(",", staff_values));
+        await LoadSummary2(this.Fdate.Value, this.Ldate.Value, string.Join(",", touch_point), string.Join(",", staff_values));
+
+
+        StateHasChanged();
+    }
+}

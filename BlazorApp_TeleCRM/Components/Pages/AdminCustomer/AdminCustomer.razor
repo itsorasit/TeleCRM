@@ -198,17 +198,17 @@
             <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.count_activity)" Width="90px" Title="กิจกรรม" />
 
 
-            <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.activity_code)" Width="150px" Title="กิจกรรมล่าสุด">
+            <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.activity_code)" Visible="false" Width="150px" Title="กิจกรรมล่าสุด">
                 <Template Context="data">
                     <div class="wrap-text">
                         @data.activity_code
                     </div>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.latest_assign_work)" Title="มอบหมายให้" Width="150px" />
+            <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.latest_assign_work)" Title="พนักงาน CRM" Width="150px" />
             <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.modified_by)" Width="100px" Title="ผู้อัพโหลด" />
             <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.modified_date)" Width="180px" Title="อัพโหลดวันที่" />
-            <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.latest_seller)" Width="180px" Title="ผู้ขาย">
+            <RadzenDataGridColumn TItem="CustomerDataList" Property="@nameof(CustomerDataList.latest_seller)" Width="180px" Title="พนักงาน admin">
                 <Template Context="data">
                     <div class="wrap-text">
                         @data.latest_seller
@@ -263,7 +263,7 @@
     IEnumerable<string> dataFiltering;
     private static readonly string[] Filterings = new[]
       {
-           "ค้นจากเบอร์ลูกค้า", "ค้นจากชื่อลูกค้า","ค้นจากพนักงาน"
+           "ค้นจากเบอร์ลูกค้า", "ค้นจากชื่อลูกค้า","พนักงาน CRM"
       };
 
     private List<Assignwork> Assignworks = new();
@@ -522,7 +522,7 @@
     private void OnCallKeyChange(string value)
     {
         Filtering_Value = "";
-        if (value == "ค้นจากพนักงาน")
+        if (value == "พนักงาน CRM")
         {
             ISKeyDroupDown = true;
         }

@@ -72,10 +72,12 @@ namespace BlazorApp_TeleCRM.Controller
         WHERE ca_sub.customer_code = mc.guid  and  ca_sub.branch_code =  mc.branch_code
         ORDER BY ca_sub.created_date DESC 
         LIMIT 1) AS latest_assign_work,
-(SELECT co.seller 
-        FROM crm_orders co 
-        WHERE co.customer_code = mc.phone  and  co.branch_code =  mc.branch_code
-        ORDER BY co.order_date DESC 
+(SELECT  CONCAT(mu.firstname,' - ',ca_sub.assign_work) 
+        FROM crm_activitys ca_sub 
+        Left Join mas_users mu on mu.username = ca_sub.assign_work and mu.organization = ca_sub.branch_code  
+        WHERE ca_sub.customer_code = mc.guid  and  ca_sub.branch_code =  mc.branch_code
+        and ca_sub.call_action ='ขายได้'
+        ORDER BY ca_sub.created_date DESC 
         LIMIT 1) AS latest_seller ,
 (SELECT co.product_names 
         FROM crm_orders co 
@@ -135,10 +137,12 @@ GROUP BY mc.guid,
         WHERE ca_sub.customer_code = mc.guid  and  ca_sub.branch_code =  mc.branch_code
         ORDER BY ca_sub.created_date DESC 
         LIMIT 1) AS latest_assign_work,
-(SELECT co.seller 
-        FROM crm_orders co 
-        WHERE co.customer_code = mc.phone  and  co.branch_code =  mc.branch_code
-        ORDER BY co.order_date DESC 
+(SELECT  CONCAT(mu.firstname,' - ',ca_sub.assign_work) 
+        FROM crm_activitys ca_sub 
+        Left Join mas_users mu on mu.username = ca_sub.assign_work and mu.organization = ca_sub.branch_code  
+        WHERE ca_sub.customer_code = mc.guid  and  ca_sub.branch_code =  mc.branch_code
+        and ca_sub.call_action ='ขายได้'
+        ORDER BY ca_sub.created_date DESC 
         LIMIT 1) AS latest_seller ,
 (SELECT co.product_names 
         FROM crm_orders co 
@@ -337,10 +341,12 @@ GROUP BY mc.guid,
         WHERE ca_sub.customer_code = mc.guid  and  ca_sub.branch_code =  mc.branch_code
         ORDER BY ca_sub.created_date DESC 
         LIMIT 1) AS latest_assign_work,
-(SELECT co.seller 
-        FROM crm_orders co 
-        WHERE co.customer_code = mc.phone  and  co.branch_code =  mc.branch_code
-        ORDER BY co.order_date DESC 
+(SELECT  CONCAT(mu.firstname,' - ',ca_sub.assign_work) 
+        FROM crm_activitys ca_sub 
+        Left Join mas_users mu on mu.username = ca_sub.assign_work and mu.organization = ca_sub.branch_code  
+        WHERE ca_sub.customer_code = mc.guid  and  ca_sub.branch_code =  mc.branch_code
+        and ca_sub.call_action ='ขายได้'
+        ORDER BY ca_sub.created_date DESC 
         LIMIT 1) AS latest_seller ,
 (SELECT co.product_names 
         FROM crm_orders co 
@@ -399,10 +405,12 @@ GROUP BY mc.guid,
         WHERE ca_sub.customer_code = mc.guid  and  ca_sub.branch_code =  mc.branch_code
         ORDER BY ca_sub.created_date DESC 
         LIMIT 1) AS latest_assign_work,
-(SELECT co.seller 
-        FROM crm_orders co 
-        WHERE co.customer_code = mc.phone  and  co.branch_code =  mc.branch_code
-        ORDER BY co.order_date DESC 
+(SELECT  CONCAT(mu.firstname,' - ',ca_sub.assign_work) 
+        FROM crm_activitys ca_sub 
+        Left Join mas_users mu on mu.username = ca_sub.assign_work and mu.organization = ca_sub.branch_code  
+        WHERE ca_sub.customer_code = mc.guid  and  ca_sub.branch_code =  mc.branch_code
+        and ca_sub.call_action ='ขายได้'
+        ORDER BY ca_sub.created_date DESC 
         LIMIT 1) AS latest_seller ,
 (SELECT co.product_names 
         FROM crm_orders co 
@@ -431,7 +439,7 @@ GROUP BY mc.guid,
          mc.modified_date
          ORDER BY mc.modified_date DESC ";
                 }
-                else if (searchCriteria.key1 == "ค้นจากพนักงาน")
+                else if (searchCriteria.key1 == "พนักงาน CRM")
                 {
                     query = @"WITH CustomerActivities AS (
     SELECT mc.guid, 
@@ -458,10 +466,12 @@ GROUP BY mc.guid,
             WHERE ca_sub.customer_code = mc.guid AND ca_sub.branch_code = mc.branch_code
             ORDER BY ca_sub.created_date DESC 
             LIMIT 1) AS latest_assign_work,
-(SELECT co.seller 
-        FROM crm_orders co 
-        WHERE co.customer_code = mc.phone  and  co.branch_code =  mc.branch_code
-        ORDER BY co.order_date DESC 
+(SELECT  CONCAT(mu.firstname,' - ',ca_sub.assign_work) 
+        FROM crm_activitys ca_sub 
+        Left Join mas_users mu on mu.username = ca_sub.assign_work and mu.organization = ca_sub.branch_code  
+        WHERE ca_sub.customer_code = mc.guid  and  ca_sub.branch_code =  mc.branch_code
+        and ca_sub.call_action ='ขายได้'
+        ORDER BY ca_sub.created_date DESC 
         LIMIT 1) AS latest_seller ,
 (SELECT co.product_names 
         FROM crm_orders co 

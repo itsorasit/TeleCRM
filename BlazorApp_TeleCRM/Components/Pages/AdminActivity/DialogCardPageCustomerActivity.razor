@@ -123,7 +123,7 @@
                                                   HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm" class="w-100" style="display: block;width: 100%" />
                             </RadzenColumn> *@
                             <RadzenColumn Size="6" SizeMD="6">
-                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">มอบหมายให้กับพนักงาน<span class="rz-messages-error">*</span> </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">พนักงาน CRM<span class="rz-messages-error">*</span> </RadzenText>
                                 <RadzenDropDown @ref="radzenDropDown"
                                                 @bind-SearchText="SearchText"
                                                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
@@ -135,7 +135,7 @@
                                                 AllowClear="true"
                                                 @bind-Value=@model.activities_assign_work
                                                 Name="activities_assign_work" class="w-100" style="display: block;width: 100%" />
-                                <RadzenRequiredValidator Component="activities_assign_work" Text="มอบหมายให้กับพนักงาน" Style="position: absolute" />
+                                <RadzenRequiredValidator Component="activities_assign_work" Text="พนักงาน CRM" Style="position: absolute" />
                             </RadzenColumn>
 
 

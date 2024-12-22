@@ -122,7 +122,7 @@
 
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.guid)" Width="200px" Title="เลขที่กิจกรรม">
+            <RadzenDataGridColumn TItem="ActivitysDataList" Visible="false" Property="@nameof(ActivitysDataList.guid)" Width="200px" Title="เลขที่กิจกรรม">
                 <Template Context="data">
                     <div class="wrap-text">
                         @data.guid
@@ -132,7 +132,7 @@
             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.name)" Width="200px" Title="ชื่อกิจกรรม" />
             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.assign_work_type)" Width="130px" Title="ประเภท" />
             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.touch_point)" Width="110px" Title="Touch Point" />
-            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.assign_work_fullName)" Width="180px" Title="มอบหมายให้" />
+            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.assign_work_fullName)" Width="180px" Title="พนักงาน CRM" />
             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.created_date)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Width="170px" Title="วันที่สร้างกิจกรรม" />
             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.startdate)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Width="170px" Title="วันที่เริ่มกิจกรรม" />
             <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.duedate)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Width="170px" Title="วันครบกำหนด" />
