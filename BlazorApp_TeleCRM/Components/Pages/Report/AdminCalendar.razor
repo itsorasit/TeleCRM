@@ -94,7 +94,7 @@
 
     private string BranchCode { get; set; }
     private IEnumerable<string> _BranchCode;
-
+    private string select_branch_code { get; set; }
 
     private bool isAutoRefreshing = true; // ตัวแปรควบคุมการทำงาน
 
@@ -210,6 +210,14 @@
             _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
             BranchCode = _BranchCode.FirstOrDefault();
 
+            if (BranchCode == "000000" && roles.Contains("Admin"))
+            {
+                await GetBranchSelect(username);
+                if (!string.IsNullOrEmpty(select_branch_code))
+                {
+                    BranchCode = select_branch_code;
+                }
+            }
         }
         else
         {
@@ -243,6 +251,34 @@
             await Task.Delay(180000); // รอ 180 วินาที (3 นาที)
             await OnLoad(); // โหลดข้อมูลใหม่
             StateHasChanged(); // บังคับให้ UI อัปเดต
+        }
+    }
+
+    private async Task GetBranchSelect(string _username)
+    {
+        try
+        {
+            await MySqlConnection.OpenAsync();
+            string query = @"SELECT username, branch_code FROM sys_select_organization where username=@username";
+            using (var cmd = new MySqlCommand(query, MySqlConnection))
+            {
+                cmd.Parameters.AddWithValue("@username", _username);
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        select_branch_code = reader["branch_code"].ToString();
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching select_branch_code : {ex.Message}");
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
         }
     }
 

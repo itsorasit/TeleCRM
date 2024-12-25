@@ -56,7 +56,6 @@ namespace BlazorApp_TeleCRM.Controller
                             productions.price = decimal.Parse(reader["price"].ToString());
                             productions.category = reader["category_name"].ToString();
 
-
                             product.Add(productions);
                         }
                     }

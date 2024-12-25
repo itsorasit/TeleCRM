@@ -5,7 +5,6 @@
 @using Microsoft.EntityFrameworkCore
 @using BlazorApp_TeleCRM.Service
 @inherits LayoutComponentBase
-
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
 @inject NotificationService NotificationService
@@ -40,6 +39,7 @@
                                                     Name="DropDownVirtualization"
                                                     AllowFiltering="true"
                                                     Data="@branches"
+                                                    Change="@(args =>  OnBranchChange(select_branch))"
                                                     TextProperty="@nameof(MasBranches.name)"
                                                     ValueProperty="@nameof(MasBranches.code)"
                                                     Style="width: 100%; max-width: 500px;">
@@ -153,7 +153,7 @@
             organization = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
             organization_code = organization.FirstOrDefault();
             select_branch = organization_code;
-       
+
             var user1 = await allseed_Db.Users.Where(u => u.username == username && u.organization == select_branch).FirstOrDefaultAsync();
             if (user1 != null)
             {
@@ -170,14 +170,14 @@
             {
 
 
-                string? username = await LocalStorage.GetItemAsStringAsync("username");
+                username = await LocalStorage.GetItemAsStringAsync("username");
                 string? uid = await LocalStorage.GetItemAsStringAsync("uid");
 
 
                 InvokeAsync(async () =>
         {
-    await Task.Delay(2000);
-    DialogService.Close();
+            await Task.Delay(2000);
+            DialogService.Close();
         });
                 await BusyDialog();
 
@@ -215,20 +215,48 @@
             }
         }
 
-        if (organization_code == "000000")
+        if (organization_code == "000000" && roles.Contains("Admin"))
         {
             branches = allseed_Db.MasBranches.ToList();
+            var b = await allseed_Db.sys_select_organization.Where(u => u.username == username).FirstOrDefaultAsync();
+            if (b != null)
+            {
+                select_branch = b.branch_code ;
+            }  
         }
         else
         {
             branches = allseed_Db.MasBranches.Where(o => o.code == organization_code).ToList();
         }
 
-
-
-
     }
 
+
+    private async Task OnBranchChange(string value)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            if (organization_code == "000000")
+            {
+                var b = await allseed_Db.sys_select_organization.Where(u => u.username == username).FirstOrDefaultAsync();
+                if (b != null)
+                {
+                    b.branch_code = select_branch;
+                }
+                else
+                {
+                    sys_select_organization o = new sys_select_organization();
+                    o.username = username;
+                    o.branch_code = value;
+                    allseed_Db.sys_select_organization.Add(o);
+                }
+                await allseed_Db.SaveChangesAsync();
+
+                Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+            }
+        }
+
+    }
 
 
     private readonly Dictionary<string, string> PageTitles = new()

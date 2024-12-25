@@ -9,162 +9,164 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ITimeZoneService TimeZoneService
 
+
+
 <AuthorizeView Roles="Admin,Manager,Supervisor">
 
-<RadzenStack class="rz-8" Style="margin-bottom: 0;">
-    <RadzenPanel AllowCollapse="true">
-        <HeaderTemplate>
-            <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
+    <RadzenStack class="rz-8" Style="margin-bottom: 0;">
+        <RadzenPanel AllowCollapse="true">
+            <HeaderTemplate>
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
                     <RadzenIcon Icon="filter_alt" class="rz-me-1" /><b>ข้อมูลวันที่ @lastUpdated.ToString("dd/MM/yyyy HH:mm:ss")</b>
-                    <RadzenButton Click=@(args => OnLoad()) Icon="search"  ButtonStyle="ButtonStyle.Primary" />
-              </RadzenText>
-        </HeaderTemplate>
-        <ChildContent>
-            <RadzenCardGroup Responsive="true">
-                <RadzenCard Variant="Variant.Filled">
-                    <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
-                        <RadzenLabel Text="วันที่เริ่มกิจกรรม" />
-                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
-                            <RadzenDatePicker @bind-Value="@Fdate" DateFormat="dd/MM/yyyy" Name="FDatePickerDateOnlyType" class="w-100" />
-                            <RadzenLabel Text="ถึง" Component="DropDownBindValue" />
-                            <RadzenDatePicker @bind-Value="@Ldate" DateFormat="dd/MM/yyyy" Name="LDatePickerDateOnlyType" class="w-100" />
+                    <RadzenButton Click=@(args => OnLoad()) Icon="search" ButtonStyle="ButtonStyle.Primary" />
+                </RadzenText>
+            </HeaderTemplate>
+            <ChildContent>
+                <RadzenCardGroup Responsive="true">
+                    <RadzenCard Variant="Variant.Filled">
+                        <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                            <RadzenLabel Text="วันที่เริ่มกิจกรรม" />
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
+                                <RadzenDatePicker @bind-Value="@Fdate" DateFormat="dd/MM/yyyy" Name="FDatePickerDateOnlyType" class="w-100" />
+                                <RadzenLabel Text="ถึง" Component="DropDownBindValue" />
+                                <RadzenDatePicker @bind-Value="@Ldate" DateFormat="dd/MM/yyyy" Name="LDatePickerDateOnlyType" class="w-100" />
+                            </RadzenStack>
                         </RadzenStack>
-                    </RadzenStack>
-                </RadzenCard>
+                    </RadzenCard>
 
-                <RadzenCard Variant="Variant.Filled">
-                    <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
-                        <RadzenLabel Text="Touch Point" />
-                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
-                            <RadzenDropDown @bind-Value=@touch_point Multiple=true AllowClear=true Chips=true
-                                            Data=@datachannel Name="touch_point" class="w-100" />
+                    <RadzenCard Variant="Variant.Filled">
+                        <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                            <RadzenLabel Text="Touch Point" />
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
+                                <RadzenDropDown @bind-Value=@touch_point Multiple=true AllowClear=true Chips=true
+                                                Data=@datachannel Name="touch_point" class="w-100" />
+                            </RadzenStack>
                         </RadzenStack>
-                    </RadzenStack>
-                </RadzenCard>
-                <RadzenCard Variant="Variant.Filled">
-                    <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
-                        <RadzenLabel Text="พนักงาน CRM" />
-                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
-                            <RadzenDropDown @bind-Value=@staff_values Data=@users_staff Name="Staff"
-                                            TextProperty="firstname" ValueProperty="username" Chips=true
-                                            Multiple=true AllowClear=true class="w-100" />
+                    </RadzenCard>
+                    <RadzenCard Variant="Variant.Filled">
+                        <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                            <RadzenLabel Text="พนักงาน CRM" />
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
+                                <RadzenDropDown @bind-Value=@staff_values Data=@users_staff Name="Staff"
+                                                TextProperty="firstname" ValueProperty="username" Chips=true
+                                                Multiple=true AllowClear=true class="w-100" />
+                            </RadzenStack>
                         </RadzenStack>
-                    </RadzenStack>
-                </RadzenCard>
-            </RadzenCardGroup>
-        </ChildContent>
-    </RadzenPanel>
-</RadzenStack>
-<RadzenStack Style="margin-bottom: 0;">
-    <RadzenPanel AllowCollapse="true">
-        <HeaderTemplate>
-            <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
-                <RadzenIcon Icon="pie_chart" class="rz-me-1" /><b>Summary</b>
-            </RadzenText>
-        </HeaderTemplate>
-        <ChildContent>
-            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Style="height:90px" Gap="0rem">
-                <RadzenCard Variant="Variant.Filled" Style="min-width: 420px">
-                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
-                        <RadzenIcon Icon="work" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Primary" />
-                        <RadzenStack Gap="0" Style="width: 100%;">
-                            <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start"> กิจกรรมการโทรทั้งหมด</RadzenText>
+                    </RadzenCard>
+                </RadzenCardGroup>
+            </ChildContent>
+        </RadzenPanel>
+    </RadzenStack>
+    <RadzenStack Style="margin-bottom: 0;">
+        <RadzenPanel AllowCollapse="true">
+            <HeaderTemplate>
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
+                    <RadzenIcon Icon="pie_chart" class="rz-me-1" /><b>Summary</b>
+                </RadzenText>
+            </HeaderTemplate>
+            <ChildContent>
+                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Style="height:90px" Gap="0rem">
+                    <RadzenCard Variant="Variant.Filled" Style="min-width: 420px">
+                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
+                            <RadzenIcon Icon="work" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Primary" />
+                            <RadzenStack Gap="0" Style="width: 100%;">
+                                <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start"> กิจกรรมการโทรทั้งหมด</RadzenText>
+                            </RadzenStack>
+                            <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>@count_sum_all</b></RadzenText>
                         </RadzenStack>
-                        <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>@count_sum_all</b></RadzenText>
-                    </RadzenStack>
-                </RadzenCard>
-                <RadzenCard Variant="Variant.Filled" Style="min-width: 420px">
-                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
-                        <RadzenIcon Icon="schedule" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Warning" />
-                        <RadzenStack Gap="0" Style="width: 100%;">
-                            <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start"> รอดำเนินการ</RadzenText>
+                    </RadzenCard>
+                    <RadzenCard Variant="Variant.Filled" Style="min-width: 420px">
+                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
+                            <RadzenIcon Icon="schedule" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Warning" />
+                            <RadzenStack Gap="0" Style="width: 100%;">
+                                <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start"> รอดำเนินการ</RadzenText>
+                            </RadzenStack>
+                            <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>@count_sum_wait</b></RadzenText>
                         </RadzenStack>
-                        <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>@count_sum_wait</b></RadzenText>
-                    </RadzenStack>
-                </RadzenCard>
-                <RadzenCard Variant="Variant.Filled" Style="min-width: 420px">
-                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
-                        <RadzenIcon Icon="check_circle" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Success" />
-                        <RadzenStack Gap="0" Style="width: 100%;">
-                            <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start"> ดำเนินการแล้ว</RadzenText>
+                    </RadzenCard>
+                    <RadzenCard Variant="Variant.Filled" Style="min-width: 420px">
+                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem" class="rz-p-3">
+                            <RadzenIcon Icon="check_circle" Style="border-radius: 50%;font-size: 48px;" IconStyle="IconStyle.Success" />
+                            <RadzenStack Gap="0" Style="width: 100%;">
+                                <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Start"> ดำเนินการแล้ว</RadzenText>
+                            </RadzenStack>
+                            <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>@count_sum_finished</b></RadzenText>
                         </RadzenStack>
-                        <RadzenText TextStyle="TextStyle.H4" TextAlign="TextAlign.Right"><b>@count_sum_finished</b></RadzenText>
-                    </RadzenStack>
-                </RadzenCard>
-            </RadzenStack>
-        </ChildContent>
-    </RadzenPanel>
-</RadzenStack>
-<RadzenStack Style="margin-bottom: 0;">
-    <RadzenPanel AllowCollapse="true">
-        <HeaderTemplate>
-            <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
-                <RadzenIcon Icon="equalizer" class="rz-me-1" /><b>Marketing</b>
-            </RadzenText>
-        </HeaderTemplate>
-        <ChildContent>
-            <RadzenStack Orientation="Orientation.Horizontal" Style="height:65px" Gap="0rem">
-                <RadzenCard Variant="Variant.Filled" Style="min-width: 300px">
-                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
-                        <RadzenIcon Icon="deskphone" Style="border-radius: 50%;font-size: 32px;" IconStyle="IconStyle.Success" />
-                        <RadzenStack Gap="0" Style="width: 100%;">
-                            <RadzenText TextStyle="TextStyle.Body2" TextAlign="TextAlign.Start">สายที่โทรทั้งหมด</RadzenText>
+                    </RadzenCard>
+                </RadzenStack>
+            </ChildContent>
+        </RadzenPanel>
+    </RadzenStack>
+    <RadzenStack Style="margin-bottom: 0;">
+        <RadzenPanel AllowCollapse="true">
+            <HeaderTemplate>
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
+                    <RadzenIcon Icon="equalizer" class="rz-me-1" /><b>Marketing</b>
+                </RadzenText>
+            </HeaderTemplate>
+            <ChildContent>
+                <RadzenStack Orientation="Orientation.Horizontal" Style="height:65px" Gap="0rem">
+                    <RadzenCard Variant="Variant.Filled" Style="min-width: 300px">
+                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                            <RadzenIcon Icon="deskphone" Style="border-radius: 50%;font-size: 32px;" IconStyle="IconStyle.Success" />
+                            <RadzenStack Gap="0" Style="width: 100%;">
+                                <RadzenText TextStyle="TextStyle.Body2" TextAlign="TextAlign.Start">สายที่โทรทั้งหมด</RadzenText>
+                            </RadzenStack>
+                            <RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Right"><b>@count_sum_finished</b></RadzenText>
                         </RadzenStack>
-                        <RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Right"><b>@count_sum_finished</b></RadzenText>
-                    </RadzenStack>
-                </RadzenCard>
-                <RadzenCard Variant="Variant.Filled" Style="min-width: 300px">
-                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
-                        <RadzenIcon Icon="perm_phone_msg" Style="border-radius: 50%;font-size: 32px;" IconStyle="IconStyle.Success" />
-                        <RadzenStack Gap="0" Style="width: 100%;">
-                            <RadzenText TextStyle="TextStyle.Body2" TextAlign="TextAlign.Start">รับสาย</RadzenText>
+                    </RadzenCard>
+                    <RadzenCard Variant="Variant.Filled" Style="min-width: 300px">
+                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                            <RadzenIcon Icon="perm_phone_msg" Style="border-radius: 50%;font-size: 32px;" IconStyle="IconStyle.Success" />
+                            <RadzenStack Gap="0" Style="width: 100%;">
+                                <RadzenText TextStyle="TextStyle.Body2" TextAlign="TextAlign.Start">รับสาย</RadzenText>
+                            </RadzenStack>
+                            <RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Right"><b>@count_sum_oncall</b></RadzenText>
                         </RadzenStack>
-                        <RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Right"><b>@count_sum_oncall</b></RadzenText>
-                    </RadzenStack>
-                </RadzenCard>
-                <RadzenCard Variant="Variant.Filled" Style="min-width: 300px">
-                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
-                        <RadzenIcon Icon="tooltip" Style="border-radius: 50%;font-size: 32px;" IconStyle="IconStyle.Success" />
-                        <RadzenStack Gap="0" Style="width: 100%;">
-                            <RadzenText TextStyle="TextStyle.Body2" TextAlign="TextAlign.Start">ได้คุย</RadzenText>
+                    </RadzenCard>
+                    <RadzenCard Variant="Variant.Filled" Style="min-width: 300px">
+                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                            <RadzenIcon Icon="tooltip" Style="border-radius: 50%;font-size: 32px;" IconStyle="IconStyle.Success" />
+                            <RadzenStack Gap="0" Style="width: 100%;">
+                                <RadzenText TextStyle="TextStyle.Body2" TextAlign="TextAlign.Start">ได้คุย</RadzenText>
+                            </RadzenStack>
+                            <RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Right"><b>@count_sum_oncall_V1</b></RadzenText>
                         </RadzenStack>
-                        <RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Right"><b>@count_sum_oncall_V1</b></RadzenText>
-                    </RadzenStack>
-                </RadzenCard>
-                <RadzenCard Variant="Variant.Filled" Style="min-width: 300px">
-                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
-                        <RadzenIcon Icon="order_approve" Style="border-radius: 50%;font-size: 32px;" IconStyle="IconStyle.Success" />
-                        <RadzenStack Gap="0" Style="width: 100%;">
-                            <RadzenText TextStyle="TextStyle.Body2" TextAlign="TextAlign.Start">ขายได้</RadzenText>
+                    </RadzenCard>
+                    <RadzenCard Variant="Variant.Filled" Style="min-width: 300px">
+                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                            <RadzenIcon Icon="order_approve" Style="border-radius: 50%;font-size: 32px;" IconStyle="IconStyle.Success" />
+                            <RadzenStack Gap="0" Style="width: 100%;">
+                                <RadzenText TextStyle="TextStyle.Body2" TextAlign="TextAlign.Start">ขายได้</RadzenText>
+                            </RadzenStack>
+                            <RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Right"><b>@count_sum_oncall_V1_sale</b></RadzenText>
                         </RadzenStack>
-                        <RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Right"><b>@count_sum_oncall_V1_sale</b></RadzenText>
-                    </RadzenStack>
-                </RadzenCard>
-                <RadzenCard Variant="Variant.Filled" Style="min-width: 300px">
-                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
-                        <RadzenIcon Icon="military_tech" Style="border-radius: 50%;font-size: 32px;" IconStyle="IconStyle.Success" />
-                        <RadzenStack Gap="0" Style="width: 100%;">
-                            <RadzenText TextStyle="TextStyle.Body2" TextAlign="TextAlign.Start">ยอดขาย</RadzenText>
+                    </RadzenCard>
+                    <RadzenCard Variant="Variant.Filled" Style="min-width: 300px">
+                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                            <RadzenIcon Icon="military_tech" Style="border-radius: 50%;font-size: 32px;" IconStyle="IconStyle.Success" />
+                            <RadzenStack Gap="0" Style="width: 100%;">
+                                <RadzenText TextStyle="TextStyle.Body2" TextAlign="TextAlign.Start">ยอดขาย</RadzenText>
+                            </RadzenStack>
+                            <RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Right"><b>@sale_amount</b></RadzenText>
                         </RadzenStack>
-                        <RadzenText TextStyle="TextStyle.H5" TextAlign="TextAlign.Right"><b>@sale_amount</b></RadzenText>
-                    </RadzenStack>
-                </RadzenCard>
-            </RadzenStack>
-        </ChildContent>
-    </RadzenPanel>
-</RadzenStack>
-<RadzenStack Style="margin-bottom: 0;">
-    <RadzenPanel AllowCollapse="true">
-        <HeaderTemplate>
-            <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
-                <RadzenIcon Icon="equalizer" class="rz-me-1" /><b>Team Actives</b>
-            </RadzenText>
-        </HeaderTemplate>
-        <ChildContent>
-            <RadzenStack Orientation="Orientation.Horizontal" >
-                <RadzenRow >
+                    </RadzenCard>
+                </RadzenStack>
+            </ChildContent>
+        </RadzenPanel>
+    </RadzenStack>
+    <RadzenStack Style="margin-bottom: 0;">
+        <RadzenPanel AllowCollapse="true">
+            <HeaderTemplate>
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
+                    <RadzenIcon Icon="equalizer" class="rz-me-1" /><b>Team Actives</b>
+                </RadzenText>
+            </HeaderTemplate>
+            <ChildContent>
+                <RadzenStack Orientation="Orientation.Horizontal">
+                    <RadzenRow>
                         <RadzenColumn Size="6">
-                            <RadzenStack JustifyContent="JustifyContent.Left" >
+                            <RadzenStack JustifyContent="JustifyContent.Left">
                                 <RadzenChart ColorScheme="ColorScheme.Pastel" style="margin-left:100px; height: 400px; min-width:600px">
 
 
@@ -174,7 +176,7 @@
                                                                 CategoryProperty="staff1"
                                                                 Title="รอดำเนินการ"
                                                                 LineType="LineType.Dashed"
-                                                                Fill="#FFD10A" 
+                                                                Fill="#FFD10A"
                                                                 ValueProperty="count1">
                                             <RadzenSeriesDataLabels Visible="true" />
                                         </RadzenStackedBarSeries>
@@ -258,9 +260,9 @@
                                     <RadzenBarOptions Radius="5" Height="40" />
                                 </RadzenChart>
                             </RadzenStack>
-                    </RadzenColumn>
+                        </RadzenColumn>
                         <RadzenColumn Size="6">
-                            <RadzenStack JustifyContent="JustifyContent.End" >
+                            <RadzenStack JustifyContent="JustifyContent.End">
                                 <RadzenChart ColorScheme="ColorScheme.Pastel" style="margin-left:100px;height: 400px; min-width:600px">
 
 
@@ -309,12 +311,12 @@
                                     <RadzenBarOptions Radius="5" Height="40" />
                                 </RadzenChart>
                             </RadzenStack>
-                    </RadzenColumn>
-                </RadzenRow>
-            </RadzenStack>
-        </ChildContent>
-    </RadzenPanel>
-</RadzenStack>
+                        </RadzenColumn>
+                    </RadzenRow>
+                </RadzenStack>
+            </ChildContent>
+        </RadzenPanel>
+    </RadzenStack>
 
 </AuthorizeView>
 
@@ -328,29 +330,23 @@
     private DateTime lastUpdated; // เวลาอัปเดตล่าสุด
 
     IEnumerable<string> datachannel;
-
-
-
-
     private string BranchCode { get; set; }
     private IEnumerable<string> _BranchCode;
+    private string select_branch_code { get; set; }
+
 
     int count_sum_all = 0;
     int count_sum_wait = 0;
     int count_sum_finished = 0;
-
     int count_sum_oncall = 0;
     int count_sum_oncall_V1 = 0;
     int count_sum_oncall_V1_sale = 0;
 
 
-
     int count_sum_all_chart = 10;
-
     decimal sale_amount = 0;
 
 
-    // string touch_point = "เลือกทั้งหมด";
     List<string> touch_point = new List<string> { "Up-Sale", "Re-Sale", "ลูกค้าขุด", "Cross-Sale" };
 
     List<string> staff_values = new List<string>();
@@ -358,8 +354,6 @@
 
     private DateTime? Fdate { get; set; }
     private DateTime? Ldate { get; set; }
-
-
 
     DataItem[]? revenue_wait = null;
     DataItem[]? revenue_oncall1 = null;
@@ -370,6 +364,9 @@
     DataItem[]? revenue_oncall5 = null;
     DataItem[]? revenue_oncall6 = null;
 
+    private string username;
+    private IEnumerable<string>? roles;
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -379,17 +376,22 @@
 
         if (user.Identity.IsAuthenticated)
         {
-            //  username = user.Identity.Name;
-            //  roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+            username = user.Identity.Name;
+            roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
             _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
             BranchCode = _BranchCode.FirstOrDefault();
 
+            if (BranchCode == "000000" && roles.Contains("Admin"))
+            {    await GetBranchSelect(username);
+                if (!string.IsNullOrEmpty(select_branch_code)) {
+                    BranchCode = select_branch_code;
+                }
+            }
         }
         else
         {
-            // username = "Not authenticated";
-            // roles = Enumerable.Empty<string>();
             BranchCode = "";
+            select_branch_code = "";
         }
 
         Fdate = DateTime.Now.Date;
@@ -470,7 +472,6 @@
 
     private async Task LoadSummary(DateTime fdate, DateTime ldate, string touch_point, string user)
     {
-        //                AND DATE(ca.startdate) <= DATE(@ldate)
 
         try
         {
@@ -479,8 +480,8 @@
             string query = @"
             SELECT
                 COUNT(ca.guid) AS activity_count,
-                ca.status,ca.call_status ,ca.call_action,ca.assign_work ,mu.firstname 
-            ,SUM(IFNULL(ca.sale_amount, 0)) as sale_amount 
+                ca.status,ca.call_status ,ca.call_action,ca.assign_work ,mu.firstname
+            ,SUM(IFNULL(ca.sale_amount, 0)) as sale_amount
             FROM
                 crm_activitys ca
             left join mas_users mu  on mu.username =  ca.assign_work  and mu.organization = ca.branch_code
@@ -716,6 +717,35 @@
         });
     }
 
+    private async Task  GetBranchSelect(string _username)
+    {
+        try
+        {
+            await MySqlConnection.OpenAsync();
+            string query = @"SELECT username, branch_code FROM sys_select_organization where username=@username";
+            using (var cmd = new MySqlCommand(query, MySqlConnection))
+            {
+                cmd.Parameters.AddWithValue("@username", _username);
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        select_branch_code = reader["branch_code"].ToString();
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching select_branch_code : {ex.Message}");
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+    }
+
+
 
 
     class DataItem
@@ -727,8 +757,6 @@
     private async Task OnLoad()
     {
 
-
-
         //  lastUpdated = DateTime.Now; // อัปเดตเวลา
         lastUpdated = TimeZoneService.ToLocalTime(DateTime.UtcNow);
         count_sum_all = 0;
@@ -738,10 +766,6 @@
         count_sum_oncall_V1 = 0;
         count_sum_oncall_V1_sale = 0;
         sale_amount = 0;
-
-
-
-
 
         revenue_wait = null;
         revenue_oncall1 = null;
@@ -755,7 +779,6 @@
 
         count_sum_all_chart = 10;
 
-        //  StateHasChanged();
         await LoadSummary(this.Fdate.Value, this.Ldate.Value, string.Join(",", touch_point), string.Join(",", staff_values));
         // บังคับให้ UI อัปเดตใหม่
         StateHasChanged();

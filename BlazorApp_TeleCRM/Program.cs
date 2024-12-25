@@ -31,6 +31,7 @@ builder.Services.AddScoped<Radzen.SideDialogOptions>();
 builder.Services.AddScoped<SharedStateService>();
 builder.Services.AddScoped<UtilityConvet>();
 
+
 builder.Services.AddHttpClient();
 builder.Services.AddBlazoredLocalStorage();
 

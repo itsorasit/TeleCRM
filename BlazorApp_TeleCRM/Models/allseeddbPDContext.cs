@@ -11,7 +11,7 @@ namespace BlazorApp_TeleCRM.Models
         // DbSet for Users table
         public DbSet<User> Users { get; set; }
         public DbSet<MasBranches> MasBranches { get; set; }
-        public DbSet<MasCustomers>MasCustomers { get; set; }
+        public DbSet<MasCustomers> MasCustomers { get; set; }
         public DbSet<CrmActivitys> CrmActivitys { get; set; }
         public DbSet<CrmContactLog> CrmContactLog { get; set; }
         public DbSet<CrmNote> CrmNote { get; set; }
@@ -19,6 +19,7 @@ namespace BlazorApp_TeleCRM.Models
         public DbSet<CrmOrder> CrmOrder { get; set; }
         public DbSet<MasProductions> MasProductions { get; set; }
 
+        public DbSet<sys_select_organization> sys_select_organization { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -26,11 +27,11 @@ namespace BlazorApp_TeleCRM.Models
             modelBuilder.Entity<User>()
                 .ToTable("mas_users")
                 .HasKey(u => u.id);
-          
+
             modelBuilder.Entity<MasBranches>()
                .ToTable("mas_branches")
                .HasKey(u => u.code);
-         
+
             modelBuilder.Entity<MasCustomers>()
                .ToTable("mas_customers")
                .HasKey(u => u.guid);
@@ -59,6 +60,9 @@ namespace BlazorApp_TeleCRM.Models
             .ToTable("mas_productions")
             .HasKey(u => u.guid);
 
+            modelBuilder.Entity<sys_select_organization>()
+            .ToTable("sys_select_organization")
+            .HasKey(u => u.username);
 
 
             base.OnModelCreating(modelBuilder);
