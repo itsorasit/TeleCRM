@@ -25,7 +25,7 @@
                     <RadzenColumn Size="5">
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
                             <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
-                            <RadzenLabel Text="ALL SEED" />
+                            <RadzenLabel Text=@App_name />
                         </RadzenStack>
                     </RadzenColumn>
                     <RadzenColumn Size="7">
@@ -128,6 +128,8 @@
     private IEnumerable<string>? roles;
     private IEnumerable<string>? organization;
 
+    private string App_name = "ALL SEED";
+
 
 
     string select_branch;
@@ -227,6 +229,13 @@
         else
         {
             branches = allseed_Db.MasBranches.Where(o => o.code == organization_code).ToList();
+
+            if (branches.Count() > 0)
+            {
+                App_name = branches.Take(1).FirstOrDefault().name;
+            }
+         
+
         }
 
     }
