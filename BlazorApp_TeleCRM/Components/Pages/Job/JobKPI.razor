@@ -1,4 +1,4 @@
-﻿@page "/overview-kpi"
+﻿@page "/kpi"
 @using BlazorApp_TeleCRM.Models
 @using BlazorApp_TeleCRM.Service
 @using MySql.Data.MySqlClient
@@ -10,14 +10,26 @@
 @inject ITimeZoneService TimeZoneService
 
 
-<AuthorizeView Roles="Admin,Manager,Supervisor">
+<AuthorizeView>
+
+    <PageTitle>KPI ของฉัน</PageTitle>
+
+    <div class="rz-6">
+        <RadzenBreadCrumb>
+            <RadzenBreadCrumbItem  Text="My Dashboard" />
+            <RadzenBreadCrumbItem Path="/kpi" Text="KPI" />
+        </RadzenBreadCrumb>
+        <RadzenText TextStyle="TextStyle.DisplayH5">KPI ของฉัน</RadzenText>
+    </div>
+
+
 
     <RadzenStack class="rz-8" Style="margin-bottom: 0;">
         <RadzenPanel AllowCollapse="true">
             <HeaderTemplate>
                 <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
                     <RadzenIcon Icon="filter_alt" class="rz-me-1" /><b>ข้อมูลวันที่ @lastUpdated.ToString("dd/MM/yyyy HH:mm:ss")</b>
-                    <RadzenButton Click=@(args => OnLoad()) Icon="search"  ButtonStyle="ButtonStyle.Primary" />
+                    <RadzenButton Click=@(args => OnLoad()) Icon="search" ButtonStyle="ButtonStyle.Primary" />
                 </RadzenText>
             </HeaderTemplate>
             <ChildContent>
@@ -41,40 +53,16 @@
                             </RadzenStack>
                         </RadzenStack>
                     </RadzenCard>
-                    <RadzenCard Variant="Variant.Filled">
-                        <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
-                            <RadzenLabel Text="พนักงาน CRM" />
-                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
-                                <RadzenDropDown @bind-Value=@staff_values Data=@users_staff Name="Staff"
-                                                TextProperty="firstname" ValueProperty="username" Chips=true
-                                                Multiple=true AllowClear=true class="w-100" />
-                            </RadzenStack>
-                        </RadzenStack>
-                    </RadzenCard>
                 </RadzenCardGroup>
             </ChildContent>
         </RadzenPanel>
     </RadzenStack>
+ 
     <RadzenStack Style="margin-bottom: 0;">
         <RadzenPanel AllowCollapse="true">
             <HeaderTemplate>
                 <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
-                    <RadzenIcon Icon="pie_chart" class="rz-me-1" /><b>Summary</b>
-                </RadzenText>
-            </HeaderTemplate>
-            <ChildContent>
-                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Style="height:90px" Gap="0rem">
-                   
-                </RadzenStack>
-            </ChildContent>
-        </RadzenPanel>
-    </RadzenStack>
-   
-    <RadzenStack Style="margin-bottom: 0;">
-        <RadzenPanel AllowCollapse="true">
-            <HeaderTemplate>
-                <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
-                    <RadzenIcon Icon="equalizer" class="rz-me-1" /><b>Team Actives</b>
+                    <RadzenIcon Icon="equalizer" class="rz-me-1" /><b>Actives</b>
                 </RadzenText>
             </HeaderTemplate>
             <ChildContent>
@@ -82,36 +70,36 @@
                     <RadzenRow>
                         <RadzenColumn Size="12">
                             <RadzenStack JustifyContent="JustifyContent.Left">
-                             
 
-                                <RadzenChart  style="margin-left:20px; height: 400px; min-width:800px">
+
+                                <RadzenChart style="margin-left:20px; height: 400px; min-width:800px">
 
                                     @if (revenue_total != null)
                                     {
                                         <RadzenColumnSeries Fill="#89CFEF" Data="@revenue_total" CategoryProperty="staff1"
-                                        Title="งานโทรทั้งหมด" LineType="LineType.Solid"
-                                        ValueProperty="count1">
+                                                            Title="งานโทรทั้งหมด" LineType="LineType.Solid"
+                                                            ValueProperty="count1">
                                             <RadzenSeriesDataLabels />
                                         </RadzenColumnSeries>
 
                                         <RadzenColumnSeries Fill="#E2F2D5" Data="@revenue_total" CategoryProperty="staff1"
-                                        Title="ดำเนินการแล้ว" LineType="LineType.Solid"
-                                        ValueProperty="successCount">
+                                                            Title="ดำเนินการแล้ว" LineType="LineType.Solid"
+                                                            ValueProperty="successCount">
                                             <RadzenSeriesDataLabels />
                                         </RadzenColumnSeries>
 
 
-                                        <RadzenLineSeries  Smooth="true"  Data="@revenue_total" CategoryProperty="staff1"
-                                        Title="Conversion Rate %" LineType="LineType.Dashed"
-                                        ValueProperty="conversionRate">
-                                            <RadzenMarkers  Fill="#FF2400" Visible="true" MarkerType="MarkerType.Square" />
-                                            <RadzenSeriesDataLabels  />
+                                        <RadzenLineSeries Smooth="true" Data="@revenue_total" CategoryProperty="staff1"
+                                                          Title="Conversion Rate %" LineType="LineType.Dashed"
+                                                          ValueProperty="conversionRate">
+                                            <RadzenMarkers Fill="#FF2400" Visible="true" MarkerType="MarkerType.Square" />
+                                            <RadzenSeriesDataLabels />
                                         </RadzenLineSeries>
                                     }
 
                                     <RadzenColumnOptions Radius="5" />
-                                    <RadzenCategoryAxis  LabelAutoRotation="-90"  />
-                                    <RadzenValueAxis >
+                                    <RadzenCategoryAxis LabelAutoRotation="-90" />
+                                    <RadzenValueAxis>
                                         <RadzenGridLines Visible="true" />
                                         <RadzenAxisTitle Text="กิจกรรมการโทร" />
                                     </RadzenValueAxis>
@@ -122,20 +110,20 @@
                         </RadzenColumn>
                         <RadzenColumn Size="12">
                             <RadzenStack JustifyContent="JustifyContent.Left">
-                                <RadzenChart  style="margin-left:20px; height: 400px; min-width:800px">
+                                <RadzenChart style="margin-left:20px; height: 400px; min-width:800px">
 
                                     @if (revenue_sale_total != null)
                                     {
                                         <RadzenColumnSeries Fill="#89CFEF" Data="@revenue_sale_total" CategoryProperty="staff1"
                                                             Title="ลูกค้ารับสาย" LineType="LineType.Solid"
                                                             ValueProperty="count1">
-                                            <RadzenSeriesDataLabels  />
+                                            <RadzenSeriesDataLabels />
                                         </RadzenColumnSeries>
 
                                         <RadzenColumnSeries Fill="#E2F2D5" Data="@revenue_sale_total" CategoryProperty="staff1"
                                                             Title="ขายได้" LineType="LineType.Solid"
                                                             ValueProperty="successCount">
-                                            <RadzenMarkers  Visible="true" MarkerType="MarkerType.Square" />
+                                            <RadzenMarkers Visible="true" MarkerType="MarkerType.Square" />
                                             <RadzenSeriesDataLabels />
                                         </RadzenColumnSeries>
 
@@ -214,14 +202,13 @@
             _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
             BranchCode = _BranchCode.FirstOrDefault();
 
-            if (BranchCode == "000000" && roles.Contains("Admin"))
-            {
-                await GetBranchSelect(username);
-                if (!string.IsNullOrEmpty(select_branch_code))
-                {
-                    BranchCode = select_branch_code;
-                }
-            }
+           
+            Fdate = DateTime.Now.Date;
+            Ldate = DateTime.Now.Date;
+            datachannel = data_channels;
+            await OnLoad();
+
+
 
         }
         else
@@ -231,72 +218,7 @@
             BranchCode = "";
         }
 
-        Fdate = DateTime.Now.Date;
-        Ldate = DateTime.Now.Date;
-
-        datachannel = data_channels;
-        await LoadUsersAsync();
-
-        foreach (var i in users_staff)
-        {
-            staff_values.Add(i.username);
-        }
-
-        await OnLoad();
-
-        // เริ่ม Auto Refresh
-        _ = AutoRefreshLoop();
-
-    }
-
-    private async Task GetBranchSelect(string _username)
-    {
-        try
-        {
-            await MySqlConnection.OpenAsync();
-            string query = @"SELECT username, branch_code FROM sys_select_organization where username=@username";
-            using (var cmd = new MySqlCommand(query, MySqlConnection))
-            {
-                cmd.Parameters.AddWithValue("@username", _username);
-                using (var reader = await cmd.ExecuteReaderAsync())
-                {
-                    while (await reader.ReadAsync())
-                    {
-                        select_branch_code = reader["branch_code"].ToString();
-                    }
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error fetching select_branch_code : {ex.Message}");
-        }
-        finally
-        {
-            await MySqlConnection.CloseAsync();
-        }
-    }
-
-
-
-    private void ToggleAutoRefresh()
-    {
-        isAutoRefreshing = !isAutoRefreshing; // เปิด/ปิด Auto Refresh
-        if (isAutoRefreshing)
-        {
-            _ = AutoRefreshLoop(); // เริ่มใหม่หากเปิดใช้งาน
-        }
-    }
-
-
-    private async Task AutoRefreshLoop()
-    {
-        while (isAutoRefreshing)
-        {
-            await Task.Delay(15000); // รอ 15 วินาที
-            await OnLoad(); // โหลดข้อมูลใหม่
-            StateHasChanged(); // บังคับให้ UI อัปเดต
-        }
+    
     }
 
 
@@ -305,41 +227,10 @@
         "Up-Sale", "Re-Sale","ลูกค้าขุด","Cross-Sale"
       };
 
-    private async Task LoadUsersAsync()
-    {
-        try
-        {
-            await MySqlConnection.OpenAsync();
-            string query = "SELECT username, firstname FROM mas_users WHERE organization = @BranchCode";
-            using (var cmd = new MySqlCommand(query, MySqlConnection))
-            {
-                cmd.Parameters.AddWithValue("@BranchCode", BranchCode);
-                using (var reader = await cmd.ExecuteReaderAsync())
-                {
-                    while (await reader.ReadAsync())
-                    {
-                        users_staff.Add(new User
-                            {
-                                username = reader["username"].ToString(),
-                                firstname = reader["firstname"].ToString()
-                            });
-                    }
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error fetching users: {ex.Message}");
-        }
-        finally
-        {
-            await MySqlConnection.CloseAsync();
-        }
-    }
 
     private async Task LoadSummary(DateTime fdate, DateTime ldate, string touch_point, string user)
     {
-     try
+        try
         {
             await MySqlConnection.OpenAsync();
 
@@ -359,7 +250,7 @@ FROM
        AND mu.organization = ca.branch_code
 WHERE
     ca.branch_code = @branch_code
-    AND FIND_IN_SET(ca.assign_work, @user)
+    AND ca.assign_work = @user
     AND DATE(ca.startdate) BETWEEN DATE(@fdate) AND DATE(@ldate)
     AND FIND_IN_SET(IFNULL(ca.touch_point, ''), @touch_point)
 GROUP BY
@@ -380,7 +271,7 @@ GROUP BY
                         int totalCount = Convert.ToInt32(reader["total_activities"]);
                         int successCount = Convert.ToInt32(reader["success_count"]);
                         double conversionRate = Convert.ToDouble(reader["conversion_rate"]);
-                       
+
 
                         // 2) สร้างหรือเก็บลง DataItem ตามต้องการ
                         DataItem newItem = new DataItem
@@ -408,8 +299,9 @@ GROUP BY
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error fetching sum activities: {ex.Message}");
+           // Console.WriteLine($"Error fetching sum activities: {ex.Message}");
             // Optionally log the error with a logging framework
+            await MySqlConnection.CloseAsync();
         }
         finally
         {
@@ -439,7 +331,7 @@ FROM
        AND mu.organization = ca.branch_code
 WHERE
     ca.branch_code = @branch_code
-    AND FIND_IN_SET(ca.assign_work, @user)
+    AND ca.assign_work = @user
     AND DATE(ca.startdate) BETWEEN DATE(@fdate) AND DATE(@ldate)
     AND FIND_IN_SET(IFNULL(ca.touch_point, ''), @touch_point)
     AND ca.call_status='รับสาย'
@@ -499,17 +391,6 @@ GROUP BY
     }
 
 
-    private async Task TimerElapsed()
-    {
-        await InvokeAsync(async () =>
-        {
-            await OnLoad();
-            StateHasChanged(); // บังคับให้ UI อัปเดต
-        });
-    }
-
-
-
     class DataItem
     {
         public string staff1 { get; set; }
@@ -523,12 +404,12 @@ GROUP BY
         //  lastUpdated = DateTime.Now; // อัปเดตเวลา
         lastUpdated = TimeZoneService.ToLocalTime(DateTime.UtcNow);
         //  StateHasChanged();
-       
+
         revenue_total = null;
         revenue_sale_total = null;
-        
-        await LoadSummary(this.Fdate.Value, this.Ldate.Value, string.Join(",", touch_point), string.Join(",", staff_values));
-        await LoadSummary2(this.Fdate.Value, this.Ldate.Value, string.Join(",", touch_point), string.Join(",", staff_values));
+
+        await LoadSummary(this.Fdate.Value, this.Ldate.Value, string.Join(",", touch_point), username);
+        await LoadSummary2(this.Fdate.Value, this.Ldate.Value, string.Join(",", touch_point), username);
 
 
         StateHasChanged();

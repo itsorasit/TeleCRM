@@ -1,0 +1,197 @@
+﻿@page "/adminproduct-cat"
+@using BlazorApp_TeleCRM.Data
+@using BlazorApp_TeleCRM.Models
+@using BlazorApp_TeleCRM.Service
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using static BlazorApp_TeleCRM.Controller.ProductAdminController
+@inject IConfiguration Configuration
+@inject HttpClient Http
+@inject DialogService DialogService
+@inject SharedStateService SharedState
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+
+@inject IConfiguration Configuration
+@inject HttpClient Http
+@inject DialogService DialogService
+
+<PageTitle>ข้อมูลสินค้า</PageTitle>
+
+
+<AuthorizeView Roles="Admin,Manager,Supervisor">
+
+
+    <div class="rz-6">
+        <RadzenBreadCrumb>
+            <RadzenBreadCrumbItem Text="CRM - Admin" />
+            <RadzenBreadCrumbItem Path="/adminproduct" Text="ประเภทสินค้า" />
+        </RadzenBreadCrumb>
+        <RadzenText TextStyle="TextStyle.DisplayH5">ข้อมูลประเภทสินค้า</RadzenText>
+    </div>
+
+    <RadzenCard Variant="Variant.Outlined" class="rz-my-4">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Start" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Start">
+                <RadzenButton Text="รีเฟรช" Icon="refresh" ButtonStyle="ButtonStyle.Info" Click="@OnRefresh" />
+
+            </RadzenStack>
+
+            <RadzenButton style="width: 200px" Icon="add_circle" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Success" Text="เพิ่มประเภทสินค้า" Click="@(args => OpenSideDialog(""))" />
+        </RadzenStack>
+    </RadzenCard>
+
+
+
+    <RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+        <Template>โหลด</Template>
+    </RadzenProgressBarCircular>
+
+
+    <RadzenDataGrid TItem="mas_categorys" Data="@productions" @bind-Value=@selectedProduction
+                    PagerPosition="PagerPosition.Bottom"
+                    FilterMode="FilterMode.SimpleWithMenu" PageSize="10"
+                    SelectionMode="DataGridSelectionMode.Single"
+                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                    AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
+                    AllowSorting="true" ColumnWidth="300px"
+                    ShowPagingSummary="true"
+                    PageSizeOptions="@pageSizeOptions">
+        <Columns>
+
+            <RadzenDataGridColumn TextAlign="TextAlign.Center" Width="25px" Filterable="false" Property="@nameof(mas_categorys.guid)" Title="">
+                <Template Context="data">
+                    <RadzenButton ButtonStyle="ButtonStyle.Light" Click="@(args => OpenSideDialog(data.guid))" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="mas_categorys" Property="@nameof(mas_categorys.category_name)" Title="ประเภทสินค้า" />
+        </Columns>
+    </RadzenDataGrid>
+
+</AuthorizeView>
+
+@code {
+    bool isDialogOpen = false;
+    DateTime? value = DateTime.Now;
+    private IEnumerable<mas_categorys> productions;
+    IList<mas_categorys> selectedProduction;
+
+    bool runProcess_wait = false;
+
+    private string BranchCode { get; set; }
+    private IEnumerable<string> _BranchCode;
+
+    IEnumerable<int> pageSizeOptions = new int[] { 10, 20, 30, 50, 100 };
+
+
+    private async Task OnRefresh()
+    {
+        // เรียกใช้เมธอด FetchCustomerDataAsync เพื่อค้นหาข้อมูลตามวันที่ที่เลือก
+        productions = await FetchProductDataAsync();
+
+        if (productions != null && productions.Any())
+        {
+            selectedProduction = new List<mas_categorys>() { productions.FirstOrDefault() };
+        }
+        // บังคับให้ UI อัปเดตใหม่
+        StateHasChanged();
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            //  username = user.Identity.Name;
+            //  roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+
+        }
+        else
+        {
+            // username = "Not authenticated";
+            // roles = Enumerable.Empty<string>();
+            BranchCode = "";
+        }
+
+        productions = await FetchProductDataAsync();
+
+        if (productions != null && productions.Any())
+        {
+            selectedProduction = new List<mas_categorys>() { productions.FirstOrDefault() };
+        }
+    ;
+    }
+
+    public async Task<IEnumerable<mas_categorys>> FetchProductDataAsync()
+    {
+        try
+        {
+
+            // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
+            runProcess_wait = true;
+            StateHasChanged(); // บังคับ UI อัปเดต
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+            var searchCriteria = new
+            {
+                branch_code = BranchCode
+            };
+
+            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/ProductAdmin/GetProductCat", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // แปลงข้อมูลที่ได้รับเป็น IEnumerable<CustomerDataList>
+                var procuctDataList = await response.Content.ReadFromJsonAsync<IEnumerable<mas_categorys>>();
+                return procuctDataList;
+            }
+            else
+            {
+                Console.WriteLine("Error fetching product data.");
+                return Enumerable.Empty<mas_categorys>();
+            }
+        }
+        finally
+        {
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
+    }
+
+
+    async Task OpenSideDialog(string CatID)
+    {
+
+        if (isDialogOpen)
+        {
+            DialogService.Close();
+            // await Task.Delay(200);
+        }
+        StateHasChanged();
+        await DialogService.OpenSideAsync<DialogCardPageProductCat>(
+            "ข้อมูลประเภทสินค้า",
+            new Dictionary<string, object>
+                                        {
+            { "CatID", CatID }
+                                        },
+            new SideDialogOptions
+                {
+                    CloseDialogOnOverlayClick = true,
+                    Position = DialogPosition.Right,
+                    ShowMask = false,
+                    Width = "850px"
+                });
+        isDialogOpen = true;
+    }
+}

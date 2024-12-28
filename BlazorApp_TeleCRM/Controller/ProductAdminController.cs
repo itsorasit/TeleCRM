@@ -65,6 +65,45 @@ namespace BlazorApp_TeleCRM.Controller
             return Ok(product);
         }
 
+        [HttpPost("GetProductCat")]
+        public async Task<IActionResult> GetProductCat([FromBody] SearchCriteriaByID searchCriteria)
+        {
+            var product = new List<mas_categorys>();
+
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                var query = @"SELECT p.guid, p.branch_code, p.category_name 
+                    FROM mas_categorys p 
+                    WHERE  p.branch_code = @branch_code";
+
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+
+                    var branch_code = searchCriteria.branch_code ?? "";
+                    cmd.Parameters.AddWithValue("@branch_code", branch_code);
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            mas_categorys productions = new mas_categorys();
+
+                            productions.guid = reader.GetString(reader.GetOrdinal("guid"));
+                            productions.branch_code = reader.GetString(reader.GetOrdinal("branch_code"));
+                            productions.category_name = reader.GetString(reader.GetOrdinal("category_name"));
+                            product.Add(productions);
+                        }
+                    }
+                }
+            }
+
+            return Ok(product);
+        }
+
+
+
         public class SearchCriteriaByID
         {
             public string? guid { get; set; }
