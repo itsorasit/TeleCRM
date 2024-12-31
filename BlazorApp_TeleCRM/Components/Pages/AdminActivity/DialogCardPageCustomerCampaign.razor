@@ -146,14 +146,14 @@
                                             Data=@datachannel Name="activities_touch_point" class="w-100" />
                             <RadzenRequiredValidator Component="activities_touch_point" Text="เลือก แหล่งข้อมูล" Style="position: absolute" />
                         </RadzenColumn>
-                        
+
                         <RadzenColumn Size="6" SizeMD="6">
                             <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">จังหวัด <span class="rz-messages-error">*</span> </RadzenText>
                             <RadzenDropDown @bind-Value=@model.activities_touch_point style="display:block;width:100%"
                                             Data=@datachannel Name="activities_touch_point" class="w-100" />
                             <RadzenRequiredValidator Component="activities_touch_point" Text="เลือก จังหวัด" Style="position: absolute" />
                         </RadzenColumn>
-                       
+
                         <RadzenColumn Size="6" SizeMD="6">
                             <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">ประเภทสินค้า <span class="rz-messages-error">*</span> </RadzenText>
                             <RadzenDropDown @bind-Value=@model.activities_touch_point style="display:block;width:100%"
@@ -185,13 +185,50 @@
                             <RadzenRequiredValidator Component="activities_assign_work" Text="พนักงาน CRM" Style="position: absolute" />
                         </RadzenColumn>
 
-                        <RadzenColumn Size="12" SizeMD="12">
-                           <hr />
 
+                        <RadzenColumn Size="6" SizeMD="6">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">จำนวนลูกค้าที่ต้องการโทร <span class="rz-messages-error">*</span> </RadzenText>
+                            <RadzenDropDown @bind-Value=@model.activities_touch_point style="display:block;width:100%"
+                                            Data=@datachannel Name="activities_touch_point" class="w-100" />
+                            <RadzenRequiredValidator Component="activities_touch_point" Text="เลือก สินค้า" Style="position: absolute" />
+                        </RadzenColumn>
+
+                        <RadzenColumn Size="12" SizeMD="12">
+                            <hr />
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">ความสนใจของลูกค้า </RadzenText>
+                            <RadzenPickList AllowMoveAll="true"
+                                            AllowMoveAllSourceToTarget="true"
+                                            AllowMoveAllTargetToSource="true"
+                                            @bind-Source="@Source" @bind-Target="@Target"
+                                            Style="height:500px; width:100%;" Orientation="Orientation.Horizontal"
+                                            TextProperty="@nameof(InterestTag.Name)"
+                                            AllowFiltering="true"
+                                            Multiple="true"
+                                            ShowHeader="true"
+                                            ButtonJustifyContent="JustifyContent.Center"
+                                            ItemRender="OnItemRender">
+                                <SourceHeader>
+                                    Tag:
+                                </SourceHeader>
+                                <TargetHeader>
+                                    เลือก Tag :
+                                </TargetHeader>
+                                @*  <Template Context="data">
+                                <b>@context.Name</b>
+                                </Template> *@
+                            </RadzenPickList>
 
                         </RadzenColumn>
+
+                        <RadzenColumn Size="12" SizeMD="12">
+                            <RadzenButton Text="คำนวณ"  Style="margin-top:15px" ButtonStyle="ButtonStyle.Info" />
+                        </RadzenColumn>
+
                     </RadzenRow>
                 </RadzenTemplateForm>
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="รายชื่อลูกค้า">
+
             </RadzenTabsItem>
         </Tabs>
     </RadzenTabs>
@@ -235,6 +272,67 @@
 
     IEnumerable<string> datachannel;
     DateTime? datevalue;
+
+    private List<string> items = new()
+    {
+        "Bangkok",
+        "Chiang Mai",
+        "Phuket",
+        "Rayong",
+        "Nakhon Ratchasima",
+        "Khon Kaen"
+    };
+
+
+    // ประกาศคลาสสำหรับ "Tag ความสนใจของลูกค้า"
+    public class InterestTag
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    // ตัวแปรสำหรับผูกข้อมูลกับ PickList
+    IEnumerable<InterestTag> _source;
+    IEnumerable<InterestTag> Source
+    {
+        get => _source;
+        set
+        {
+            if (_source != value)
+            {
+                _source = value;
+                Console.WriteLine("Source updated");
+            }
+        }
+    }
+
+    IEnumerable<InterestTag> _target;
+    IEnumerable<InterestTag> Target
+    {
+        get => _target;
+        set
+        {
+            if (_target != value)
+            {
+                _target = value;
+                Console.WriteLine("Target updated");
+            }
+        }
+    }
+
+
+    // ตัวอย่างการกำหนดเงื่อนไขพิเศษขณะเรนเดอร์ (disable บางรายการถ้ามีตัวอักษร "a" ในชื่อ)
+    void OnItemRender(PickListItemRenderEventArgs<InterestTag> args)
+    {
+        // ตัวอย่าง: disable item ถ้าชื่อ Tag มีอักษร 'a' (ลองทดสอบดู)
+        if (args.Item.Name.Contains("a", StringComparison.OrdinalIgnoreCase))
+        {
+            args.Disabled = true;
+        }
+    }
+
+    // ตัวแปรสำหรับเก็บรายการที่เลือก
+    private List<string> selectedItems = new();
 
 
     //from data
@@ -486,7 +584,7 @@
 
         model.activities_touch_point = "";
 
-      //  countcustomer = SharedState.SelectedCustomerIDs.Count().ToString();
+        //  countcustomer = SharedState.SelectedCustomerIDs.Count().ToString();
 
 
 
@@ -527,7 +625,23 @@
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
-        // countcustomer = SharedState.SelectedCustomerIDs.Count().ToString();
+
+        // สร้างรายการ Tag ความสนใจ (แบบกำหนดเอง)
+        Source = new List<InterestTag>
+        {
+            new InterestTag { Id = 1, Name = "สนใจสินเชื่อ" },
+            new InterestTag { Id = 2, Name = "สนใจประกันชีวิต" },
+            new InterestTag { Id = 3, Name = "สนใจรถยนต์มือสอง" },
+            new InterestTag { Id = 4, Name = "สนใจอสังหาริมทรัพย์" },
+            new InterestTag { Id = 5, Name = "สนใจลงทุนกองทุนรวม" },
+            new InterestTag { Id = 6, Name = "สนใจซื้อทองคำ" }
+        };
+
+        // กรณีนี้เริ่มต้นยังไม่มี Tag ที่ถูกเลือก
+        Target = new List<InterestTag>();
+
+
+
     }
 
     private async Task LoadUsers()
@@ -537,7 +651,7 @@
         await connection.OpenAsync();
 
         using MySqlCommand command = new MySqlCommand(
-                @"SELECT id, username, firstname, lastname
+                    @"SELECT id, username, firstname, lastname
             FROM mas_users u WHERE u.organization = @organization AND u.role IN ('User', 'Supervisor')",
             connection);
 
@@ -593,7 +707,7 @@
         }
         finally
         {
-           await MySqlConnection.CloseAsync();
+            await MySqlConnection.CloseAsync();
         }
     }
 
