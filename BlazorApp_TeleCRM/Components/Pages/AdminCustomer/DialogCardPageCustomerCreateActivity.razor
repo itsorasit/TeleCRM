@@ -15,96 +15,93 @@
 @inject NotificationService NotificationService
 
 <RadzenStack Gap="1rem" Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
-
-    <RadzenCard Variant="Variant.Outlined">
-
-        <RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnChange>
-            <Tabs>
-                <RadzenTabsItem Text="กิจกรรม">
-                  <RadzenTemplateForm TItem="Model" Data=@model Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
+    <RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnChange>
+        <Tabs>
+            <RadzenTabsItem Text="กิจกรรม">
+                <RadzenTemplateForm TItem="Model" Data=@model Submit=@OnSubmit InvalidSubmit=@OnInvalidSubmit>
                     <RadzenRow Gap="1rem">
                         <RadzenColumn Size="6" SizeMD="6">
-                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">รหัสกิจกรรม <span class="rz-messages-error">*</span> </RadzenText>
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">รหัสกิจกรรม <span class="rz-messages-error">*</span> </RadzenText>
                             <RadzenTextBox Style="width: 100%" Disabled="true" AutoComplete="false" @bind-Value=@ID />
                         </RadzenColumn>
                         <RadzenColumn Size="6" SizeMD="6">
-                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Touch Point <span class="rz-messages-error">*</span> </RadzenText>
-                                <RadzenDropDown @bind-Value=@model.activities_touch_point style="display:block;width:100%"
-                                                Data=@datachannel Name="activities_touch_point" class="w-100" />
-                                <RadzenRequiredValidator Component="activities_touch_point" Text="เลือก Touch Point" Style="position: absolute" />
-                            </RadzenColumn>
-                            <RadzenColumn Size="12" SizeMD="12">
-                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">ชื่อกิจกรรม <span class="rz-messages-error">*</span> </RadzenText>
-                                <RadzenTextBox Name="activities_name" style="display: block;width: 100%"
-                                               @bind-Value=@model.activities_name AutoComplete="false" class="w-100" />
-                                <RadzenRequiredValidator Component="activities_name" Text="กรอกชื่อกิจกรรม" Style="position: absolute" />
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Touch Point <span class="rz-messages-error">*</span> </RadzenText>
+                            <RadzenDropDown @bind-Value=@model.activities_touch_point style="display:block;width:100%"
+                                            Data=@datachannel Name="activities_touch_point" class="w-100" />
+                            <RadzenRequiredValidator Component="activities_touch_point" Text="เลือก Touch Point" Style="position: absolute" />
                         </RadzenColumn>
                         <RadzenColumn Size="12" SizeMD="12">
-                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">รายละเอียด</RadzenText>
-                                <RadzenTextBox Name="activities_name" style="display: block;width: 100%"
-                                               @bind-Value=@model.activities_description AutoComplete="false" class="w-100" />
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">ชื่อกิจกรรม <span class="rz-messages-error">*</span> </RadzenText>
+                            <RadzenTextBox Name="activities_name" style="display: block;width: 100%"
+                                           @bind-Value=@model.activities_name AutoComplete="false" class="w-100" />
+                            <RadzenRequiredValidator Component="activities_name" Text="กรอกชื่อกิจกรรม" Style="position: absolute" />
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="12">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">รายละเอียด</RadzenText>
+                            <RadzenTextBox Name="activities_name" style="display: block;width: 100%"
+                                           @bind-Value=@model.activities_description AutoComplete="false" class="w-100" />
                         </RadzenColumn>
 
                         <RadzenColumn Size="6" SizeMD="6">
-                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">วันที่เริ่มจ่ายงาน <span class="rz-messages-error">*</span> </RadzenText>
-                                <RadzenDatePicker Change="OnDateChanged" @bind-Value=@model.activities_startdate Name="activities_startdate" ShowTime="true" ShowSeconds="true"
-                                                  HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm" class="w-100" style="display: block;width: 100%" />
-                                <RadzenRequiredValidator Component="activities_startdate" Text="เลือกวันที่เริ่มจ่ายงาน" Style="position: absolute" />
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">วันที่เริ่มจ่ายงาน <span class="rz-messages-error">*</span> </RadzenText>
+                            <RadzenDatePicker Change="OnDateChanged" @bind-Value=@model.activities_startdate Name="activities_startdate" ShowTime="true" ShowSeconds="true"
+                                              HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm" class="w-100" style="display: block;width: 100%" />
+                            <RadzenRequiredValidator Component="activities_startdate" Text="เลือกวันที่เริ่มจ่ายงาน" Style="position: absolute" />
                         </RadzenColumn>
                         <RadzenColumn Size="6" SizeMD="6">
-                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">วันที่ครบกำหนด <span class="rz-messages-error">*</span> </RadzenText>
-                                <RadzenDatePicker @bind-Value=@model.activities_duedate Name="activities_duedate" ShowTime="true" ShowSeconds="true"
-                                                  HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm" class="w-100" style="display: block;width: 100%" />
-                                <RadzenRequiredValidator Component="activities_duedate" Text="เลือกวันที่ครบกำหนด" Style="position: absolute" />
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">วันที่ครบกำหนด <span class="rz-messages-error">*</span> </RadzenText>
+                            <RadzenDatePicker @bind-Value=@model.activities_duedate Name="activities_duedate" ShowTime="true" ShowSeconds="true"
+                                              HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm" class="w-100" style="display: block;width: 100%" />
+                            <RadzenRequiredValidator Component="activities_duedate" Text="เลือกวันที่ครบกำหนด" Style="position: absolute" />
                         </RadzenColumn>
-                       @*  <RadzenColumn Size="6" SizeMD="6">
-                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">แจ้งใกล้ครบกำหนด <span class="rz-messages-error">*</span> </RadzenText>
-                                <RadzenDatePicker @bind-Value=@model.activities_reminder_duedate Name="activities_reminder_duedate" ShowTime="true" ShowSeconds="true"
-                                                  HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm" class="w-100" style="display: block;width: 100%" />
+                        @*  <RadzenColumn Size="6" SizeMD="6">
+                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">แจ้งใกล้ครบกำหนด <span class="rz-messages-error">*</span> </RadzenText>
+                        <RadzenDatePicker @bind-Value=@model.activities_reminder_duedate Name="activities_reminder_duedate" ShowTime="true" ShowSeconds="true"
+                        HoursStep="1.5" MinutesStep="5" SecondsStep="10" DateFormat="dd/MM/yyyy HH:mm" class="w-100" style="display: block;width: 100%" />
                         </RadzenColumn> *@
-                            <RadzenColumn Size="6" SizeMD="6">
-                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">พนักงาน CRM<span class="rz-messages-error">*</span> </RadzenText>
-                                <RadzenDropDown @ref="radzenDropDown"
-                                                @bind-SearchText="SearchText"
-                                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                                FilterOperator="StringFilterOperator.StartsWith"
-                                                AllowFiltering="true"
-                                                Data="@Assignworks"
-                                                TextProperty="FullName"
-                                                ValueProperty="Username"
-                                                AllowClear="true"
-                                                @bind-Value=@model.activities_assign_work
-                                                Name="activities_assign_work" class="w-100" style="display: block;width: 100%" />
-                                <RadzenRequiredValidator Component="activities_assign_work" Text="พนักงาน CRM" Style="position: absolute" />
+                        <RadzenColumn Size="6" SizeMD="6">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">พนักงาน CRM<span class="rz-messages-error">*</span> </RadzenText>
+                            <RadzenDropDown @ref="radzenDropDown"
+                                            @bind-SearchText="SearchText"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                            FilterOperator="StringFilterOperator.StartsWith"
+                                            AllowFiltering="true"
+                                            Data="@Assignworks"
+                                            TextProperty="FullName"
+                                            ValueProperty="Username"
+                                            AllowClear="true"
+                                            @bind-Value=@model.activities_assign_work
+                                            Name="activities_assign_work" class="w-100" style="display: block;width: 100%" />
+                            <RadzenRequiredValidator Component="activities_assign_work" Text="พนักงาน CRM" Style="position: absolute" />
                         </RadzenColumn>
 
 
                         <RadzenColumn Size="6" SizeMD="6">
                             <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">จำนวนลูกค้าที่เลือกทั้งหมด </RadzenText>
-                            <RadzenTextBox @bind-Value=@countcustomer Disabled="true"  Style="width: 100%; max-width:100px" AutoComplete="false" />
+                            <RadzenTextBox @bind-Value=@countcustomer Disabled="true" Style="width: 100%; max-width:100px" AutoComplete="false" />
                         </RadzenColumn>
                         <RadzenColumn Size="6" SizeMD="6">
-                            <RadzenStack Orientation="Orientation.Vertical" Gap="0.5rem" >
-                                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">ฝากงานให้นายหน้า </RadzenText>
-                                    <RadzenCheckBox @bind-Value=@model.allowagent Disabled="true" Name="CheckBox1" />
+                            <RadzenStack Orientation="Orientation.Vertical" Gap="0.5rem">
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">ฝากงานให้นายหน้า </RadzenText>
+                                <RadzenCheckBox @bind-Value=@model.allowagent Disabled="true" Name="CheckBox1" />
                             </RadzenStack>
                         </RadzenColumn>
 
 
                         <RadzenColumn Size="12" SizeMD="12">
-                                <RadzenButton Text="บันทึก" Disabled="@btnDisable" ButtonType="ButtonType.Submit" Style="margin-top:15px" ButtonStyle="ButtonStyle.Primary" />
+                            <RadzenButton Text="บันทึก" Disabled="@btnDisable" ButtonType="ButtonType.Submit" Style="margin-top:15px" ButtonStyle="ButtonStyle.Primary" />
                         </RadzenColumn>
-                            <RadzenColumn Size="12" SizeMD="12">
-                                <RadzenCard Variant="Variant.Outlined" @bind-Visible=runProcess style="background-color:#CBE2F5;">
-                                    <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
-                                        <RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
-                                            <Template>รอ</Template>
-                                        </RadzenProgressBarCircular>
-                                        <RadzenText Style="margin-top:20px" TextStyle="TextStyle.Caption">@TextProcess</RadzenText>
-                                        <RadzenText Style="margin-top:20px;color:red" TextStyle="TextStyle.Caption">@TextProcess_Duplicate</RadzenText>
-                                    </RadzenStack>
-                                </RadzenCard>
-                            </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="12">
+                            <RadzenCard Variant="Variant.Outlined" @bind-Visible=runProcess style="background-color:#CBE2F5;">
+                                <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center">
+                                    <RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+                                        <Template>รอ</Template>
+                                    </RadzenProgressBarCircular>
+                                    <RadzenText Style="margin-top:20px" TextStyle="TextStyle.Caption">@TextProcess</RadzenText>
+                                    <RadzenText Style="margin-top:20px;color:red" TextStyle="TextStyle.Caption">@TextProcess_Duplicate</RadzenText>
+                                </RadzenStack>
+                            </RadzenCard>
+                        </RadzenColumn>
 
                         <RadzenColumn Size="12" SizeMD="12">
                             <div>
@@ -119,89 +116,15 @@
 
 
                     </RadzenRow>
-                    </RadzenTemplateForm>
-                </RadzenTabsItem>
-
-               @*  <RadzenTabsItem Text="ขายสินค้า">
-                    <RadzenRow Gap="1rem">
+                </RadzenTemplateForm>
+            </RadzenTabsItem>
 
 
-                        <RadzenDataGrid @ref="ordersGrid" AllowAlternatingRows="false" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" EditMode="@editMode"
-                                        Data="@orders" TItem="Products" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset" ColumnWidth="200px">
-                            <HeaderTemplate>
-                                <RadzenButton ButtonStyle="ButtonStyle.Success" Icon="add_circle" Text="เพิ่มสินค้า" Click="@InsertRow" Disabled="@(editMode == DataGridEditMode.Single && ordersToInsert.Count() > 0)" />
-                            </HeaderTemplate>
-                            <Columns>
-                             
-                                <RadzenDataGridColumn Property="Code" Width="100px" Title="รหัสสินค้า">
-                                    <EditTemplate Context="order">
-                                        <RadzenTextBox @bind-Value="order.Code" Style="width:100px; display: block" Name="ProductCode" aria-label="" />
-                                        <RadzenRequiredValidator Text="รหัสสินค้า" Component="ProductCode" Popup="true" />
-                                    </EditTemplate>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn Property="@nameof(Products.Name)" Width="150px" Title="ชื่อสินค้า">
-                                    <EditTemplate Context="order">
-                                        <RadzenTextBox @bind-Value="order.Name" Style="width:150px; display: block" Name="ProductName" aria-label="" />
-                                        <RadzenRequiredValidator Text="ชื่อสินค้า" Component="ProductName" Popup="true" />
-                                    </EditTemplate>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn Property="@nameof(Products.Price)" Width="100px" Title="ราคาสินค้า">
-                                    <EditTemplate Context="order">
-                                        <RadzenNumeric ShowUpDown="false" @bind-Value="order.Price" Name="ProductPrice" Style="width:100%" Placeholder="ราคาสินค้า" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "ราคา" }})" />
-                                            <RadzenRequiredValidator Text="ราคาสินค้า" Component="ProductPrice" Popup="true" />
-                                    </EditTemplate>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn Property="@nameof(Products.SalePrice)" Width="100px" Title="ราคาขาย">
-                                    <EditTemplate Context="order">
-                                        <RadzenNumeric ShowUpDown="false" @bind-Value="order.SalePrice" Name="ProductSalePrice" Style="width:100%" Placeholder="ราคาขาย" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "ราคา" }})" />
-                                        <RadzenRequiredValidator Text="ราคาขาย" Component="ProductSalePrice" Popup="true" />
-                                    </EditTemplate>
-                                </RadzenDataGridColumn>
-                               <RadzenDataGridColumn Property="@nameof(Order.ShipCountry)" Title="ShipCountry">
-                                    <EditTemplate Context="order">
-                                        <RadzenTextBox @bind-Value="order.ShipCountry" Style="width:200px; display: block" Name="ShipCountry" aria-label="Enter ship country" />
-                                        <RadzenRequiredValidator Text="ShipCountry is required" Component="ShipCountry" Popup="true" />
-                                    </EditTemplate>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn Property="@nameof(Order.ShipCity)" Title="ShipCity">
-                                    <EditTemplate Context="order">
-                                        <RadzenTextBox @bind-Value="order.ShipCity" Style="width:200px; display: block" Name="ShipCity" aria-label="Enter ship city" />
-                                        <RadzenRequiredValidator Text="ShipCity is required" Component="ShipCity" Popup="true" />
-                                    </EditTemplate>
-                                </RadzenDataGridColumn> 
-                                <RadzenDataGridColumn Context="order" Width="150px" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
-                                    <Template Context="order">
-                                        <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@(args => EditRow(order))" @onclick:stopPropagation="true">
-                                        </RadzenButton>
-                                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="@(args => DeleteRow(order))" @onclick:stopPropagation="true">
-                                        </RadzenButton>
-                                    </Template>
-                                    <EditTemplate Context="order" >
-                                        <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => SaveRow(order))" aria-label="Save">
-                                        </RadzenButton>
-                                        <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="@((args) => CancelEdit(order))" aria-label="Cancel">
-                                        </RadzenButton>
-                                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Variant="Variant.Flat" Shade="Shade.Lighter" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="@(args => DeleteRow(order))" aria-label="Delete">
-                                        </RadzenButton>
-                                    </EditTemplate>
-                                </RadzenDataGridColumn>
-                            </Columns>
-                        </RadzenDataGrid>
 
-                    </RadzenRow>
-                </RadzenTabsItem> *@
-           
-            </Tabs>
-        </RadzenTabs>
+        </Tabs>
+    </RadzenTabs>
 
 
-    </RadzenCard>
-
-
-    @*   <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="1.5rem">
-    <RadzenButton Click="@((args) => dialogService.Close(true))" Variant="Variant.Outlined"
-    Text="ปิด" Style="width: 120px;margin-bottom:20px" />
-    </RadzenStack> *@
 </RadzenStack>
 @code {
     [Parameter] public string UploadID { get; set; }

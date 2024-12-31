@@ -64,6 +64,16 @@
 
     </div>
 
+    <RadzenCard Variant="Variant.Outlined" class="rz-my-4">
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" AlignItems="AlignItems.Center">
+             </RadzenStack>
+
+            <!-- Upload button aligned to the right -->
+            <RadzenButton Text="สร้างแคมเปญ"  ButtonStyle="ButtonStyle.Info" Click="@OpenSideDialog2" />
+        </RadzenStack>
+    </RadzenCard>
+
 
     <RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
         <Template>โหลด</Template>
@@ -173,13 +183,6 @@
 
 
 
-
-    async Task OpenUpload()
-    {
-        await DialogService.OpenAsync<DialogCardPageUploadJob>($"",
-              new Dictionary<string, object>() { { "ActivitysID", 1 } },
-              new DialogOptions() { Width = "800px", Height = "400px" });
-    }
 
 
     protected override async Task OnInitializedAsync()
@@ -300,13 +303,43 @@
                         CloseDialogOnOverlayClick = true,
                         Position = DialogPosition.Right,
                         ShowMask = false,
-                        Width = "850px"
+                        Width = "50%"
                     });
 
             isDialogOpen = true;
         }
 
     }
+
+
+    async Task OpenSideDialog2()
+    {
+        // ตรวจสอบว่ามี Dialog เปิดอยู่หรือไม่ ถ้าเปิดอยู่ ให้ปิดก่อน
+        if (isDialogOpen)
+        {
+            DialogService.Close();  // ปิด Dialog
+            await Task.Delay(200);  // หน่วงเวลาเพื่อให้ Dialog ถูกปิดสมบูรณ์
+        }
+
+
+        // เปิด Dialog ใหม่สำหรับสร้างแคมเปญ
+        await DialogService.OpenSideAsync<DialogCardPageCustomerCampaign>(
+            "สร้างแคมเปญ",
+            new Dictionary<string, object>{{ "ActivitysID", "" }},
+            new SideDialogOptions
+                {
+                    CloseDialogOnOverlayClick = true,
+                    Position = DialogPosition.Right,
+                    ShowMask = false,
+                    Width = "850px"
+                });
+
+        // ตั้งค่าว่ามี Dialog เปิดอยู่
+        isDialogOpen = true;
+
+    }
+
+
 
 
     public async Task<IEnumerable<ActivitysDataList>> FetchCustomerDataAsync(DateTime? fdate, DateTime? ldate)

@@ -22,321 +22,317 @@
 </style>
 
 <RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
-    <RadzenStack>
-
-        <RadzenTabs @bind-SelectedIndex=@selectedIndex2>
-            <Tabs>
-                <RadzenTabsItem Text="ข้อมูลลูกค้า">
-                    <RadzenRow>
-                        <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
-                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                                <RadzenStack Gap="0">
-                                    <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">เบอร์ติดต่อลูกค้า</RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Body1"><b><a href="tel:@utility.FormatPhoneNumberWithCountryCode(model.customer_phone)"><RadzenIcon Icon="smartphone" /> @utility.FormatPhoneNumber(model.customer_phone) </a></b></RadzenText>
-                                    <img width="150px" style="margin-top:20px" src="data:image/png;base64,@qrCodeImage" alt="QR Code" />
-                                </RadzenStack>
-                                <RadzenStack Gap="0">
-                                    <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ชื่อลูกค้า</RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@model.customer_name</b></RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ที่อยู่</RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Caption"><b>@model.customer_address1 @model.customer_sub_district @model.customer_district @model.customer_province @model.customer_zipcode</b></RadzenText>
-                                </RadzenStack>
+    <RadzenTabs @bind-SelectedIndex=@selectedIndex2>
+        <Tabs>
+            <RadzenTabsItem Text="ข้อมูลลูกค้า">
+                <RadzenRow>
+                    <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                            <RadzenStack Gap="0">
+                                <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">เบอร์ติดต่อลูกค้า</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1"><b><a href="tel:@utility.FormatPhoneNumberWithCountryCode(model.customer_phone)"><RadzenIcon Icon="smartphone" /> @utility.FormatPhoneNumber(model.customer_phone) </a></b></RadzenText>
+                                <img width="150px" style="margin-top:20px" src="data:image/png;base64,@qrCodeImage" alt="QR Code" />
                             </RadzenStack>
-                        </RadzenColumn>
+                            <RadzenStack Gap="0">
+                                <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ชื่อลูกค้า</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@model.customer_name</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline" Style="color: var(--rz-text-tertiary-color);">ที่อยู่</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Caption"><b>@model.customer_address1 @model.customer_sub_district @model.customer_district @model.customer_province @model.customer_zipcode</b></RadzenText>
+                            </RadzenStack>
+                        </RadzenStack>
+                    </RadzenColumn>
 
-                        @if (BranchesConfig.personal == "Nutritional & Dietary")
-                        {
-                            <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
-                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween" Gap="20px">
-                                    <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="5px">
-                                        <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">วันเดือนปีเกิด</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.birth_date</b></RadzenText>
-
-                                        <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">อายุ</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.age</b></RadzenText>
-
-                                        <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">น้ำหนัก</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.weight</b></RadzenText>
-
-                                        <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">โรคประจำตัว</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.chronic_disease</b></RadzenText>
-                                    </RadzenStack>
-
-                                    <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="0px">
-                                        <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">ยาที่ทานประจำ</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.regular_medication</b></RadzenText>
-
-                                        <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">แพ้ยา</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.drug_allergy</b></RadzenText>
-
-                                        <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">แพ้อาหาร</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.food_allergy</b></RadzenText>
-                                    </RadzenStack>
-
-                                    <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="0px">
-                                        <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">โรคความดันโลหิตสูง</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Caption">
-                                            <b>
-                                                @if (model_Personal.hypertension.HasValue)
-                                                {
-                                                    @(model_Personal.hypertension.Value ? "มี" : "ไม่มี")
-                                                }
-
-                                            </b>
-                                        </RadzenText>
-
-                                        <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">เบาหวาน</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Caption">
-                                            <b>
-                                                @if (model_Personal.diabetes.HasValue)
-                                                {
-                                                    @(model_Personal.diabetes.Value ? "มี" : "ไม่มี")
-                                                }
-
-                                            </b>
-                                        </RadzenText>
-
-                                        <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">ไขมันในเลือดสูง</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Caption">
-                                            <b>
-                                                @if (model_Personal.hyperlipidemia.HasValue)
-                                                {
-                                                    @(model_Personal.hyperlipidemia.Value ? "มี" : "ไม่มี")
-                                                }
-                                            </b>
-                                        </RadzenText>
-
-                                        <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">โรคหัวใจ</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Caption">
-                                            <b>
-                                                @if (model_Personal.heart_disease.HasValue)
-                                                {
-                                                    @(model_Personal.heart_disease.Value ? "มี" : "ไม่มี")
-                                                }
-
-                                            </b>
-                                        </RadzenText>
-
-                                        <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">โรคหลอดเลือดสมอง</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Caption">
-                                            <b>
-                                                @if (model_Personal.stroke.HasValue)
-                                                {
-                                                    @(model_Personal.stroke.Value ? "มี" : "ไม่มี")
-                                                }
-                                            </b>
-                                        </RadzenText>
-
-                                        <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">มะเร็ง</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.cancer</b></RadzenText>
-                                    </RadzenStack>
-                                </RadzenStack>
-                                <RadzenStack Gap="0px">
-                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">ความชอบ <span> ใช้เครื่องหมาย "," ในการแบ่ง  </span> </RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.interests</b></RadzenText>
-
-                                </RadzenStack>
-                                <RadzenButton Click=@(args => OnEditCusInfo(CustomerId)) Icon="edit" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.ExtraSmall" />
-                                <RadzenButton Click=@(args => OnRefresh(CustomerId)) Icon="refresh" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.ExtraSmall" />
-                            </RadzenColumn>
-                        }
-                        @if (BranchesConfig.personal == "General")
-                        {
-                            <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
-                                <RadzenStack Gap="0px">
+                    @if (BranchesConfig.personal == "Nutritional & Dietary")
+                    {
+                        <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween" Gap="20px">
+                                <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="5px">
                                     <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">วันเดือนปีเกิด</RadzenText>
                                     <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.birth_date</b></RadzenText>
+
                                     <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">อายุ</RadzenText>
                                     <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.age</b></RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">ความชอบ <span> ใช้เครื่องหมาย "," ในการแบ่ง  </span> </RadzenText>
-                                    <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.interests</b></RadzenText>
+
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">น้ำหนัก</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.weight</b></RadzenText>
+
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">โรคประจำตัว</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.chronic_disease</b></RadzenText>
                                 </RadzenStack>
-                                <RadzenButton Click=@(args => OnEditCusInfo(CustomerId)) Icon="edit" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.ExtraSmall" />
-                                <RadzenButton Click=@(args => OnRefresh(CustomerId)) Icon="refresh" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.ExtraSmall" />
-                            </RadzenColumn>
-                        }
-                    </RadzenRow>
-                    <RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnChange>
-                        <Tabs>
-                            <RadzenTabsItem Text="ประวัติการติดต่อ">
+
+                                <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="0px">
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">ยาที่ทานประจำ</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.regular_medication</b></RadzenText>
+
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">แพ้ยา</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.drug_allergy</b></RadzenText>
+
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">แพ้อาหาร</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.food_allergy</b></RadzenText>
+                                </RadzenStack>
+
+                                <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="0px">
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">โรคความดันโลหิตสูง</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption">
+                                        <b>
+                                            @if (model_Personal.hypertension.HasValue)
+                                            {
+                                                @(model_Personal.hypertension.Value ? "มี" : "ไม่มี")
+                                            }
+
+                                        </b>
+                                    </RadzenText>
+
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">เบาหวาน</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption">
+                                        <b>
+                                            @if (model_Personal.diabetes.HasValue)
+                                            {
+                                                @(model_Personal.diabetes.Value ? "มี" : "ไม่มี")
+                                            }
+
+                                        </b>
+                                    </RadzenText>
+
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">ไขมันในเลือดสูง</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption">
+                                        <b>
+                                            @if (model_Personal.hyperlipidemia.HasValue)
+                                            {
+                                                @(model_Personal.hyperlipidemia.Value ? "มี" : "ไม่มี")
+                                            }
+                                        </b>
+                                    </RadzenText>
+
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">โรคหัวใจ</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption">
+                                        <b>
+                                            @if (model_Personal.heart_disease.HasValue)
+                                            {
+                                                @(model_Personal.heart_disease.Value ? "มี" : "ไม่มี")
+                                            }
+
+                                        </b>
+                                    </RadzenText>
+
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">โรคหลอดเลือดสมอง</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption">
+                                        <b>
+                                            @if (model_Personal.stroke.HasValue)
+                                            {
+                                                @(model_Personal.stroke.Value ? "มี" : "ไม่มี")
+                                            }
+                                        </b>
+                                    </RadzenText>
+
+                                    <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">มะเร็ง</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.cancer</b></RadzenText>
+                                </RadzenStack>
+                            </RadzenStack>
+                            <RadzenStack Gap="0px">
+                                <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">ความชอบ <span> ใช้เครื่องหมาย "," ในการแบ่ง  </span> </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.interests</b></RadzenText>
+
+                            </RadzenStack>
+                            <RadzenButton Click=@(args => OnEditCusInfo(CustomerId)) Icon="edit" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.ExtraSmall" />
+                            <RadzenButton Click=@(args => OnRefresh(CustomerId)) Icon="refresh" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.ExtraSmall" />
+                        </RadzenColumn>
+                    }
+                    @if (BranchesConfig.personal == "General")
+                    {
+                        <RadzenColumn Size="6" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+                            <RadzenStack Gap="0px">
+                                <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">วันเดือนปีเกิด</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.birth_date</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">อายุ</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.age</b></RadzenText>
+                                <RadzenText TextStyle="TextStyle.Caption" Style="color:mediumseagreen">ความชอบ <span> ใช้เครื่องหมาย "," ในการแบ่ง  </span> </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Caption"><b>@model_Personal.interests</b></RadzenText>
+                            </RadzenStack>
+                            <RadzenButton Click=@(args => OnEditCusInfo(CustomerId)) Icon="edit" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.ExtraSmall" />
+                            <RadzenButton Click=@(args => OnRefresh(CustomerId)) Icon="refresh" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.ExtraSmall" />
+                        </RadzenColumn>
+                    }
+                </RadzenRow>
+                <RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnChange>
+                    <Tabs>
+                        <RadzenTabsItem Text="ประวัติการติดต่อ">
+                            <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
+                                            FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                            @bind-Value=@selecteContact
+                                            Data="@contacts" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
+                                            PagerPosition="PagerPosition.Bottom"
+                                            AllowAlternatingRows="false">
+                                <Columns>
+                                    <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.created_by)" Width="120px" Title="ผู้ติดต่อ" />
+                                    <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.created_at)" Width="150px" Title="วันที่ติดต่อลูกค้า" />
+                                    <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_result)" Width="120px" Title="ความคืบหน้า" />
+                                    <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_result2)" Width="120px" Title="ผลตอบรับครั้งก่อน" />
+                                    <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_remark)" Width="150px" Title="หมายเหตุ" />
+                                    <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.statusparticipation)" Width="150px" Title="คะแนนการมีส่วนร่วม" />
+                                </Columns>
+                            </RadzenDataGrid>
+                        </RadzenTabsItem>
+                        <RadzenTabsItem Text="Note">
+
+                            <RadzenTemplateForm TItem="Model2" Data=@model2 Submit="@OnSubmit2" InvalidSubmit="@OnInvalidSubmit2">
+                                <RadzenStack class="rz-12">
+
+
+                                    <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
+                                        <RadzenColumn Size="6" SizeMD="6">
+                                            <RadzenLabel Text="Note" TextStyle="TextStyle.Subtitle2" Component="remark" />
+                                            <RadzenTextArea Placeholder="" Name="remark" @bind-Value="@model2.note" class="w-100" />
+                                            <RadzenRequiredValidator Component="remark" Text="กรอกข้อความ" />
+                                        </RadzenColumn>
+
+                                    </RadzenRow>
+
+                                    <RadzenRow AlignItems="AlignItems.Start">
+                                        <RadzenColumn Size="12">
+                                            <RadzenButton ButtonType="ButtonType.Submit" Text="บันทึก" Style="margin-top: 5px;" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
+
+                                </RadzenStack>
+                            </RadzenTemplateForm>
+                            <hr />
+
+                            <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Start" Gap="1rem" class="rz-12" Style="width%90">
                                 <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
                                                 FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                                @bind-Value=@selecteContact
-                                                Data="@contacts" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
+                                                @bind-Value=@selectenote
+                                                Data="@notes" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
                                                 PagerPosition="PagerPosition.Bottom"
                                                 AllowAlternatingRows="false">
                                     <Columns>
-                                        <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.created_by)" Width="120px" Title="ผู้ติดต่อ" />
-                                        <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.created_at)" Width="150px" Title="วันที่ติดต่อลูกค้า" />
-                                        <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_result)" Width="120px" Title="ความคืบหน้า" />
-                                        <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_result2)" Width="120px" Title="ผลตอบรับครั้งก่อน" />
-                                        <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.contact_remark)" Width="150px" Title="หมายเหตุ" />
-                                        <RadzenDataGridColumn TItem="CrmContactLog" Property="@nameof(CrmContactLog.statusparticipation)" Width="150px" Title="คะแนนการมีส่วนร่วม" />
+                                        <RadzenDataGridColumn TItem="CrmNote" Property="@nameof(CrmNote.created_by)" Width="120px" Title="ผู้ลงบันทึก" />
+                                        <RadzenDataGridColumn TItem="CrmNote" Property="@nameof(CrmNote.created_at)" Width="150px" Title="วันที่ลงบันทึก" />
+                                        <RadzenDataGridColumn TItem="CrmNote" Property="@nameof(CrmNote.note)" Width="400px" Title="Note" />
                                     </Columns>
                                 </RadzenDataGrid>
-                            </RadzenTabsItem>
-                            <RadzenTabsItem Text="Note">
+                            </RadzenStack>
+                        </RadzenTabsItem>
+                    </Tabs>
+                </RadzenTabs>
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="ข้อมูลกิจกรรม">
+                <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
+                                FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                @bind-Value=@selecteActivitys
+                                Data="@activitys" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
+                                PagerPosition="PagerPosition.Bottom"
+                                AllowAlternatingRows="false">
+                    <Columns>
+                        <RadzenDataGridColumn Width="160px" Property="status" Title="ความคืบหน้า">
+                            <Template Context="data">
 
-                                <RadzenTemplateForm TItem="Model2" Data=@model2 Submit="@OnSubmit2" InvalidSubmit="@OnInvalidSubmit2">
-                                    <RadzenStack class="rz-12">
+                                @if (data.status == "สำเร็จ")
+                                {
+                                    <RadzenButton Text="สำเร็จ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                                }
+                                else if (data.status == "")
+                                {
+                                    <RadzenButton Text="รอดำเนินการ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                                }
+                                else if (data.status == "ปิดการขาย")
+                                {
+                                    <RadzenButton Text="ปิดการขาย" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                                }
+                                else if (data.status == "ไม่สำเร็จ")
+                                {
+                                    <RadzenButton Text="ไม่สำเร็จ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                                }
+                                else
+                                {
+                                    <RadzenButton Text="@data.status" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Dark" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                                }
 
-
-                                        <RadzenRow AlignItems="AlignItems.Start" class="rz-12">
-                                            <RadzenColumn Size="6" SizeMD="6">
-                                                <RadzenLabel Text="Note" TextStyle="TextStyle.Subtitle2" Component="remark" />
-                                                <RadzenTextArea Placeholder="" Name="remark" @bind-Value="@model2.note" class="w-100" />
-                                                <RadzenRequiredValidator Component="remark" Text="กรอกข้อความ" />
-                                            </RadzenColumn>
-
-                                        </RadzenRow>
-
-                                        <RadzenRow AlignItems="AlignItems.Start">
-                                            <RadzenColumn Size="12">
-                                                <RadzenButton ButtonType="ButtonType.Submit" Text="บันทึก" Style="margin-top: 5px;" />
-                                            </RadzenColumn>
-                                        </RadzenRow>
-
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.call_status)" Width="200px" Title="สถานะการโทร" />
+                        <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.call_action)" Width="200px" Title="สถานะการสนทนา" />
+                        <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.guid)" Width="200px" Title="เลขที่กิจกรรม" />
+                        <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.name)" Width="200px" Title="ชื่อกิจกรรม" />
+                        <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.assign_work_type)" Width="150px" Title="ประเภท" />
+                        <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.touch_point)" Width="150px" Title="Touch Point" />
+                        <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.assign_work)" Width="180px" Title="พนักงาน CRM" />
+                        <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.created_by)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Width="180px" Title="วันที่สร้างกิจกรรม" />
+                        <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.startdate)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Width="180px" Title="วันที่เริ่มกิจกรรม" />
+                        <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.duedate)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Width="180px" Title="วันครบกำหนด" />
+                    </Columns>
+                </RadzenDataGrid>
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="ประวัติการซื้อ">
+                <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
+                                FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                @bind-Value=@selecteCrmOrders
+                                Data="@crmOrders" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
+                                PagerPosition="PagerPosition.Bottom"
+                                AllowAlternatingRows="false">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="CrmOrder" Property="@nameof(CrmOrder.order_no)" Width="180px" Title="เลขที่คำสั่งซื้อ" />
+                        <RadzenDataGridColumn TItem="CrmOrder" Property="@nameof(CrmOrder.order_date)" Width="200px" Title="วันที่คำสั่งซื้อ" FormatString="{0:dd/MM/yyyy HH:mm:ss}" />
+                        <RadzenDataGridColumn TItem="CrmOrder" Property="@nameof(CrmOrder.product_codes)" Title="รายการสั่งซื้อ" Width="300px">
+                            <Template Context="data">
+                                <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
+                                    <RadzenStack Gap="0">
+                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@data.product_names</RadzenText>
                                     </RadzenStack>
-                                </RadzenTemplateForm>
-                                <hr />
-
-                                <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Start" Gap="1rem" class="rz-12" Style="width%90">
-                                    <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
-                                                    FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                                    @bind-Value=@selectenote
-                                                    Data="@notes" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
-                                                    PagerPosition="PagerPosition.Bottom"
-                                                    AllowAlternatingRows="false">
-                                        <Columns>
-                                            <RadzenDataGridColumn TItem="CrmNote" Property="@nameof(CrmNote.created_by)" Width="120px" Title="ผู้ลงบันทึก" />
-                                            <RadzenDataGridColumn TItem="CrmNote" Property="@nameof(CrmNote.created_at)" Width="150px" Title="วันที่ลงบันทึก" />
-                                            <RadzenDataGridColumn TItem="CrmNote" Property="@nameof(CrmNote.note)" Width="400px" Title="Note" />
-                                        </Columns>
-                                    </RadzenDataGrid>
                                 </RadzenStack>
-                            </RadzenTabsItem>
-                        </Tabs>
-                    </RadzenTabs>
-                </RadzenTabsItem>
-                <RadzenTabsItem Text="ข้อมูลกิจกรรม">
-                    <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
-                                    FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                    @bind-Value=@selecteActivitys
-                                    Data="@activitys" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
-                                    PagerPosition="PagerPosition.Bottom"
-                                    AllowAlternatingRows="false">
-                        <Columns>
-                            <RadzenDataGridColumn Width="160px" Property="status" Title="ความคืบหน้า">
-                                <Template Context="data">
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="CrmOrder" Property="@nameof(CrmOrder.amount)" Width="150px" Title="จำนวนเงิน" />
+                        <RadzenDataGridColumn TItem="CrmOrder" Property="@nameof(CrmOrder.payment_type)" Width="150px" Title="การชำระเงิน" />
+                    </Columns>
+                </RadzenDataGrid>
 
-                                    @if (data.status == "สำเร็จ")
+                <RadzenCard Variant="Variant.Outlined">
+                    <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.Wrap">
+                        @if (selecteCrmOrders?.Any() == true)
+                        {
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>รหัสสินค้า</th>
+                                        <th>ชื่อสินค้า</th>
+                                        <th>จำนวน</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var product in selecteCrmOrders)
                                     {
-                                        <RadzenButton Text="สำเร็จ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
-                                    }
-                                    else if (data.status == "")
-                                    {
-                                        <RadzenButton Text="รอดำเนินการ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
-                                    }
-                                    else if (data.status == "ปิดการขาย")
-                                    {
-                                        <RadzenButton Text="ปิดการขาย" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
-                                    }
-                                    else if (data.status == "ไม่สำเร็จ")
-                                    {
-                                        <RadzenButton Text="ไม่สำเร็จ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
-                                    }
-                                    else
-                                    {
-                                        <RadzenButton Text="@data.status" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Dark" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
-                                    }
-
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.call_status)" Width="200px" Title="สถานะการโทร" />
-                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.call_action)" Width="200px" Title="สถานะการสนทนา" />
-                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.guid)" Width="200px" Title="เลขที่กิจกรรม" />
-                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.name)" Width="200px" Title="ชื่อกิจกรรม" />
-                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.assign_work_type)" Width="150px" Title="ประเภท" />
-                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.touch_point)" Width="150px" Title="Touch Point" />
-                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.assign_work)" Width="180px" Title="พนักงาน CRM" />
-                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.created_by)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Width="180px" Title="วันที่สร้างกิจกรรม" />
-                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.startdate)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Width="180px" Title="วันที่เริ่มกิจกรรม" />
-                            <RadzenDataGridColumn TItem="ActivitysDataList" Property="@nameof(ActivitysDataList.duedate)" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Width="180px" Title="วันครบกำหนด" />
-                        </Columns>
-                    </RadzenDataGrid>
-                </RadzenTabsItem>
-                <RadzenTabsItem Text="ประวัติการซื้อ">
-                    <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true"
-                                    FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                    @bind-Value=@selecteCrmOrders
-                                    Data="@crmOrders" SelectionMode="DataGridSelectionMode.Single" Density="Density.Compact"
-                                    PagerPosition="PagerPosition.Bottom"
-                                    AllowAlternatingRows="false">
-                        <Columns>
-                            <RadzenDataGridColumn TItem="CrmOrder" Property="@nameof(CrmOrder.order_no)" Width="180px" Title="เลขที่คำสั่งซื้อ" />
-                            <RadzenDataGridColumn TItem="CrmOrder" Property="@nameof(CrmOrder.order_date)" Width="200px" Title="วันที่คำสั่งซื้อ" FormatString="{0:dd/MM/yyyy HH:mm:ss}" />
-                            <RadzenDataGridColumn TItem="CrmOrder" Property="@nameof(CrmOrder.product_codes)" Title="รายการสั่งซื้อ" Width="300px">
-                                <Template Context="data">
-                                    <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
-                                        <RadzenStack Gap="0">
-                                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@data.product_names</RadzenText>
-                                        </RadzenStack>
-                                    </RadzenStack>
-                                </Template>
-                            </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="CrmOrder" Property="@nameof(CrmOrder.amount)" Width="150px" Title="จำนวนเงิน" />
-                            <RadzenDataGridColumn TItem="CrmOrder" Property="@nameof(CrmOrder.payment_type)" Width="150px" Title="การชำระเงิน" />
-                        </Columns>
-                    </RadzenDataGrid>
-
-                    <RadzenCard Variant="Variant.Outlined">
-                        <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start" Gap="1rem" Wrap="FlexWrap.Wrap">
-                            @if (selecteCrmOrders?.Any() == true)
-                            {
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>รหัสสินค้า</th>
-                                            <th>ชื่อสินค้า</th>
-                                            <th>จำนวน</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var product in selecteCrmOrders)
+                                        @if (product != null)
                                         {
-                                            @if (product != null)
+                                            var productCodes = product.product_codes?.Split('|') ?? Array.Empty<string>();
+                                            var productNames = product.product_names?.Split('|') ?? Array.Empty<string>();
+                                            var productQtys = product.product_qtys?.Split('|') ?? Array.Empty<string>();
+
+                                            for (int i = 0; i < productCodes.Length; i++)
                                             {
-                                                var productCodes = product.product_codes?.Split('|') ?? Array.Empty<string>();
-                                                var productNames = product.product_names?.Split('|') ?? Array.Empty<string>();
-                                                var productQtys = product.product_qtys?.Split('|') ?? Array.Empty<string>();
-
-                                                for (int i = 0; i < productCodes.Length; i++)
-                                                {
-                                                    <tr>
-                                                        <td>@(productCodes.Length > i ? productCodes[i] : "-")</td>
-                                                        <td>@(productNames.Length > i ? productNames[i] : "-")</td>
-                                                        <td>@(productQtys.Length > i ? productQtys[i] : "-")</td>
-                                                    </tr>
-                                                }
-
+                                                <tr>
+                                                    <td>@(productCodes.Length > i ? productCodes[i] : "-")</td>
+                                                    <td>@(productNames.Length > i ? productNames[i] : "-")</td>
+                                                    <td>@(productQtys.Length > i ? productQtys[i] : "-")</td>
+                                                </tr>
                                             }
+
                                         }
-                                    </tbody>
-                                </table>
-                            }
-                            else
-                            {
-                                <div>ไม่มีข้อมูล</div>
-                            }
-                        </RadzenStack>
-                    </RadzenCard>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <div>ไม่มีข้อมูล</div>
+                        }
+                    </RadzenStack>
+                </RadzenCard>
 
 
-                </RadzenTabsItem>
-            </Tabs>
-        </RadzenTabs>
-
-    </RadzenStack>
+            </RadzenTabsItem>
+        </Tabs>
+    </RadzenTabs>
 
 </RadzenStack>
 @code {
