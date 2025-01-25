@@ -1,0 +1,24 @@
+﻿@page "/admin-followup"
+@using BlazorApp_TeleCRM.Data
+@using BlazorApp_TeleCRM.Service
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using MySql.Data.MySqlClient
+@using static BlazorApp_TeleCRM.Controller.CustomerAdminController
+@inject IConfiguration Configuration
+@inject HttpClient Http
+@inject DialogService DialogService
+@inject SharedStateService SharedState
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject MySqlConnection MySqlConnection
+@inject NotificationService NotificationService
+
+<PageTitle>ปฏิทิน</PageTitle>
+
+<AuthorizeView Roles="Admin,Manager,Supervisor">
+</AuthorizeView>
+
+
+@code {
+
+}

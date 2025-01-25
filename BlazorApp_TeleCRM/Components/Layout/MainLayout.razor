@@ -80,10 +80,11 @@
                             <RadzenPanelMenuItem Text="4. ประเภทสินค้า" Icon="category" Click="@(() => GoToPage("/adminproduct-cat"))" Selected="@IsMenuItemSelected("/adminproduct-cat")" />
                         </RadzenPanelMenuItem>
 
-                        <RadzenPanelMenuItem Text="Report - Admin" Icon="analytics" Expanded="@((IsMenuItemSelected("/overview-report") || IsMenuItemSelected("/admin-calendar")  || IsMenuItemSelected("/overview-kpi") ))">
+                        <RadzenPanelMenuItem Text="Report - Admin" Icon="analytics" Expanded="@((IsMenuItemSelected("/overview-report") || IsMenuItemSelected("/admin-calendar")  || IsMenuItemSelected("/overview-kpi") || IsMenuItemSelected("/admin-follow-up") ))">
                             <RadzenPanelMenuItem Text="Job Monitor" Icon="finance" Click="@(() => GoToPage("/overview-report"))" Selected="@IsMenuItemSelected("/overview-report")" />
                             <RadzenPanelMenuItem Text="ปฏิทิน" Icon="calendar_month" Click="@(() => GoToPage("/admin-calendar"))" Selected="@IsMenuItemSelected("/admin-calendar")" />
                             <RadzenPanelMenuItem Text="KPI" Icon="finance" Click="@(() => GoToPage("/overview-kpi"))" Selected="@IsMenuItemSelected("/overview-kpi")" />
+                            <RadzenPanelMenuItem Text="ติดตามลูกค้า" Icon="finance" Click="@(() => GoToPage("/admin-follow-up"))" Selected="@IsMenuItemSelected("/admin-follow-up")" />
                         </RadzenPanelMenuItem>
 
                     </AuthorizeView>
