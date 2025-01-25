@@ -1,24 +1,276 @@
-﻿@page "/admin-followup"
+﻿@page "/admin-follow-up"
+@using BlazorApp_TeleCRM.Models
 @using BlazorApp_TeleCRM.Data
 @using BlazorApp_TeleCRM.Service
+@using MySql.Data.MySqlClient
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
-@using MySql.Data.MySqlClient
-@using static BlazorApp_TeleCRM.Controller.CustomerAdminController
 @inject IConfiguration Configuration
-@inject HttpClient Http
-@inject DialogService DialogService
-@inject SharedStateService SharedState
-@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject MySqlConnection MySqlConnection
-@inject NotificationService NotificationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ITimeZoneService TimeZoneService
+@inject HttpClient Http
 
-<PageTitle>ปฏิทิน</PageTitle>
+
+<PageTitle>ติดตามลูกค้า</PageTitle>
+
+<div class="rz-6">
+    <RadzenBreadCrumb>
+        <RadzenBreadCrumbItem  Text="Report - Admin" />
+        <RadzenBreadCrumbItem Path="/admin-follow-up" Text="ติดตามลูกค้า" />
+    </RadzenBreadCrumb>
+
+</div>
 
 <AuthorizeView Roles="Admin,Manager,Supervisor">
+
+    <RadzenStack class="rz-8" Style="margin-bottom: 0;">
+        <RadzenPanel AllowCollapse="true">
+            <HeaderTemplate>
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
+                    <RadzenIcon Icon="filter_alt" class="rz-me-1" /><b>ข้อมูลวันที่ @lastUpdated.ToString("dd/MM/yyyy HH:mm:ss")</b>
+                    <RadzenButton Click=@(args => OnLoad()) Icon="search" ButtonStyle="ButtonStyle.Primary" />
+                </RadzenText>
+            </HeaderTemplate>
+            <ChildContent>
+                <RadzenCardGroup Responsive="true">
+                    <RadzenCard Variant="Variant.Filled">
+                        <RadzenStack JustifyContent="JustifyContent.SpaceBetween" Gap="1rem">
+                            <RadzenLabel Text="พนักงาน CRM" />
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" JustifyContent="JustifyContent.SpaceBetween">
+                                <RadzenDropDown @bind-Value=@staff_values Data=@users_staff Name="Staff"
+                                                TextProperty="firstname" ValueProperty="username" Chips=true
+                                                Multiple=true AllowClear=true class="w-100" />
+                            </RadzenStack>
+                        </RadzenStack>
+                    </RadzenCard>
+                </RadzenCardGroup>
+            </ChildContent>
+        </RadzenPanel>
+    </RadzenStack>
+
+    <RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+        <Template>โหลด</Template>
+    </RadzenProgressBarCircular>
+
+
+    <RadzenDataGrid @ref="grid" TItem="DataAdminfollowUp" Data="@cus_datas"
+                    PagerPosition="PagerPosition.Bottom"
+                    AllowRowSelectOnRowClick="@allowRowSelectOnRowClick"
+                    FilterMode="FilterMode.SimpleWithMenu" PageSize="10"
+                    SelectionMode="DataGridSelectionMode.Multiple"
+                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                    @bind-Value=@selectedCustomer
+                    AllowFiltering="true" AllowPaging="true" AllowColumnResize="true"
+                    AllowSorting="true" ColumnWidth="300px"
+                    ShowPagingSummary="true" AllowColumnPicking="true"
+                    PageSizeOptions="@pageSizeOptions">
+        <Columns>
+           
+
+            <RadzenDataGridColumn TItem="DataAdminfollowUp" Property="@nameof(DataAdminfollowUp.customer_fullname)" Width="180px" Title="ชื่อลูกค้า" />
+            <RadzenDataGridColumn TItem="DataAdminfollowUp" Property="@nameof(DataAdminfollowUp.customer_phone)" Width="120px" Title="เบอร์โทรศัพท์" />
+            <RadzenDataGridColumn TItem="DataAdminfollowUp" Property="@nameof(DataAdminfollowUp.start_contact)" Width="180px" Title="วันที่เริ่มติดต่อลูกค้า" />
+            <RadzenDataGridColumn TItem="DataAdminfollowUp" Property="@nameof(DataAdminfollowUp.last_contact)" Width="180px" Title="วันที่ติดต่อลูกค้าล่าสุด" />
+            <RadzenDataGridColumn TItem="DataAdminfollowUp" Property="@nameof(DataAdminfollowUp.days_since_last_contact)" Width="180px" Title="จำนวนวันที่ขาดการติดต่อ" />
+            <RadzenDataGridColumn TItem="DataAdminfollowUp" Property="@nameof(DataAdminfollowUp.follow_up_count)" Width="180px" Title="จำนวนครั้งที่ติดตาม" />
+            <RadzenDataGridColumn TItem="DataAdminfollowUp" Property="@nameof(DataAdminfollowUp.successful_sales)" Width="180px" Title="จำนวนครั้งที่ขายได้" />
+            <RadzenDataGridColumn TItem="DataAdminfollowUp" Property="@nameof(DataAdminfollowUp.total_sales)" Width="180px" Title="ยอดขายรวม" />
+            <RadzenDataGridColumn TItem="DataAdminfollowUp" Property="@nameof(DataAdminfollowUp.last_sale_date)" Width="180px" Title="วันที่ปิดการขายล่าสุด" />
+            <RadzenDataGridColumn TItem="DataAdminfollowUp" Property="@nameof(DataAdminfollowUp.days_since_last_sale)" Width="180px" Title="จำนวนวันที่ผ่านจากการขายล่าสุด" />
+            <RadzenDataGridColumn TItem="DataAdminfollowUp" Property="@nameof(DataAdminfollowUp.last_contact_remark)" Width="180px" Title="หมายเหตุการติดต่อล่าสุด" />
+            <RadzenDataGridColumn TItem="DataAdminfollowUp" Property="@nameof(DataAdminfollowUp.crm_staff_name)" Width="100px" Title="พนักงานCRM" />
+          
+        </Columns>
+    </RadzenDataGrid>
 </AuthorizeView>
 
-
 @code {
+
+    bool runProcess_wait = false;
+
+     private IEnumerable<DataAdminfollowUp> cus_datas;
+  
+    IList<DataAdminfollowUp>? selectedCustomer;
+    RadzenDataGrid<DataAdminfollowUp>? grid;
+    bool allowRowSelectOnRowClick = false;
+    IEnumerable<int> pageSizeOptions = new int[] { 10, 20, 30, 50, 100 };
+
+
+    private DateTime lastUpdated; // เวลาอัปเดตล่าสุด
+    List<string> staff_values = new List<string>();
+    List<User> users_staff = new List<User>();
+
+
+
+
+    private string BranchCode { get; set; }
+    private IEnumerable<string> _BranchCode;
+    private string select_branch_code { get; set; }
+
+    private string username;
+    private IEnumerable<string>? roles;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            username = user.Identity.Name;
+            roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+
+            if (BranchCode == "000000" && roles.Contains("Admin"))
+            {
+                await GetBranchSelect(username);
+                if (!string.IsNullOrEmpty(select_branch_code))
+                {
+                    BranchCode = select_branch_code;
+                }
+            }
+        }
+        else
+        {
+            BranchCode = "";
+            select_branch_code = "";
+        }
+
+        await LoadUsersAsync();
+
+        foreach (var i in users_staff)
+        {
+            staff_values.Add(i.username);
+        }
+
+        //   await OnLoad();
+
+    }
+
+
+    private async Task OnLoad()
+    {
+
+        lastUpdated = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+
+
+       cus_datas =   await FetchCustomerDataAsync(string.Join(",", staff_values));
+        if (cus_datas != null && cus_datas.Any())
+        {
+            selectedCustomer = new List<DataAdminfollowUp>() { cus_datas.FirstOrDefault() };
+        }
+
+        // บังคับให้ UI อัปเดตใหม่
+        StateHasChanged();
+    }
+
+
+    public async Task<IEnumerable<DataAdminfollowUp>> FetchCustomerDataAsync(string user)
+    {
+        try
+        {
+
+            // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
+            runProcess_wait = true;
+            StateHasChanged(); // บังคับ UI อัปเดต
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+            var searchCriteria = new
+            {
+                branch_code = BranchCode
+            };
+
+            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/CustomerAdmin/GetAdminfollowUp", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // แปลงข้อมูลที่ได้รับเป็น IEnumerable<CustomerDataList>
+                var customerDataList = await response.Content.ReadFromJsonAsync<IEnumerable<DataAdminfollowUp>>();
+                return customerDataList;
+            }
+            else
+            {
+                // Console.WriteLine("Error fetching customer data.");
+                return Enumerable.Empty<DataAdminfollowUp>();
+            }
+        }
+        finally
+        {
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
+    }
+
+
+    private async Task GetBranchSelect(string _username)
+    {
+        try
+        {
+            await MySqlConnection.OpenAsync();
+            string query = @"SELECT username, branch_code FROM sys_select_organization where username=@username";
+            using (var cmd = new MySqlCommand(query, MySqlConnection))
+            {
+                cmd.Parameters.AddWithValue("@username", _username);
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        select_branch_code = reader["branch_code"].ToString();
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching select_branch_code : {ex.Message}");
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        try
+        {
+            await MySqlConnection.OpenAsync();
+            string query = "SELECT username, firstname FROM mas_users WHERE organization = @BranchCode";
+            using (var cmd = new MySqlCommand(query, MySqlConnection))
+            {
+                cmd.Parameters.AddWithValue("@BranchCode", BranchCode);
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        users_staff.Add(new User
+                            {
+                                username = reader["username"].ToString(),
+                                firstname = reader["firstname"].ToString()
+                            });
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching users: {ex.Message}");
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+    }
+
+
 
 }

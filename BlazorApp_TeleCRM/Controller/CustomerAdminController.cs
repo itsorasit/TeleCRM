@@ -552,6 +552,104 @@ ORDER BY modified_date DESC";
 
 
 
+        [HttpPost("GetAdminfollowUp")]
+        public async Task<IActionResult> GetAdminfollowUp([FromBody] SearchCriteria searchCriteria)
+        {
+
+            DateTime today = DateTime.Now;
+
+            var customers = new List<DataAdminfollowUp>();
+
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+
+                var query  = @"SELECT 
+    ccl.customer_id,
+    COUNT(*) AS follow_up_count,
+    SUM(CASE WHEN contact_result2 = 'รับสาย/ขายได้' THEN 1 ELSE 0 END) AS successful_sales,
+    SUM(ca.sale_amount) AS total_sales,
+    ccl.created_by,
+    mu.firstname ,
+    MIN(ccl.created_at) AS start_contact,
+    MAX(ccl.created_at) AS last_contact,
+    (SELECT contact_remark  
+     FROM crm_contact_logs sub 
+     WHERE sub.customer_id = ccl.customer_id 
+       AND sub.created_at = MAX(ccl.created_at)
+       AND sub.branch_code = @branch_code 
+     LIMIT 1) AS last_contact_remark,
+    MAX(CASE WHEN contact_result2 = 'รับสาย/ขายได้' THEN ccl.created_at ELSE NULL END) AS last_sale_date,
+    mc.name, 
+    mc.phone,
+    DATEDIFF(CURRENT_DATE, MAX(ccl.created_at)) AS days_since_last_contact,
+    DATEDIFF(CURRENT_DATE, MAX(CASE WHEN contact_result2 = 'รับสาย/ขายได้' THEN ccl.created_at ELSE NULL END)) AS days_since_last_sale
+FROM 
+    crm_contact_logs ccl 
+    LEFT JOIN mas_customers mc ON mc.guid = ccl.customer_id 
+    LEFT JOIN crm_activitys ca ON ca.customer_code = ccl.customer_id AND ca.guid = ccl.activity_id 
+    LEFT JOIN mas_users mu ON mu.organization =@branch_code and mu.username  = ccl.created_by
+WHERE 
+    ccl.branch_code = @branch_code    
+GROUP BY 
+    ccl.customer_id, 
+    ccl.created_by,  
+    mc.name, 
+    mc.phone,
+    mu.firstname
+ORDER BY 
+    follow_up_count desc";
+
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    // กำหนดค่าช่วงเวลาของ FromDate เป็นเริ่มต้นของวัน
+                   
+                    var branch_code = searchCriteria.branch_code ?? "";
+                    cmd.Parameters.AddWithValue("@branch_code", branch_code);
+
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var customer = new DataAdminfollowUp
+                            {
+                                customer_fullname =  reader["name"].ToString(),
+                                customer_phone = reader["phone"].ToString()
+                                //guid = reader.GetString(0),
+                                //code = reader.GetString(1),
+                                //name = reader.GetString(2),
+                                //phone = reader.GetString(3),
+                                //address1 = reader.GetString(4),
+                                //sub_district = reader.GetString(5),
+                                //district = reader.GetString(6),
+                                //province = reader.GetString(7),
+                                //zipcode = reader.GetString(8),
+                                //datasource_platform = reader.GetString(9),
+                                //social_media = reader.GetString(10),
+                                //branch_code = reader.GetString(11),
+                                //created_by = reader.GetString(12),
+                                //created_date = reader.GetDateTime(13),
+                                //modified_by = reader.IsDBNull(14) ? null : reader.GetString(14),
+                                //modified_date = reader.IsDBNull(15) ? (DateTime?)null : reader.GetDateTime(15),
+                                //count_activity = reader.IsDBNull(16) ? (int?)null : reader.GetInt32(16),
+                                //activity_code = reader.IsDBNull(17) ? null : reader.GetString(17),
+                                //latest_assign_work = reader["latest_assign_work"].ToString(),
+                                //latest_seller = reader["latest_seller"].ToString(),
+                                //latest_buy = reader["latest_buy"].ToString()
+                            };
+
+                            customers.Add(customer);
+                        }
+                    }
+                }
+            }
+
+            return Ok(customers);
+        }
+
+
 
         public class SearchCriteria
         {
