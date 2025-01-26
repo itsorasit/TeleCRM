@@ -231,8 +231,11 @@
             BranchCode = "";
         }
 
-        Fdate = DateTime.Now.Date;
-        Ldate = DateTime.Now.Date;
+      //  Fdate = DateTime.Now.Date;
+      //  Ldate = DateTime.Now.Date;
+        Fdate = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+        Ldate = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+
 
         datachannel = data_channels;
         await LoadUsersAsync();

@@ -3,6 +3,7 @@
 @using Azure.Storage.Blobs
 @using BlazorApp_TeleCRM.Data
 @using BlazorApp_TeleCRM.Models
+@using BlazorApp_TeleCRM.Service
 @using Microsoft.AspNetCore.Components.Authorization
 @using MySql.Data.MySqlClient
 @using System.Security.Claims
@@ -15,6 +16,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NotificationService NotificationService
 @inject MySqlConnection MySqlConnection
+@inject ITimeZoneService TimeZoneService
 
 
 <RadzenCard Variant="Variant.Outlined">
@@ -188,6 +190,9 @@
 
     private async Task SaveUserAsync(Model u)
     {
+
+        DateTime today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+
         try
         {
             // ตรวจสอบค่าสถานะโรค ถ้าเป็น null ให้ default เป็น false
@@ -222,7 +227,7 @@
             command.Parameters.AddWithValue("@stroke", u.stroke.Value);
             command.Parameters.AddWithValue("@cancer", string.IsNullOrEmpty(u.cancer) ? (object)DBNull.Value : u.cancer);
             command.Parameters.AddWithValue("@modified_by", username);
-            command.Parameters.AddWithValue("@modified_at", DateTime.Now);
+            command.Parameters.AddWithValue("@modified_at", today);
             command.Parameters.AddWithValue("@interests", string.IsNullOrEmpty(u.interests) ? (object)DBNull.Value : u.interests);
 
             await command.ExecuteNonQueryAsync();
@@ -241,6 +246,9 @@
 
     private async Task UpdateUserAsync(Model u)
     {
+
+        DateTime today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+
         try
         {
             await MySqlConnection.OpenAsync();
@@ -283,7 +291,7 @@
             command.Parameters.AddWithValue("@stroke", u.stroke.Value);
             command.Parameters.AddWithValue("@cancer", string.IsNullOrEmpty(u.cancer) ? (object)DBNull.Value : u.cancer);
             command.Parameters.AddWithValue("@modified_by", username);
-            command.Parameters.AddWithValue("@modified_at", DateTime.Now);
+            command.Parameters.AddWithValue("@modified_at", today);
             command.Parameters.AddWithValue("@interests", string.IsNullOrEmpty(u.interests) ? (object)DBNull.Value : u.interests);
 
 

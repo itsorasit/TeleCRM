@@ -15,8 +15,8 @@
 @inject MySqlConnection MySqlConnection
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NotificationService NotificationService
-@inject UtilityConvet utility ;
-
+@inject UtilityConvet utility 
+@inject ITimeZoneService TimeZoneService
 
 <style>
     .rz-dialog-side {
@@ -482,7 +482,8 @@
         runProcess_wait = true;
         TextProcess = "กรุณารอ ระบบกำลังทำการอัปเดตข้อมูล..";
 
-        DateTime today = DateTime.Now;
+      //  DateTime today = DateTime.Now;
+        DateTime today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
 
         await MySqlConnection.OpenAsync();
         using var transaction = await MySqlConnection.BeginTransactionAsync();
@@ -562,7 +563,8 @@
         runProcess_wait = true;
         TextProcess = "กรุณารอ ระบบกำลังทำการยกเลิกข้อมูล..";
 
-        DateTime today = DateTime.Now;
+       // DateTime today = DateTime.Now;
+        DateTime today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
 
         await MySqlConnection.OpenAsync();
         using var transaction = await MySqlConnection.BeginTransactionAsync();
@@ -813,7 +815,8 @@
 
 
         countcustomer = "1";
-        datevalue = DateTime.Now.Date;
+       // datevalue = DateTime.Now.Date;
+        datevalue = TimeZoneService.ToLocalTime(DateTime.UtcNow);
 
         // Use the BaseApiUrl to call the API
       
@@ -1057,7 +1060,8 @@
     {
 
 
-        DateTime today = DateTime.Now;
+      //  DateTime today = DateTime.Now;
+        DateTime today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
 
         await MySqlConnection.OpenAsync();
         using var transaction = await MySqlConnection.BeginTransactionAsync();

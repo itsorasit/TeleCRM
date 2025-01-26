@@ -8,6 +8,7 @@
 @inject IConfiguration Configuration
 @inject Radzen.DialogService dialogService
 @inject HttpClient Http
+@inject ITimeZoneService TimeZoneService
 
 
 <RadzenStack Gap="1rem" Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
@@ -520,7 +521,9 @@
         channel = "Up-Sale";
         staff = "พนักงาน A";
         countcustomer = "100";
-        datevalue = DateTime.Now.Date;
+       // datevalue = DateTime.Now.Date;
+        datevalue = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+
 
         var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
         // Use the BaseApiUrl to call the API

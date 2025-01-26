@@ -4,6 +4,7 @@
 @using BlazorApp_TeleCRM.Data
 @using BlazorApp_TeleCRM.Helper
 @using BlazorApp_TeleCRM.Models
+@using BlazorApp_TeleCRM.Service
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 @using MySql.Data.MySqlClient
@@ -15,6 +16,9 @@
 @inject UtilityConvet utility;
 @inject NotificationService NotificationService
 @inject MySqlConnection MySqlConnection
+@inject ITimeZoneService TimeZoneService
+
+
 
 <RadzenTemplateForm TItem="Branch" Data="@branch" Submit="@HandleValidSubmit">
   
@@ -171,6 +175,8 @@ AND CAST(SUBSTRING(code, 3, 2) AS UNSIGNED) BETWEEN 1 AND 99;",
 
     private async Task SaveBranchAsync(Branch branch)
     {
+        DateTime today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+
         try
         {
             string genid = await GenerateRunningCode();
@@ -197,7 +203,7 @@ AND CAST(SUBSTRING(code, 3, 2) AS UNSIGNED) BETWEEN 1 AND 99;",
             command.Parameters.AddWithValue("@parent_code", BranchCode);
             command.Parameters.AddWithValue("@imageurl", branch.imageurl);
             command.Parameters.AddWithValue("@created_by", username);
-            command.Parameters.AddWithValue("@created_date", DateTime.Now);
+            command.Parameters.AddWithValue("@created_date", today);
 
             await command.ExecuteNonQueryAsync();
 
@@ -215,6 +221,9 @@ AND CAST(SUBSTRING(code, 3, 2) AS UNSIGNED) BETWEEN 1 AND 99;",
 
     private async Task UpdateBranchAsync(Branch branch)
     {
+
+        DateTime today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+
         try
         {
           
@@ -238,7 +247,7 @@ WHERE code=@code",
             command.Parameters.AddWithValue("@parent_code", BranchCode);
             command.Parameters.AddWithValue("@imageurl", branch.imageurl);
             command.Parameters.AddWithValue("@modified_by", username);
-            command.Parameters.AddWithValue("@modified_date", DateTime.Now);
+            command.Parameters.AddWithValue("@modified_date", today);
 
             await command.ExecuteNonQueryAsync();
 

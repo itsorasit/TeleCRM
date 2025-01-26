@@ -394,8 +394,11 @@
             select_branch_code = "";
         }
 
-        Fdate = DateTime.Now.Date;
-        Ldate = DateTime.Now.Date;
+      //  Fdate = DateTime.Now.Date;
+      //  Ldate = DateTime.Now.Date;
+        Fdate = TimeZoneService.ToLocalTime(DateTime.UtcNow.Date);
+        Ldate = TimeZoneService.ToLocalTime(DateTime.UtcNow.Date);
+
 
         datachannel = data_channels;
         await LoadUsersAsync();
