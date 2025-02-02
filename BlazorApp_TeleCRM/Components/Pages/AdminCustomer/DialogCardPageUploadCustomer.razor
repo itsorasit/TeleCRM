@@ -250,14 +250,12 @@
             var worksheet = workbook.Worksheet(1); // เลือกชีตแรก
             var rowCount = worksheet.LastRowUsed().RowNumber();
 
-            for (int row = 2; row <= rowCount; row++) // เริ่มจากแถวที่ 2 เพราะแถวแรกเป็นหัวตาราง
+            for (int row = 4; row <= rowCount; row++) // เริ่มจากแถวที่ 2 เพราะแถวแรกเป็นหัวตาราง
             {
                 Guid id = Guid.NewGuid();
 
-
-              
-                //คำสั่งซื้อ
-                var dateValue = worksheet.Cell(row, 4).GetValue<string>();
+                //วันที่คำสั่งซื้อ
+                var dateValue = worksheet.Cell(row, 50).GetValue<string>();
                 DateTime orderDate;
 
                 // ใช้ TryParse เพื่อตรวจสอบและแปลงค่าจากเซลล์
@@ -267,7 +265,7 @@
                 }
 
                 //ยอดขาย
-                var amount = worksheet.Cell(row, 22).GetValue<string>();
+                var amount = worksheet.Cell(row, 38).GetValue<string>();
                 decimal out_amount;
 
                 if (!Decimal.TryParse(amount, out out_amount))
@@ -279,32 +277,32 @@
                 var employee = new MasCustomers
                     {
                         guid = id.ToString(),
-                        code = worksheet.Cell(row, 7).GetValue<string>(), //เบอร์โทร
+                        code = worksheet.Cell(row, 6).GetValue<string>(), //เบอร์โทร
                         name = worksheet.Cell(row, 5).GetValue<string>(), //ชื่อลูกค้า
-                        phone = worksheet.Cell(row, 7).GetValue<string>(),//เบอร์โทร
-                        address1 = worksheet.Cell(row, 8).GetValue<string>(), //ที่อยู่
-                        sub_district = worksheet.Cell(row, 9).GetValue<string>(), //ตำบล
-                        district = worksheet.Cell(row, 10).GetValue<string>(), //อำเภอ
-                        province = worksheet.Cell(row, 11).GetValue<string>(), //จังหวัด
-                        zipcode = worksheet.Cell(row, 12).GetValue<string>(), //รหัสไปรษณีย์
+                        phone = worksheet.Cell(row, 6).GetValue<string>(),//เบอร์โทร
+                        address1 = worksheet.Cell(row, 15).GetValue<string>(), //ที่อยู่
+                        sub_district = worksheet.Cell(row, 16).GetValue<string>(), //ตำบล
+                        district = worksheet.Cell(row, 17).GetValue<string>(), //อำเภอ
+                        province = worksheet.Cell(row, 18).GetValue<string>(), //จังหวัด
+                        zipcode = worksheet.Cell(row, 19).GetValue<string>(), //รหัสไปรษณีย์
                         datasource_platform = channel,
-                        social_media = worksheet.Cell(row, 3).GetValue<string>(), //โซเชียล
+                        social_media = worksheet.Cell(row, 8).GetValue<string>(), //โซเชียล
                         branch_code = BranchCode,
                         created_by = username,
                         created_date = today,
                         modified_by = "",
                         modified_date = today,
 
-                        order_no = worksheet.Cell(row, 2).GetValue<string>(), //เลขที่คำสั่งซื้อ
+                        order_no = worksheet.Cell(row, 3).GetValue<string>(), //เลขที่คำสั่งซื้อ
                         order_date = orderDate, // ใช้ค่าที่ตรวจสอบแล้ว
-                        channel = worksheet.Cell(row, 3).GetValue<string>(), //ช่องทางการขาย
-                        tracking_no = worksheet.Cell(row, 18).GetValue<string>(), //หมายเลขพัสดุ
+                        channel = worksheet.Cell(row, 1).GetValue<string>(), //ช่องทางการขาย
+                        tracking_no = worksheet.Cell(row, 22).GetValue<string>(), //หมายเลขพัสดุ
                         amount = out_amount,
-                        payment_type = worksheet.Cell(row, 23).GetValue<string>(), //การชำระเงิน
-                        product_codes = worksheet.Cell(row, 14).GetValue<string>(), //รหัสสินค้า (SKU)
-                        product_names = worksheet.Cell(row, 15).GetValue<string>(), //ชื่อสินค้า
-                        product_qtys = worksheet.Cell(row, 16).GetValue<string>(), //จำนวนสินค้า
-                        seller = worksheet.Cell(row, 26).GetValue<string>() //พนักงานขาย
+                        payment_type = worksheet.Cell(row, 12).GetValue<string>(), //การชำระเงิน
+                        product_codes = worksheet.Cell(row, 31).GetValue<string>(), //รหัสสินค้า (SKU)
+                        product_names = worksheet.Cell(row, 27).GetValue<string>(), //ชื่อสินค้า
+                        product_qtys = worksheet.Cell(row, 34).GetValue<string>(), //จำนวนสินค้า
+                        seller = worksheet.Cell(row, 48).GetValue<string>() //พนักงานขาย
                     };
 
                 data.Add(employee);
