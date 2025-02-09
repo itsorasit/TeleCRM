@@ -1,0 +1,22 @@
+﻿@page "/admin-cohort"
+@using BlazorApp_TeleCRM.Data
+@using BlazorApp_TeleCRM.Models
+@using System.Security.Claims
+@using BlazorApp_TeleCRM.Service
+@using MySql.Data.MySqlClient
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IConfiguration Configuration
+@inject HttpClient Http
+@inject DialogService DialogService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject MySqlConnection MySqlConnection
+@inject ITimeZoneService TimeZoneService
+
+
+<PageTitle>รายงาน Cohort ลูกค้าซื้อซ้ำ </PageTitle>
+
+
+
+@code {
+
+}
