@@ -1,4 +1,5 @@
 ﻿using BlazorApp_TeleCRM.Data;
+using BlazorApp_TeleCRM.Service;
 using DocumentFormat.OpenXml.Drawing;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc;
@@ -12,11 +13,14 @@ namespace BlazorApp_TeleCRM.Controller
     {
         private readonly IConfiguration _configuration;
         private readonly string _connectionString;
+        private readonly ITimeZoneService TimeZoneService;
 
-        public ActivityAdminController(IConfiguration configuration)
+
+        public ActivityAdminController(IConfiguration configuration, ITimeZoneService _timeZoneService)
         {
             _configuration = configuration;
             _connectionString = _configuration.GetConnectionString("DefaultConnection");
+            TimeZoneService = _timeZoneService ?? throw new ArgumentNullException(nameof(_timeZoneService));
         }
 
 
@@ -24,7 +28,8 @@ namespace BlazorApp_TeleCRM.Controller
         public async Task<IActionResult> GetActivitysData([FromBody] SearchCriteria searchCriteria)
         {
 
-            DateTime today = DateTime.Now;
+            //  DateTime today = DateTime.Now;
+            DateTime today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
 
             var activitys = new List<ActivitysDataList>();
 
@@ -216,7 +221,8 @@ namespace BlazorApp_TeleCRM.Controller
         public async Task<IActionResult> GetActivitysByCustomer([FromBody] SearchCriteriaByID searchCriteria)
         {
 
-            DateTime today = DateTime.Now;
+            // DateTime today = DateTime.Now;
+            DateTime today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
 
             var activitys = new List<ActivitysDataList>();
 

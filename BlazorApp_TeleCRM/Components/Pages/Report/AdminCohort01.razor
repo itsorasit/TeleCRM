@@ -1,0 +1,321 @@
+﻿@page "/admin-cohort"
+@using BlazorApp_TeleCRM.Data
+@using BlazorApp_TeleCRM.Models
+@using System.Security.Claims
+@using BlazorApp_TeleCRM.Service
+@using MySql.Data.MySqlClient
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Dynamic;
+@inject IConfiguration Configuration
+@inject HttpClient Http
+@inject DialogService DialogService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject MySqlConnection MySqlConnection
+@inject ITimeZoneService TimeZoneService
+
+
+<PageTitle>Cohort ยอดลูกค้าซื้อซ้ำ</PageTitle>
+
+<div class="rz-6">
+    <RadzenBreadCrumb>
+        <RadzenBreadCrumbItem  Text="Report - Admin" />
+        <RadzenBreadCrumbItem Path="/admin-cohort" Text="Cohort ยอดลูกค้าซื้อซ้ำ" />
+    </RadzenBreadCrumb>
+
+</div>
+
+<AuthorizeView Roles="Admin,Manager,Supervisor">
+    <h3>Cohort Analysis</h3>
+    <p>Data Count: @cohortPivotTable.Count()</p>
+
+
+    <RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+        <Template>โหลด</Template>
+    </RadzenProgressBarCircular>
+
+    <RadzenDataGrid @ref="grid" Data="cohortPivotTable" TItem="PivotRow" PageSize="36"
+                    AllowPaging="true" AllowSorting="true" AllowFiltering="true">
+        <Columns>
+            <RadzenDataGridColumn TItem="PivotRow" Property="CohortMonth" Width="300px" Title="Cohort Month" />
+            <RadzenDataGridColumn TItem="PivotRow" Property="Month0" Title="M0" />
+            <RadzenDataGridColumn TItem="PivotRow" Property="Month1" Title="M1" />
+            <RadzenDataGridColumn TItem="PivotRow" Property="Month2" Title="M2" />
+            <RadzenDataGridColumn TItem="PivotRow" Property="Month3" Title="M3" />
+            <RadzenDataGridColumn TItem="PivotRow" Property="Month4" Title="M4" />
+            <RadzenDataGridColumn TItem="PivotRow" Property="Month5" Title="M5" />
+            <RadzenDataGridColumn TItem="PivotRow" Property="Month6" Title="M6" />
+            <RadzenDataGridColumn TItem="PivotRow" Property="Month7" Title="M7" />
+            <RadzenDataGridColumn TItem="PivotRow" Property="Month8" Title="M8" />
+            <RadzenDataGridColumn TItem="PivotRow" Property="Month9" Title="M9" />
+            <RadzenDataGridColumn TItem="PivotRow" Property="Month10" Title="M10" />
+            <RadzenDataGridColumn TItem="PivotRow" Property="Month11" Title="M11" />
+            <RadzenDataGridColumn TItem="PivotRow" Property="Month12" Title="M12" />
+        </Columns>
+    </RadzenDataGrid>
+
+</AuthorizeView>
+
+@code {
+
+
+    bool runProcess_wait = false;
+
+
+    
+
+    private string BranchCode { get; set; }
+    private IEnumerable<string> _BranchCode;
+    private string select_branch_code { get; set; }
+
+    private string username;
+    private IEnumerable<string>? roles;
+
+
+    RadzenDataGrid<PivotRow>? grid;
+    private List<CohortEntry> cohortData = new();
+    private List<PivotRow> cohortPivotTable = new();
+    private int maxCohortIndex = 0;
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            username = user.Identity.Name;
+            roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+
+            if (BranchCode == "000000" && roles.Contains("Admin"))
+            {
+                await GetBranchSelect(username);
+                if (!string.IsNullOrEmpty(select_branch_code))
+                {
+                    BranchCode = select_branch_code;
+                }
+            }
+        }
+        else
+        {
+            BranchCode = "";
+            select_branch_code = "";
+        }
+
+        cohortData = await GetCohortData();
+        await GeneratePivotTable();
+        if (grid != null)
+        {
+            await grid.Reload();
+        }
+
+        // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+        runProcess_wait = false;
+        StateHasChanged(); // บังคับ UI อัปเดต
+
+        // บังคับให้ UI อัปเดต
+       // await InvokeAsync(StateHasChanged);
+    }
+
+
+    private async Task GetBranchSelect(string _username)
+    {
+        try
+        {
+            await MySqlConnection.OpenAsync();
+            string query = @"SELECT username, branch_code FROM sys_select_organization where username=@username";
+            using (var cmd = new MySqlCommand(query, MySqlConnection))
+            {
+                cmd.Parameters.AddWithValue("@username", _username);
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        select_branch_code = reader["branch_code"].ToString();
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching select_branch_code : {ex.Message}");
+        }
+        finally
+        {
+            await MySqlConnection.CloseAsync();
+        }
+    }
+
+    public async Task<List<CohortEntry>> GetCohortData()
+    {
+        var cohortData = new List<CohortEntry>();
+
+        runProcess_wait = true;
+        StateHasChanged(); // บังคับ UI อัปเดต
+
+        try
+        {
+            await MySqlConnection.OpenAsync();
+            string query = @"
+                WITH FirstPurchase AS (
+    SELECT customer_code, MIN(DATE_FORMAT(contact_date, '%Y-%m-01')) AS CohortMonth
+    FROM crm_activitys
+    WHERE branch_code = @BranchCode0 AND call_action = 'ขายได้'
+    GROUP BY customer_code
+),
+MinDate AS (
+    SELECT MIN(contact_date) AS MinContactDate
+    FROM crm_activitys
+    WHERE branch_code = @BranchCode1 AND call_action = 'ขายได้'
+)
+SELECT
+    DATE_FORMAT(contact_date, '%Y-%m-01') AS OrderDate,
+    SUM(IFNULL(sale_amount, 0)) AS TotalSales,
+    COUNT(call_action) AS TotalSalesCount,
+    fp.CohortMonth,
+    TIMESTAMPDIFF(MONTH, STR_TO_DATE(fp.CohortMonth, '%Y-%m-%d'), STR_TO_DATE(DATE_FORMAT(contact_date, '%Y-%m-01'), '%Y-%m-%d')) AS CohortIndex
+FROM crm_activitys ca
+JOIN FirstPurchase fp ON ca.customer_code = fp.customer_code
+JOIN MinDate md ON ca.contact_date >= md.MinContactDate
+WHERE ca.branch_code = @BranchCode2 AND ca.call_action = 'ขายได้'
+GROUP BY OrderDate, fp.CohortMonth, CohortIndex
+ORDER BY fp.CohortMonth, OrderDate;";
+
+            using (var cmd = new MySqlCommand(query, MySqlConnection))
+            {
+                cmd.Parameters.AddWithValue("@BranchCode0", BranchCode);
+                 cmd.Parameters.AddWithValue("@BranchCode1", BranchCode);
+                cmd.Parameters.AddWithValue("@BranchCode2", BranchCode);
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        cohortData.Add(new CohortEntry
+                            {
+                                OrderDate = reader.GetDateTime(0),
+                                TotalSales = reader.GetDecimal(1),
+                                TotalSalesCount = reader.GetInt32(2),
+                                CohortMonth = reader.GetDateTime(3),
+                                CohortIndex = reader.GetInt32(4)
+                            });
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching select_branch_code : {ex.Message}");
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
+
+        return cohortData;
+    }
+
+    private async Task GeneratePivotTable()
+    {
+        await Task.Run(() =>
+        {
+            var cohortGroups = cohortData
+                .GroupBy(x => x.CohortMonth)
+                .Select(g => new
+                {
+                    CohortMonth = g.Key,
+                    SalesCounts = g.GroupBy(x => x.CohortIndex)
+                                   .ToDictionary(k => k.Key, v => v.Sum(x => x.TotalSalesCount))
+                })
+                .OrderBy(g => g.CohortMonth) // ✅ จัดเรียง CohortMonth
+                .ToList();
+
+            if (cohortGroups.Count == 0)
+            {
+                Console.WriteLine("⚠️ Warning: ไม่มีข้อมูล Cohort!");
+                return;
+            }
+
+            Console.WriteLine($"📊 พบ {cohortGroups.Count} Cohort:");
+            foreach (var group in cohortGroups)
+            {
+                Console.WriteLine($"✅ Cohort: {group.CohortMonth}, Data: {string.Join(", ", group.SalesCounts.Select(kvp => $"M{kvp.Key}={kvp.Value}"))}");
+            }
+
+            maxCohortIndex = cohortGroups.Max(x => x.SalesCounts.Keys.Max());
+
+            cohortPivotTable.Clear(); // ป้องกันข้อมูลซ้ำ
+
+            foreach (var group in cohortGroups)
+            {
+                var row = new PivotRow
+                    {
+                        CohortMonth = group.CohortMonth.ToString("yyyy-MM"),
+                        Month0 = group.SalesCounts.ContainsKey(0) ? group.SalesCounts[0] : 0,
+                        Month1 = group.SalesCounts.ContainsKey(1) ? group.SalesCounts[1] : 0,
+                        Month2 = group.SalesCounts.ContainsKey(2) ? group.SalesCounts[2] : 0,
+                        Month3 = group.SalesCounts.ContainsKey(3) ? group.SalesCounts[3] : 0,
+                        Month4 = group.SalesCounts.ContainsKey(4) ? group.SalesCounts[4] : 0,
+                        Month5 = group.SalesCounts.ContainsKey(5) ? group.SalesCounts[5] : 0,
+                        Month6 = group.SalesCounts.ContainsKey(6) ? group.SalesCounts[6] : 0,
+                        Month7 = group.SalesCounts.ContainsKey(7) ? group.SalesCounts[7] : 0,
+                        Month8 = group.SalesCounts.ContainsKey(8) ? group.SalesCounts[8] : 0,
+                        Month9 = group.SalesCounts.ContainsKey(9) ? group.SalesCounts[9] : 0,
+                        Month10 = group.SalesCounts.ContainsKey(10) ? group.SalesCounts[10] : 0,
+                        Month11 = group.SalesCounts.ContainsKey(11) ? group.SalesCounts[11] : 0,
+                        Month12 = group.SalesCounts.ContainsKey(12) ? group.SalesCounts[12] : 0
+                    };
+
+                cohortPivotTable.Add(row);
+            }
+        });
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+    // private void GenerateRetentionRate()
+    // {
+    //     foreach (var row in cohortPivotTable)
+    //     {
+    //         int firstMonthCount = row.Months[0];
+    //         if (firstMonthCount == 0) continue;
+
+    //         for (int i = 1; i <= maxCohortIndex; i++)
+    //         {
+    //             row.Months[i] = firstMonthCount > 0 ? (row.Months[i] * 100 / firstMonthCount) : 0;
+    //         }
+    //     }
+    // }
+
+
+    public class PivotRow
+    {
+        public string CohortMonth { get; set; }
+        public int Month0 { get; set; }
+        public int Month1 { get; set; }
+        public int Month2 { get; set; }
+        public int Month3 { get; set; }
+        public int Month4 { get; set; }
+        public int Month5 { get; set; }
+        public int Month6 { get; set; }
+        public int Month7 { get; set; }
+        public int Month8 { get; set; }
+        public int Month9 { get; set; }
+        public int Month10 { get; set; }
+        public int Month11 { get; set; }
+        public int Month12 { get; set; }
+    }
+
+    public class CohortEntry
+    {
+        public DateTime OrderDate { get; set; }
+        public decimal TotalSales { get; set; }
+        public int TotalSalesCount { get; set; }
+        public DateTime CohortMonth { get; set; }
+        public int CohortIndex { get; set; }
+    }
+}

@@ -2,6 +2,7 @@
 {
     public class JobDataList
     {
+
         public string guid { get; set; }
         public string? code { get; set; }
         public string? customer_name { get; set; }

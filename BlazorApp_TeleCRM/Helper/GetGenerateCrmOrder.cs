@@ -1,4 +1,5 @@
 ﻿using BlazorApp_TeleCRM.Models;
+using BlazorApp_TeleCRM.Service;
 using DocumentFormat.OpenXml.Presentation;
 using MySql.Data.MySqlClient;
 using System;
@@ -10,8 +11,10 @@ namespace BlazorApp_TeleCRM.Helper
     {
         private readonly string _connectionString;
         private readonly IConfiguration _configuration;
+        private readonly ITimeZoneService TimeZoneService;
 
-        public GetGenerateCrmOrder(IConfiguration configuration)
+
+        public GetGenerateCrmOrder(IConfiguration configuration, ITimeZoneService _timeZoneService)
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection");
             if (string.IsNullOrEmpty(connectionString))
@@ -20,6 +23,7 @@ namespace BlazorApp_TeleCRM.Helper
             }
 
             _connectionString = connectionString;
+            TimeZoneService = _timeZoneService ?? throw new ArgumentNullException(nameof(_timeZoneService));
         }
 
         public async Task<bool> Upload(CrmOrder data,string type)
@@ -143,6 +147,9 @@ namespace BlazorApp_TeleCRM.Helper
         public async Task<bool> UploadProduction(string code, string name, string branch_code, string created_by)
         {
             bool result = false;
+            DateTime today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+
+
 
             // ใช้ MySqlConnection สำหรับเชื่อมต่อกับฐานข้อมูล
             using (var connection = new MySqlConnection(_connectionString))
@@ -185,7 +192,7 @@ namespace BlazorApp_TeleCRM.Helper
                                 insertCommand.Parameters.AddWithValue("@description", "");
                                 insertCommand.Parameters.AddWithValue("@image_url", "/image/system/new.png");
                                 insertCommand.Parameters.AddWithValue("@created_by", created_by);
-                                insertCommand.Parameters.AddWithValue("@created_date", DateTime.Now);
+                                insertCommand.Parameters.AddWithValue("@created_date", today);
                                 insertCommand.Parameters.AddWithValue("@price", 0);
 
                                 // Execute คำสั่ง Insert

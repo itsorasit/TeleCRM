@@ -13,6 +13,8 @@
 @inject MySqlConnection MySqlConnection
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NotificationService NotificationService
+@inject ITimeZoneService TimeZoneService
+
 
 <RadzenStack Gap="1rem" Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
     <RadzenTabs @bind-SelectedIndex=@selectedIndex Change=@OnChange>
@@ -226,7 +228,8 @@
         TextProcess_Duplicate = "";
 
         DateTime today = new DateTime();
-        today = DateTime.Now;
+       // today = DateTime.Now;
+        today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
 
         await MySqlConnection.OpenAsync();
         using var transaction = await MySqlConnection.BeginTransactionAsync();

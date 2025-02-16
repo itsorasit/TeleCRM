@@ -2,6 +2,7 @@
 @using System.ComponentModel.DataAnnotations
 @using BlazorApp_TeleCRM.Helper
 @using BlazorApp_TeleCRM.Models
+@using BlazorApp_TeleCRM.Service
 @using Microsoft.AspNetCore.Components.Authorization
 @using MySql.Data.MySqlClient
 @using System.Security.Claims
@@ -14,6 +15,8 @@
 @inject IWebHostEnvironment Environment
 @inject MySqlConnection MySqlConnection
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ITimeZoneService TimeZoneService
+
 
 
 <RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
@@ -85,7 +88,7 @@
 
     private static readonly string[] data_channels = new[]
       {
-            "เลือกแหล่งข้อมูล", "MyOrder รูปแบบที่ 3", "GoSell"
+            "เลือกแหล่งข้อมูล", "MyOrder รูปแบบที่ 3", "GoSell" ,"GoSell V2"
       };
 
     protected override async Task OnInitializedAsync()
@@ -145,7 +148,10 @@
         {
             excelData = ReadExcel_GoSell(filePath);
         }
-
+        else if (channel == "GoSell V2")
+        {
+            excelData = ReadExcel_GoSellV2(filePath);
+        }
 
         runProcess_wait = false;
         TextProcess = "ข้อมูลพร้อมสำหรับการอัพโหลด";
@@ -158,8 +164,8 @@
         TextProcess = "อ่านข้อมูลไฟล์";
 
         DateTime today = new DateTime();
-        today = DateTime.Now;
-
+       // today = DateTime.Now;
+        today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
 
         var data = new List<MasCustomers>();
         using (var workbook = new ClosedXML.Excel.XLWorkbook(filePath))
@@ -229,6 +235,83 @@
         return data;
     }
 
+    private List<MasCustomers> ReadExcel_GoSellV2(string filePath)
+    {
+
+        TextProcess = "อ่านข้อมูลไฟล์";
+
+        DateTime today = new DateTime();
+        // today = DateTime.Now;
+        today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+
+        var data = new List<MasCustomers>();
+        using (var workbook = new ClosedXML.Excel.XLWorkbook(filePath))
+        {
+            var worksheet = workbook.Worksheet(1); // เลือกชีตแรก
+            var rowCount = worksheet.LastRowUsed().RowNumber();
+
+            for (int row = 4; row <= rowCount; row++) // เริ่มจากแถวที่ 2 เพราะแถวแรกเป็นหัวตาราง
+            {
+                Guid id = Guid.NewGuid();
+
+                //วันที่คำสั่งซื้อ
+                var dateValue = worksheet.Cell(row, 50).GetValue<string>();
+                DateTime orderDate;
+
+                // ใช้ TryParse เพื่อตรวจสอบและแปลงค่าจากเซลล์
+                if (!DateTime.TryParse(dateValue, out orderDate))
+                {
+                    orderDate = DateTime.MinValue; // หรือกำหนดค่าเริ่มต้นหากไม่สามารถแปลงได้
+                }
+
+                //ยอดขาย
+                var amount = worksheet.Cell(row, 38).GetValue<string>();
+                decimal out_amount;
+
+                if (!Decimal.TryParse(amount, out out_amount))
+                {
+                    out_amount = 0;
+                }
+
+
+                var employee = new MasCustomers
+                    {
+                        guid = id.ToString(),
+                        code = worksheet.Cell(row, 6).GetValue<string>(), //เบอร์โทร
+                        name = worksheet.Cell(row, 5).GetValue<string>(), //ชื่อลูกค้า
+                        phone = worksheet.Cell(row, 6).GetValue<string>(),//เบอร์โทร
+                        address1 = worksheet.Cell(row, 15).GetValue<string>(), //ที่อยู่
+                        sub_district = worksheet.Cell(row, 16).GetValue<string>(), //ตำบล
+                        district = worksheet.Cell(row, 17).GetValue<string>(), //อำเภอ
+                        province = worksheet.Cell(row, 18).GetValue<string>(), //จังหวัด
+                        zipcode = worksheet.Cell(row, 19).GetValue<string>(), //รหัสไปรษณีย์
+                        datasource_platform = channel,
+                        social_media = worksheet.Cell(row, 8).GetValue<string>(), //โซเชียล
+                        branch_code = BranchCode,
+                        created_by = username,
+                        created_date = today,
+                        modified_by = "",
+                        modified_date = today,
+
+                        order_no = worksheet.Cell(row, 3).GetValue<string>(), //เลขที่คำสั่งซื้อ
+                        order_date = orderDate, // ใช้ค่าที่ตรวจสอบแล้ว
+                        channel = worksheet.Cell(row, 1).GetValue<string>(), //ช่องทางการขาย
+                        tracking_no = worksheet.Cell(row, 22).GetValue<string>(), //หมายเลขพัสดุ
+                        amount = out_amount,
+                        payment_type = worksheet.Cell(row, 12).GetValue<string>(), //การชำระเงิน
+                        product_codes = worksheet.Cell(row, 31).GetValue<string>(), //รหัสสินค้า (SKU)
+                        product_names = worksheet.Cell(row, 27).GetValue<string>(), //ชื่อสินค้า
+                        product_qtys = worksheet.Cell(row, 34).GetValue<string>(), //จำนวนสินค้า
+                        seller = worksheet.Cell(row, 48).GetValue<string>() //พนักงานขาย
+                    };
+
+                data.Add(employee);
+            }
+        }
+
+        return data;
+    }
+
 
     private List<MasCustomers> ReadExcel(string filePath)
     {
@@ -236,7 +319,8 @@
         TextProcess = "อ่านข้อมูลไฟล์";
 
         DateTime today = new DateTime();
-        today = DateTime.Now;
+       // today = DateTime.Now;
+       today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
 
         if (channel == "MyOrder รูปแบบที่ 3")
         {
@@ -394,7 +478,7 @@
                             seller = customers.seller
                         };
 
-                    GetGenerateCrmOrder getGenerateCrmOrder = new GetGenerateCrmOrder(Configuration);
+                    GetGenerateCrmOrder getGenerateCrmOrder = new GetGenerateCrmOrder(Configuration, TimeZoneService);
                     await getGenerateCrmOrder.Upload(order, channel);
 
                 } catch { }

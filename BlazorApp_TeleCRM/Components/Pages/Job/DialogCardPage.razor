@@ -4,6 +4,7 @@
 @using BlazorApp_TeleCRM.Data
 @using BlazorApp_TeleCRM.Helper
 @using BlazorApp_TeleCRM.Models
+@using BlazorApp_TeleCRM.Service
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 @using MySql.Data.MySqlClient
@@ -14,7 +15,8 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NotificationService NotificationService
 @inject HttpClient Http
-@inject UtilityConvet utility ;
+@inject UtilityConvet utility 
+@inject ITimeZoneService TimeZoneService
 
 <style>
     .rz-dialog-side {
@@ -1034,7 +1036,8 @@
         runProcess_wait = true;
         TextProcess = "กรุณารอ ระบบกำลังทำการอัปเดตข้อมูล..";
 
-        DateTime today = DateTime.Now;
+       // DateTime today = DateTime.Now;
+        DateTime today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
 
         await MySqlConnection.OpenAsync();
         using var transaction = await MySqlConnection.BeginTransactionAsync();
@@ -1160,7 +1163,8 @@
 
     private async Task UpdateNote()
     {
-        DateTime today = DateTime.Now;
+       // DateTime today = DateTime.Now;
+        DateTime today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
 
         await MySqlConnection.OpenAsync();
         using var transaction = await MySqlConnection.BeginTransactionAsync();
@@ -1204,7 +1208,8 @@
     {
 
         DateTime today = new DateTime();
-        today = DateTime.Now;
+        //today = DateTime.Now;
+        today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
 
 
         await MySqlConnection.OpenAsync();
@@ -1262,6 +1267,9 @@
         await MySqlConnection.OpenAsync();
         using var transaction = await MySqlConnection.BeginTransactionAsync();
 
+        DateTime today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+
+
         try
         {
             var query = @"INSERT INTO crm_contact_logs
@@ -1272,14 +1280,14 @@
 
             command.Parameters.AddWithValue("@activity_id", model.activities_id);
             command.Parameters.AddWithValue("@customer_id", selectedAct.customer_code);
-            command.Parameters.AddWithValue("@contact_date", DateTime.Now.Date);
+            command.Parameters.AddWithValue("@contact_date", today);
             command.Parameters.AddWithValue("@contact_method", "โทร");
             command.Parameters.AddWithValue("@contact_result", model.status ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@contact_result2", model.call_status + "/" + model.call_action);
             command.Parameters.AddWithValue("@contact_remark", model.remark ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@branch_code", BranchCode);
             command.Parameters.AddWithValue("@created_by", username);
-            command.Parameters.AddWithValue("@created_at", DateTime.Now);
+            command.Parameters.AddWithValue("@created_at", today);
             command.Parameters.AddWithValue("@statusparticipation", model.statusparticipation);
 
 

@@ -8,6 +8,7 @@
 @inject IConfiguration Configuration
 @inject Radzen.DialogService dialogService
 @inject HttpClient Http
+@inject ITimeZoneService TimeZoneService
 
 
 @using System.ComponentModel.DataAnnotations
@@ -637,8 +638,28 @@
             new InterestTag { Id = 6, Name = "สนใจซื้อทองคำ" }
         };
 
+<<<<<<< HEAD
         // กรณีนี้เริ่มต้นยังไม่มี Tag ที่ถูกเลือก
         Target = new List<InterestTag>();
+=======
+        // // ถ้าต้องการให้ re-render หน้าจอใหม่
+        //  countcustomer = customercode.Count().ToString();
+
+        ID = "C0000000001";
+        channel = "Up-Sale";
+        staff = "พนักงาน A";
+        countcustomer = "100";
+       // datevalue = DateTime.Now.Date;
+        datevalue = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+
+
+        var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+        // Use the BaseApiUrl to call the API
+        var _contacts = await Http.GetFromJsonAsync<IEnumerable<WeatherForecast>>($"{baseApiUrl}/api/weatherforecast");
+
+        contacts = _contacts.Take(5).ToList();
+        selecteContact = new List<WeatherForecast>() { contacts.FirstOrDefault() };
+>>>>>>> main
 
 
 

@@ -1,7 +1,10 @@
 ﻿using BlazorApp_TeleCRM.Data;
+using BlazorApp_TeleCRM.Service;
 using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
 using System;
+
+
 
 namespace BlazorApp_TeleCRM.Controller
 {
@@ -12,10 +15,14 @@ namespace BlazorApp_TeleCRM.Controller
         private readonly IConfiguration _configuration;
         private readonly string _connectionString;
 
-        public CustomerAdminController(IConfiguration configuration)
+        private readonly ITimeZoneService TimeZoneService;
+
+
+        public CustomerAdminController(IConfiguration configuration, ITimeZoneService _timeZoneService)
         {
             _configuration = configuration;
             _connectionString = _configuration.GetConnectionString("DefaultConnection");
+            TimeZoneService = _timeZoneService ?? throw new ArgumentNullException(nameof(_timeZoneService));
         }
 
 
@@ -31,7 +38,8 @@ namespace BlazorApp_TeleCRM.Controller
         public async Task<IActionResult> GetCustomerData([FromBody] SearchCriteria searchCriteria)
         {
 
-            DateTime today = DateTime.Now;
+            // DateTime today = DateTime.Now;
+            DateTime today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
 
             var customers = new List<CustomerDataList>();
 
@@ -229,7 +237,9 @@ GROUP BY mc.guid,
         [HttpPost("GetCustomerDataById")]
         public async Task<IActionResult> GetCustomerDataById([FromBody] SearchCriteriaByID searchCriteria)
         {
-            DateTime today = DateTime.Now;
+            //  DateTime today = DateTime.Now;
+            DateTime today   = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+
             var customers = new List<CustomerDataList>();
 
             using (var connection = new MySqlConnection(_connectionString))
@@ -552,12 +562,106 @@ ORDER BY modified_date DESC";
 
 
 
+        [HttpPost("GetAdminfollowUp")]
+        public async Task<IActionResult> GetAdminfollowUp([FromBody] SearchCriteriaByKey searchCriteria)
+        {
+
+            //  DateTime today = DateTime.Now;
+            DateTime today = TimeZoneService.ToLocalTime(DateTime.UtcNow); 
+
+
+            var customers = new List<DataAdminfollowUp>();
+
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+
+                var query  = @"SELECT 
+    ccl.customer_id,
+    COUNT(*) AS follow_up_count,
+    SUM(CASE WHEN contact_result2 = 'รับสาย/ขายได้' THEN 1 ELSE 0 END) AS successful_sales,
+    SUM(ca.sale_amount) AS total_sales,
+    ccl.created_by,
+    mu.firstname ,
+    MIN(ccl.created_at) AS start_contact,
+    MAX(ccl.created_at) AS last_contact,
+    (SELECT contact_remark  
+     FROM crm_contact_logs sub 
+     WHERE sub.customer_id = ccl.customer_id 
+       AND sub.created_at = MAX(ccl.created_at)
+       AND sub.branch_code = @branch_code 
+     LIMIT 1) AS last_contact_remark,
+    MAX(CASE WHEN contact_result2 = 'รับสาย/ขายได้' THEN ccl.created_at ELSE NULL END) AS last_sale_date,
+    mc.name, 
+    mc.phone,
+    DATEDIFF(CURRENT_DATE, MAX(ccl.created_at)) AS days_since_last_contact,
+    DATEDIFF(CURRENT_DATE, MAX(CASE WHEN contact_result2 = 'รับสาย/ขายได้' THEN ccl.created_at ELSE NULL END)) AS days_since_last_sale
+FROM 
+    crm_contact_logs ccl 
+    LEFT JOIN mas_customers mc ON mc.guid = ccl.customer_id 
+    LEFT JOIN crm_activitys ca ON ca.customer_code = ccl.customer_id AND ca.guid = ccl.activity_id 
+    LEFT JOIN mas_users mu ON mu.organization =@branch_code and mu.username  = ccl.created_by
+WHERE 
+    ccl.branch_code = @branch_code  and FIND_IN_SET(ccl.created_by, @user)  
+GROUP BY 
+    ccl.customer_id, 
+    ccl.created_by,  
+    mc.name, 
+    mc.phone,
+    mu.firstname
+ORDER BY 
+    follow_up_count desc";
+
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    // กำหนดค่าช่วงเวลาของ FromDate เป็นเริ่มต้นของวัน
+                   
+                    var branch_code = searchCriteria.branch_code ?? "";
+                    cmd.Parameters.AddWithValue("@branch_code", branch_code);
+
+                    var  value = searchCriteria.value1 ?? "";
+                    cmd.Parameters.AddWithValue("@user", value);
+
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var customer = new DataAdminfollowUp
+                            {
+                                customer_fullname =  reader["name"].ToString(),
+                                customer_phone = reader["phone"].ToString(),
+                                follow_up_count = string.IsNullOrEmpty(reader["follow_up_count"].ToString()) ? 0 : Convert.ToInt32(reader["follow_up_count"].ToString()) ,
+                                successful_sales = string.IsNullOrEmpty(reader["successful_sales"].ToString()) ? 0 : Convert.ToInt32(reader["successful_sales"].ToString()),
+                                start_contact = string.IsNullOrEmpty(reader["start_contact"].ToString()) ? null : Convert.ToDateTime(reader["start_contact"].ToString()),
+                                last_contact = string.IsNullOrEmpty(reader["last_contact"].ToString()) ? null : Convert.ToDateTime(reader["last_contact"].ToString()),
+                                last_sale_date = string.IsNullOrEmpty(reader["last_sale_date"].ToString()) ? null : Convert.ToDateTime(reader["last_sale_date"].ToString()),
+                                days_since_last_contact = string.IsNullOrEmpty(reader["days_since_last_contact"].ToString()) ? 0 : Convert.ToInt32(reader["days_since_last_contact"].ToString()),
+                                total_sales = string.IsNullOrEmpty(reader["total_sales"].ToString()) ? 0 : Convert.ToDecimal(reader["total_sales"].ToString()),
+                                days_since_last_sale  = string.IsNullOrEmpty(reader["days_since_last_sale"].ToString()) ? 0 : Convert.ToInt32(reader["days_since_last_sale"].ToString()),
+                                last_contact_remark = reader["last_contact_remark"].ToString(),
+                                crm_staff_name = reader["firstname"].ToString()
+                                
+                            };
+
+                            customers.Add(customer);
+                        }
+                    }
+                }
+            }
+
+            return Ok(customers);
+        }
+
+
 
         public class SearchCriteria
         {
             public DateTime? fdate { get; set; }
             public DateTime? ldate { get; set; }
             public string? branch_code { get; set; }
+
         }
 
         public class SearchCriteriaByID

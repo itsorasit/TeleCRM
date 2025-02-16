@@ -12,7 +12,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject MySqlConnection MySqlConnection
 @inject NotificationService NotificationService
-
+@inject ITimeZoneService TimeZoneService
 
 
 <style>
@@ -235,8 +235,8 @@
 
     bool isDialogOpen = false;
     bool allowRowSelectOnRowClick = false;
-    DateTime? value = DateTime.Now;
-
+   // DateTime? value = DateTime.Now;
+   
     bool value1 = false;
 
     IEnumerable<int> pageSizeOptions = new int[] { 10, 20, 30, 50, 100 };
@@ -278,7 +278,7 @@
 
         dataFiltering = Filterings;
 
-
+       // value = TimeZoneService.ToLocalTime(DateTime.UtcNow);
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
