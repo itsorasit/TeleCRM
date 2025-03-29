@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\css\" />
     <Folder Include="wwwroot\products\" />
     <Folder Include="wwwroot\user\" />
   </ItemGroup>

@@ -12,52 +12,50 @@
 @inject NotificationService NotificationService
 
 @inject allseeddbPDContext allseed_Db
-@*  @inject CustomAuthenticationStateProvider CustomAuthenticationStateProvider  *@
 @inject AuthenticationStateProvider AuthenticationStateProvider
+
+<link href="bootstrap/login.css" rel="stylesheet" />
 
 <PageTitle>เข้าสู่ระบบ</PageTitle>
 
 
 <RadzenTemplateForm @ref="form" TItem="LoginModel" Data="@loginModel" Submit="@OnSubmit" InvalidSubmit="@OnInvalidSubmit">
-    <RadzenFieldset>
-        <RadzenRow JustifyContent="JustifyContent.Center" AlignItems="AlignItems.Center" style="margin-top:20px" Gap="2rem">
-            <RadzenImage Path="image/system/logo.jpg" Style="width:150px"></RadzenImage>
+    <RadzenStack Gap="20px" >
+        <!-- Username Field -->
+        <RadzenRow AlignItems="AlignItems.Center" RowGap="0.50rem">
+            <RadzenColumn Size="12" SizeMD="4" SizeSM="12">
+                <RadzenLabel Text="Username" Component="Username" />
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="8" SizeSM="12">
+                <RadzenTextBox style="display: block; width: 100%;" Name="Username" Placeholder="กรอก Username หรือ Email ของคุณ" @bind-Value="@loginModel.Username" />
+                <RadzenDataAnnotationValidator Component="Username" Popup="@popup" Style="position: absolute;" />
+            </RadzenColumn>
         </RadzenRow>
-        <RadzenStack Gap="2rem" class="rz-p-6 rz-p-md-12">
-            <!-- Username Field -->
-            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.50rem">
-                <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
-                    <RadzenLabel Text="Username" Component="Username" />
-                </RadzenColumn>
-                <RadzenColumn Size="12" SizeMD="8">
-                    <RadzenTextBox style="display: block" Name="Username" Placeholder="กรอก Username หรือ Email ของคุณ" @bind-Value="@loginModel.Username" class="w-100" />
-                    <RadzenDataAnnotationValidator Component="Username" Popup="@popup" Style="position: absolute" />
-                </RadzenColumn>
-            </RadzenRow>
 
-            <!-- Password Field -->
-            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.50rem">
-                <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
-                    <RadzenLabel Text="Password" Component="Password" />
-                </RadzenColumn>
-                <RadzenColumn Size="12" SizeMD="8">
-                    <RadzenPassword style="display: block" Name="Password" Placeholder="กรอกรหัสผ่าน" @bind-Value="@loginModel.Password" class="w-100" aria-label="enter password" />
-                    <RadzenDataAnnotationValidator Component="Password" Popup="@popup" Style="position: absolute" />
-                </RadzenColumn>
-            </RadzenRow>
+        <!-- Password Field -->
+        <RadzenRow AlignItems="AlignItems.Center" RowGap="0.50rem">
+            <RadzenColumn Size="12" SizeMD="4" SizeSM="12">
+                <RadzenLabel Text="Password" Component="Password" />
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeMD="8" SizeSM="12">
+                <RadzenPassword style="display: block; width: 100%;" Name="Password" Placeholder="กรอกรหัสผ่าน" @bind-Value="@loginModel.Password" aria-label="enter password" />
+                <RadzenDataAnnotationValidator Component="Password" Popup="@popup" Style="position: absolute;" />
+            </RadzenColumn>
+        </RadzenRow>
 
-            <!-- Submit Button -->
-            <RadzenRow AlignItems="AlignItems.Center">
-                <RadzenColumn Size="12" Offset="0" SizeMD="8" OffsetMD="4">
-                    <RadzenButton Icon="login" Variant="Variant.Flat" ButtonType="ButtonType.Submit" Text="Login" Style="margin-top: 15px;width:200px" />
-                </RadzenColumn>
-            </RadzenRow>
+        <!-- Submit Button -->
+        <RadzenRow AlignItems="AlignItems.Center">
+            <RadzenColumn Size="12" Offset="0" SizeMD="8" SizeSM="12" OffsetMD="4">
+                <RadzenButton Icon="login"
+                              Variant="Variant.Flat"
+                              ButtonType="ButtonType.Submit"
+                              Text="Login"
+                              Style="background-color: var(--primary-color); color: white; width: 100%; padding: 12px; border-radius: 8px;" />
+            </RadzenColumn>
+        </RadzenRow>
 
-
-        </RadzenStack>
-    </RadzenFieldset>
+    </RadzenStack>
 </RadzenTemplateForm>
-
 
 
 
