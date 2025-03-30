@@ -19,6 +19,11 @@
 @inject ITimeZoneService TimeZoneService
 
 
+<style>
+    .rz-dialog-side {
+        z-index: 10 !important;
+    }
+</style>
 
 <RadzenTemplateForm TItem="Branch" Data="@branch" Submit="@HandleValidSubmit">
   

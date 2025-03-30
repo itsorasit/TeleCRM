@@ -89,38 +89,41 @@
     <div class="rz-col-12">
 
         <AuthorizeView Roles="Admin">
+
             <div class=" rz-card rz-variant-outlined  ">
                 <div class="rz-col-12 " style=""><h3 class="rz-text-h4">ร้านค้า</h3></div>
-             
-                    <div class="rz-display-flex rz-row rz-align-items-normal rz-justify-content-normal" style="--rz-row-gap:1.5rem">
-                        <div class="rz-col-12 rz-col-xs-6 rz-col-sm-4 rz-col-lg-3">
-                           
-                                <RadzenButton Text="เพิ่มร้านค้า" Icon="store" Click="@OpenNewStore" />
-                          
 
-                            <RadzenButton Text="รีเฟรช" Icon="refresh" ButtonStyle="ButtonStyle.Info" Click="@OnRefresh" />
+                <div class="rz-display-flex rz-row rz-align-items-normal rz-justify-content-normal" style="--rz-row-gap:1.5rem">
+                    <div class="rz-col-12 rz-col-xs-6 rz-col-sm-4 rz-col-lg-3">
 
-                        </div>
-                        <RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
-                            <Template>โหลด</Template>
-                        </RadzenProgressBarCircular>
-
-                        @foreach (var branch in Branches)
-                        {
-                            <div class="card">
-                                <img src="@branch.imageurl" width="60px" alt="Card Image" class="card-image">
-                                <div class="card-content">
-                                    <h5 class="card-title">@branch.name</h5>
-
-                                    <RadzenButton Click=@(() => OpenEditStore(branch.code)) Icon="edit" Size="ButtonSize.Small" Text="แก้ไข" ButtonStyle="ButtonStyle.Primary" />
-                                </div>
-                            </div>
+                        <RadzenButton Text="เพิ่มร้านค้า" Icon="store" Click="@OpenNewStore" />
 
 
-                        }
+                        <RadzenButton Text="รีเฟรช" Icon="refresh" ButtonStyle="ButtonStyle.Info" Click="@OnRefresh" />
+
                     </div>
-              
+                    <RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+                        <Template>โหลด</Template>
+                    </RadzenProgressBarCircular>
+
+                    @foreach (var branch in Branches)
+                    {
+                        <div class="card">
+                            <img src="@branch.imageurl" width="60px" alt="Card Image" class="card-image">
+                            <div class="card-content">
+                                <h5 class="card-title">@branch.name</h5>
+
+                                <RadzenButton Click=@(() => OpenEditStore(branch.code)) Icon="edit" Size="ButtonSize.Small" Text="แก้ไข" ButtonStyle="ButtonStyle.Primary" />
+                            </div>
+                        </div>
+
+
+                    }
+                </div>
+
             </div>
+
+         
         </AuthorizeView>
 
         <AuthorizeView Roles="Manager">
@@ -166,6 +169,40 @@
                         <RadzenButton Text="เพิ่มผู้ใช้งาน" Icon="person_add" Click="@(args => OpenSideDialog(null))" />
                         <RadzenButton Text="รีเฟรช" Icon="refresh" ButtonStyle="ButtonStyle.Info" Click="@OnRefresh" />
                     </div>
+
+                    <div class="rz-col-12">
+                        <RadzenCard Variant="Variant.Outlined" class="rz-info rz-shade-lighte" Style="padding: 1rem;">
+                            <div class="custom-row">
+                                <div class="custom-column">
+                                    <RadzenLabel Text="เลือกคำค้นหา" />
+                                    <RadzenDropDown @bind-Value=@Filtering_Key_main style="display:block;width:100%"
+                                                    Data=@dataFiltering_main Change="@(args => OnCallKeyChange2(Filtering_Key_main))"
+                                                    Name="ddlFiltering_main" class="w-100" />
+                                </div>
+
+                                <div class="custom-column">
+                                    <RadzenLabel Text="วันที่ " Component="RadzenDatePickerBindValue" />
+                                    @* <RadzenDatePicker @bind-Value="CreateDateFrom" Name="CreateDateFrom" Disabled="@usedate"
+                                    DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" /> *@
+                                </div>
+
+                                <div class="custom-column">
+                                    <RadzenLabel Text="ถึงวันที่ " Component="RadzenDatePickerBindValue" />
+                                    @* <RadzenDatePicker @bind-Value="CreateDateTo" Name="CreateDateTo" Disabled="@usedate"
+                                    DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" /> *@
+                                </div>
+
+                                <div class="custom-column">
+                                    <br />
+                                    <RadzenButton Text="ค้นหา" Icon="search" Variant="Variant.Flat" Style="width: 100px; margin-right: 0.5rem;" />
+                                    <RadzenButton Text="ล้าง" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Secondary" Style="width: 100px;" />
+                                </div>
+                            </div>
+                        </RadzenCard>
+                    </div>
+
+
+
 
                     <RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
                         <Template>โหลด</Template>
@@ -216,13 +253,15 @@
                     <RadzenDataGrid @ref="grid" TItem="User" Data="@cus_datas" PagerPosition="PagerPosition.Bottom"
                                     PageSize="10"
                                     AllowPaging="true"
-                                    AllowSorting="true"
+                                    AllowSorting="false"
+                                    AllowColumnResize="true"
+                                    ShowPagingSummary="true"
                                     LoadData="@(args => OnGridLoad(args))"
                                     Count="count"  PageSizeOptions="@pageSizeOptions" >
                         <Columns>
 
 
-                            <RadzenDataGridColumn Width="60px" Filterable="false" Property="@nameof(MasProductions.production_code)" Title="">
+                            <RadzenDataGridColumn Width="60px" TextAlign="TextAlign.Center" Filterable="false" Property="@nameof(MasProductions.production_code)" Title="">
                                 <Template Context="data">
                                     <RadzenButton ButtonStyle="ButtonStyle.Light" Click="@(args => OpenSideDialog(data.id))" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" />
                                 </Template>
@@ -243,12 +282,12 @@
                                     }
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn TItem="User" Property="username" Title="บัญชีผู้ใช้งาน" />
-                            <RadzenDataGridColumn TItem="User" Property="firstname" Title="ชื่อผู้ใช้งาน" />
-                            <RadzenDataGridColumn TItem="User" Property="role" Title="สิทธิ์ผู้ใช้งาน" />
-                            <RadzenDataGridColumn TItem="User" Property="organization" Title="ร้านค้า" />
-                            <RadzenDataGridColumn TItem="User" Property="lastlogin" Title="Last Login" />
-                            <RadzenDataGridColumn TItem="User" Property="record_status" Title="สถานะใช้งาน" />
+                            <RadzenDataGridColumn TItem="User" Property="username" Width="160px" Title="บัญชีผู้ใช้งาน" />
+                            <RadzenDataGridColumn TItem="User" Property="firstname" Width="160px" Title="ชื่อผู้ใช้งาน" />
+                            <RadzenDataGridColumn TItem="User" Property="role" Width="160px" Title="สิทธิ์ผู้ใช้งาน" />
+                            <RadzenDataGridColumn TItem="User" Property="organization" Width="200px" Title="ร้านค้า" />
+                            <RadzenDataGridColumn TItem="User" Property="lastlogin" Width="160px" Title="Last Login" />
+                            <RadzenDataGridColumn TItem="User" Property="record_status" Width="160px" Title="สถานะใช้งาน" />
                         </Columns>
                     </RadzenDataGrid>
 
@@ -286,6 +325,97 @@
     IEnumerable<User> cus_datas;
     RadzenDataGrid<User> grid;
     int pageSize = 10;
+
+
+
+
+    private string Filtering_Key = "ค้นจากเบอร์ลูกค้า";
+    private string Filtering_Value = "";
+    private bool ISKeyDroupDown = false;
+    IEnumerable<string> dataFiltering;
+    private static readonly string[] Filterings = new[]
+      {
+           "ค้นจากเบอร์ลูกค้า", "ค้นจากชื่อลูกค้า"
+      };
+
+
+    private string Filtering_Key_main = "งานวันนี้";
+    private string Filtering_Value_main = "";
+    private bool ISKeyDroupDown_main = false;
+    IEnumerable<string> dataFiltering_main;
+    private static readonly string[] Filterings_main = new[]
+      {
+           "งานวันนี้","งานประจำเดือนนี้","งานประจำเดือนเดือนที่แล้ว","งานตกค้างทั้งหมด","งานทั้งหมด","ค้นเอง"
+      };
+
+
+    private async void OnCallKeyChange2(string value)
+    {
+        // usedate = false;
+        // var today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+
+        // if (value == "งานวันนี้")
+        // {
+        //     usedate = true;
+        //     CreateDateFrom = today.Date;
+        //     CreateDateTo = today.Date;
+        //     await OnSearch();
+        // }
+        // if (value == "งานประจำเดือนนี้")
+        // {
+        //     usedate = true;
+        //     // วันแรกของเดือน
+        //     var startOfMonth = new DateTime(today.Year, today.Month, 1);
+        //     // วันสุดท้ายของเดือน = วันแรกของเดือนถัดไป - 1 วัน
+        //     var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+        //     CreateDateFrom = startOfMonth;
+        //     CreateDateTo = endOfMonth;
+        //     await OnSearch();
+        // }
+
+        // if (value == "งานประจำเดือนเดือนที่แล้ว")
+        // {
+        //     usedate = true;
+        //     // เลือกข้อมูลตามเดือนที่แล้ว
+        //     var lastMonth = today.AddMonths(-1);
+
+        //     // วันแรกของเดือนที่แล้ว
+        //     var startOfLastMonth = new DateTime(lastMonth.Year, lastMonth.Month, 1);
+
+        //     // วันสุดท้ายของเดือนที่แล้ว
+        //     var endOfLastMonth = startOfLastMonth.AddMonths(1).AddDays(-1);
+
+        //     CreateDateFrom = startOfLastMonth;
+        //     CreateDateTo = endOfLastMonth;
+        //     await OnSearch();
+        // }
+
+        // if (value == "งานตกค้างทั้งหมด")
+        // {
+        //     usedate = true;
+        //     // ย้อนกลับไป 365 วัน
+        //     CreateDateFrom = today.AddDays(-365).Date;
+        //     // สิ้นสุดคือวันนี้
+        //     CreateDateTo = today.Date;
+        //     await OnSearch();
+        // }
+
+        // if (value == "งานทั้งหมด")
+        // {
+        //     usedate = true;
+        //     // ย้อนกลับไป 365 วัน
+        //     CreateDateFrom = today.AddDays(-365).Date;
+        //     // สิ้นสุดคือวันนี้
+        //     CreateDateTo = today.AddDays(365).Date;
+        //     await OnSearch();
+        // }
+
+        // if (value == "ค้นเอง")
+        // {
+        //     usedate = false;
+        // }
+    }
+
 
 
 
@@ -349,6 +479,11 @@
         {
           //  selectedCustomer = new List<User>() { cus_datas.FirstOrDefault() };
         }
+
+        dataFiltering = Filterings;
+
+        dataFiltering_main = Filterings_main;
+
 
     }
 
@@ -576,6 +711,7 @@
 
         return 0;
     }
+
 
 
 }

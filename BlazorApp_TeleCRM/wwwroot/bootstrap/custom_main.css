@@ -83,10 +83,91 @@ body {
 
 
 .rz-grid-table thead th {
-    background-color: #018B63;
     height: 60px;
 }
 
-    .rz-grid-table thead th .rz-column-title {
+/*
+.rz-grid-table thead th {
+    background-color: #4CAF50;
+    height: 60px;
+}
+
+.rz-grid-table thead th .rz-column-title {
         color: white;
+}*/
+
+
+.rz-state-highlight.rz-menuitem, .rz-state-highlight.rz-autocomplete-list-item, .rz-state-highlight.rz-multiselect-item, .rz-autocomplete-items li.rz-state-highlight, .rz-dropdown-items li.rz-state-highlight, .rz-multiselect-items li.rz-state-highlight, .rz-dropdown-item.rz-state-highlight {
+    background-color: #4CAF50;
+    color: var(--rz-dropdown-item-selected-color);
+    box-shadow: var(--rz-dropdown-item-selected-shadow);
+    border-radius: 0;
+}
+
+
+.rz-text-h4 {
+    color: #4f5457;
+}
+
+
+.custom-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.custom-column {
+    flex: 1 1 100%;
+}
+
+/* Desktop */
+@media (min-width: 1200px) {
+    .custom-column {
+        flex: 1 1 23%; /* แบ่งเป็น 4 คอลัมน์ */
     }
+}
+
+/* Tablet */
+@media (min-width: 768px) and (max-width: 1199px) {
+    .custom-column {
+        flex: 1 1 31%; /* แบ่งเป็น 3 คอลัมน์ */
+    }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+    .custom-column {
+        flex: 1 1 100%; /* เต็มแถว */
+    }
+}
+
+
+
+@media (max-width: 768px) {
+
+    .rz-p-6 {
+        padding: 1rem;
+    }
+
+    .rz-text-align-md-end, .rz-text-align-sm-start {
+        text-align: left !important;
+    }
+}
+
+@media (max-width: 480px) {
+
+    body {
+        background-image: url('/image/system/bg1.png');
+        background-color: #02c37e;
+        background-size: contain;
+        background-position: top;
+    }
+
+    .rz-p-6 {
+        padding: 0.5rem;
+    }
+
+    .RadzenButton {
+        width: 100%;
+    }
+}
