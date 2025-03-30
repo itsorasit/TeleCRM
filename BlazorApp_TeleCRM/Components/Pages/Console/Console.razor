@@ -22,7 +22,7 @@
 <style>
 
     .card {
-        width: 300px;
+        width: 200px;
         border: 1px solid #ccc;
         border-radius: 8px;
         overflow: hidden;
@@ -37,7 +37,6 @@
         }
 
     .card-image {
-        /*  width: 100%; */
         height: auto;
     }
 
@@ -46,7 +45,7 @@
     }
 
     .card-title {
-        font-size: 1.5em;
+        font-size: 14px;
         margin: 0 0 10px;
     }
 
@@ -86,14 +85,13 @@
 
 
 
-<div class="rz-display-flex rz-row rz-align-items-normal rz-justify-content-normal" style="margin-top:50px" id="components">
+<div  style="margin-top:50px" id="components">
     <div class="rz-col-12">
 
         <AuthorizeView Roles="Admin">
-            <div class=" rz-card rz-variant-outlined rz-background-color-white   rz-display-flex rz-row rz-align-items-normal ">
+            <div class=" rz-card rz-variant-outlined  ">
                 <div class="rz-col-12 " style=""><h3 class="rz-text-h4">ร้านค้า</h3></div>
-                <div class="rz-col-12  components-list">
-
+             
                     <div class="rz-display-flex rz-row rz-align-items-normal rz-justify-content-normal" style="--rz-row-gap:1.5rem">
                         <div class="rz-col-12 rz-col-xs-6 rz-col-sm-4 rz-col-lg-3">
                            
@@ -110,23 +108,23 @@
                         @foreach (var branch in Branches)
                         {
                             <div class="card">
-                                <img src="@branch.imageurl" width="100px" alt="Card Image" class="card-image">
+                                <img src="@branch.imageurl" width="60px" alt="Card Image" class="card-image">
                                 <div class="card-content">
-                                    <h3 class="card-title">@branch.name</h3>
-                                    @*            <p class="card-description">@branch.name</p> *@
-                                    <RadzenButton Click=@(() => OpenEditStore(branch.code)) Variant="Variant.Outlined" Text="แก้ไข" ButtonStyle="ButtonStyle.Primary" />
+                                    <h5 class="card-title">@branch.name</h5>
+
+                                    <RadzenButton Click=@(() => OpenEditStore(branch.code)) Icon="edit" Size="ButtonSize.Small" Text="แก้ไข" ButtonStyle="ButtonStyle.Primary" />
                                 </div>
                             </div>
 
 
                         }
                     </div>
-                </div>
+              
             </div>
         </AuthorizeView>
 
         <AuthorizeView Roles="Manager">
-            <div class=" rz-card rz-variant-outlined rz-background-color-white   rz-display-flex rz-row rz-align-items-normal ">
+            <div class=" rz-card rz-variant-outlined    rz-display-flex rz-row rz-align-items-normal ">
                 <div class="rz-col-12 " style=""><h3 class="rz-text-h4">ร้านค้า</h3></div>
                 <div class="rz-col-12  components-list">
 
@@ -141,11 +139,10 @@
                         @foreach (var branch in Branches)
                         {
                             <div class="card">
-                                <img src="@branch.imageurl" width="100px" alt="Card Image" class="card-image">
+                                <img src="@branch.imageurl" width="60px" alt="Card Image" class="card-image">
                                 <div class="card-content">
-                                    <h3 class="card-title">@branch.name</h3>
-                                    @*            <p class="card-description">@branch.name</p> *@
-                                    <RadzenButton Click=@(() => OpenEditStore(branch.code)) Variant="Variant.Outlined" Text="แก้ไข" ButtonStyle="ButtonStyle.Primary" />
+                                    <h5 class="card-title">@branch.name</h5>
+                                    <RadzenButton Click=@(() => OpenEditStore(branch.code)) Icon="edit" Size="ButtonSize.Small" Text="แก้ไข" ButtonStyle="ButtonStyle.Primary" />
                                 </div>
                             </div>
 
@@ -159,7 +156,7 @@
 
 
         <AuthorizeView Roles="Admin,Manager">
-            <div class=" rz-card rz-variant-outlined rz-background-color-white rz-display-flex rz-row rz-align-items-normal rz-justify-content-normal" style="margin-top:30px">
+            <div class=" rz-card rz-variant-outlined    rz-display-flex rz-row rz-align-items-normal" style="margin-top:30px">
                 <div class="rz-col-12 rz-col-md-3 rz-col-lg-2 rz-col-xl-3">
                     <h3 class="rz-text-h4">ผู้ใช้งาน</h3>
 
@@ -175,7 +172,7 @@
                     </RadzenProgressBarCircular>
 
 
-                    <RadzenDataGrid @ref="grid" TItem="User" Data="@cus_datas" PagerPosition="PagerPosition.Bottom"
+                   @*  <RadzenDataGrid @ref="grid" TItem="User" Data="@cus_datas" PagerPosition="PagerPosition.Bottom"
                                     PageSize="10"
                                     FilterMode="FilterMode.SimpleWithMenu" AllowFiltering="true" AllowPaging="true"
                                     @bind-Value=@selectedCustomer
@@ -214,7 +211,48 @@
                             <RadzenDataGridColumn TItem="User" Property="@nameof(User.lastlogin)" Width="200px" Title="lastlogin" />
                             <RadzenDataGridColumn TItem="User" Property="@nameof(User.record_status)" Width="1จ0px" Title="สถานะใช้งาน" />
                         </Columns>
+                    </RadzenDataGrid> *@
+
+                    <RadzenDataGrid @ref="grid" TItem="User" Data="@cus_datas" PagerPosition="PagerPosition.Bottom"
+                                    PageSize="10"
+                                    AllowPaging="true"
+                                    AllowSorting="true"
+                                    LoadData="@(args => OnGridLoad(args))"
+                                    Count="count"  PageSizeOptions="@pageSizeOptions" >
+                        <Columns>
+
+
+                            <RadzenDataGridColumn Width="60px" Filterable="false" Property="@nameof(MasProductions.production_code)" Title="">
+                                <Template Context="data">
+                                    <RadzenButton ButtonStyle="ButtonStyle.Light" Click="@(args => OpenSideDialog(data.id))" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" />
+                                </Template>
+                            </RadzenDataGridColumn>
+
+
+                          
+                            <RadzenDataGridColumn Width="60px" TextAlign="TextAlign.Center" Filterable="false" TItem="User" Property="@nameof(User.imageurl)" Title="">
+                               
+                                <Template Context="data">
+                                    @if (string.IsNullOrEmpty(data.imageurl))
+                                    {
+                                        <RadzenImage Path="user/profile.png" class="rz-gravatar" AlternateText="" />
+                                    }
+                                    else
+                                    {
+                                        <RadzenImage Path="@data.imageurl" class="rz-gravatar" AlternateText="" />
+                                    }
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="User" Property="username" Title="บัญชีผู้ใช้งาน" />
+                            <RadzenDataGridColumn TItem="User" Property="firstname" Title="ชื่อผู้ใช้งาน" />
+                            <RadzenDataGridColumn TItem="User" Property="role" Title="สิทธิ์ผู้ใช้งาน" />
+                            <RadzenDataGridColumn TItem="User" Property="organization" Title="ร้านค้า" />
+                            <RadzenDataGridColumn TItem="User" Property="lastlogin" Title="Last Login" />
+                            <RadzenDataGridColumn TItem="User" Property="record_status" Title="สถานะใช้งาน" />
+                        </Columns>
                     </RadzenDataGrid>
+
+
 
                 </div>
             </div>
@@ -224,6 +262,10 @@
 </div>
 
 @code {
+
+   
+
+
     bool isDialogOpen = false;
     bool runProcess_wait = false;
     private List<MasBranches> Branches = new();
@@ -234,10 +276,16 @@
     private IEnumerable<string> _BranchCode;
 
 
-    private IEnumerable<User> cus_datas;
-    IList<User> selectedCustomer;
+    // private IEnumerable<User> cus_datas;
+    // IList<User> selectedCustomer;
+    // RadzenDataGrid<User> grid;
+    IEnumerable<int> pageSizeOptions = new int[] { 10, 20, 30, 50, 100,200,500,1000 };
+
+
+    int count;
+    IEnumerable<User> cus_datas;
     RadzenDataGrid<User> grid;
-    IEnumerable<int> pageSizeOptions = new int[] { 10, 20, 30, 50, 100 };
+    int pageSize = 10;
 
 
 
@@ -260,10 +308,10 @@
         // เรียกใช้เมธอด FetchCustomerDataAsync เพื่อดึงข้อมูล
         cus_datas = await FetchCustomerDataAsync();
 
-        if (cus_datas != null && cus_datas.Any())
-        {
-            selectedCustomer = new List<User>() { cus_datas.FirstOrDefault() };
-        }
+        // if (cus_datas != null && cus_datas.Any())
+        // {
+        //     selectedCustomer = new List<User>() { cus_datas.FirstOrDefault() };
+        // }
 
         StateHasChanged();
     }
@@ -299,7 +347,7 @@
 
         if (cus_datas != null && cus_datas.Any())
         {
-            selectedCustomer = new List<User>() { cus_datas.FirstOrDefault() };
+          //  selectedCustomer = new List<User>() { cus_datas.FirstOrDefault() };
         }
 
     }
@@ -366,47 +414,45 @@
     }
 
 
-    public async Task<IEnumerable<User>> FetchCustomerDataAsync()
-    {
-        try
-        {
+    // public async Task<IEnumerable<User>> FetchCustomerDataAsync()
+    // {
+    //     try
+    //     {
 
-            // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
-            runProcess_wait = true;
-            StateHasChanged(); // บังคับ UI อัปเดต
+    //         // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
+    //         runProcess_wait = true;
+    //         StateHasChanged(); // บังคับ UI อัปเดต
 
-            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+    //         var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
 
-            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
-            var searchCriteria = new
-            {
-                branch_code = BranchCode
-            };
+    //         // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+    //         var searchCriteria = new
+    //         {
+    //             branch_code = BranchCode
+    //         };
 
-            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
-            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/MSUser/GetUsersData", searchCriteria);
+    //         // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+    //         var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/MSUser/GetUsersData", searchCriteria);
 
-            if (response.IsSuccessStatusCode)
-            {
-                // แปลงข้อมูลที่ได้รับเป็น IEnumerable<CustomerDataList>
-                var customerDataList = await response.Content.ReadFromJsonAsync<IEnumerable<User>>();
-                return customerDataList;
-            }
-            else
-            {
-                // Console.WriteLine("Error fetching customer data.");
-                return Enumerable.Empty<User>();
-            }
-        }
-        finally
-        {
-            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
-            runProcess_wait = false;
-            StateHasChanged(); // บังคับ UI อัปเดต
-        }
-    }
-
-
+    //         if (response.IsSuccessStatusCode)
+    //         {
+    //             // แปลงข้อมูลที่ได้รับเป็น IEnumerable<CustomerDataList>
+    //             var customerDataList = await response.Content.ReadFromJsonAsync<IEnumerable<User>>();
+    //             return customerDataList;
+    //         }
+    //         else
+    //         {
+    //             // Console.WriteLine("Error fetching customer data.");
+    //             return Enumerable.Empty<User>();
+    //         }
+    //     }
+    //     finally
+    //     {
+    //         // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+    //         runProcess_wait = false;
+    //         StateHasChanged(); // บังคับ UI อัปเดต
+    //     }
+    // }
 
     async Task OpenNewStore()
     {
@@ -460,6 +506,75 @@
                     Width = "850px"
                 });
         isDialogOpen = true;
+    }
+
+    async Task OnGridLoad(LoadDataArgs args)
+    {
+        var pageNumber = (args.Skip / args.Top) + 1;
+        var pageSize = args.Top;
+
+        // ดึงข้อมูลจาก API ด้วย Pagination
+        cus_datas = await FetchCustomerDataAsync(pageNumber, pageSize);
+
+        // กำหนดค่า count จากการ query จำนวนทั้งหมดของ User
+        count = await GetUserCountAsync();
+
+        StateHasChanged();
+    }
+
+    public async Task<IEnumerable<User>> FetchCustomerDataAsync(int? pageNumber = 1, int? pageSize = 10)
+    {
+        try
+        {
+            runProcess_wait = true;
+            StateHasChanged();
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+            var searchCriteria = new
+            {
+                branch_code = BranchCode,
+                PageNumber = pageNumber ?? 1, // ใช้ ?? เพื่อกำหนดค่าเป็น 1 ถ้า pageNumber เป็น null
+                PageSize = pageSize ?? 10     // ใช้ ?? เพื่อกำหนดค่าเป็น 10 ถ้า pageSize เป็น null
+            };
+
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/MSUser/GetUsersDataV2", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var customerDataList = await response.Content.ReadFromJsonAsync<IEnumerable<User>>();
+                return customerDataList;
+            }
+            else
+            {
+                return Enumerable.Empty<User>();
+            }
+        }
+        finally
+        {
+            runProcess_wait = false;
+            StateHasChanged();
+        }
+    }
+
+    public async Task<int> GetUserCountAsync()
+    {
+        var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+        // ส่งข้อมูลไปเป็น JSON ผ่าน POST แทนที่จะใช้ GET
+        var searchCriteria = new
+        {
+            branch_code = BranchCode
+        };
+
+        var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/MSUser/GetUserCount", searchCriteria);
+
+        if (response.IsSuccessStatusCode)
+        {
+            return await response.Content.ReadFromJsonAsync<int>();
+        }
+
+        return 0;
     }
 
 

@@ -72,7 +72,7 @@
                     <RadzenPanelMenuItem Text="Overview Team" Icon="home" Click="@(() => GoToPage("/home"))" Selected="@IsMenuItemSelected("/home")" />
                     <RadzenPanelMenuItem Text="งานของฉัน" Icon="assignment" Click="@(() => GoToPage("/job"))" Selected="@IsMenuItemSelected("/job")" />
                     <RadzenPanelMenuItem Text="ปฏิทินของฉัน" Icon="calendar_month" Click="@(() => GoToPage("/job-calendar"))" Selected="@IsMenuItemSelected("/job-calendar")" />
-                        <RadzenPanelMenuItem Text="KPI" Icon="finance" Click="@(() => GoToPage("/kpi"))" Selected="@IsMenuItemSelected("/kpi")" />
+                    <RadzenPanelMenuItem Text="KPI" Icon="finance" Click="@(() => GoToPage("/kpi"))" Selected="@IsMenuItemSelected("/kpi")" />
 
                     <AuthorizeView Roles="Admin,Manager,Supervisor">
                         <RadzenPanelMenuItem Text="CRM - Admin" Icon="work" Expanded="@((IsMenuItemSelected("/admincustomer") || IsMenuItemSelected("/adminactivity") || IsMenuItemSelected("/adminproduct") || IsMenuItemSelected("/adminproduct-cat") ))">
@@ -108,7 +108,7 @@
 
             <RadzenFooter>
                 <span class="rz-badge rz-badge-success rz-variant-flat rz-shade-light rz-badge-pill">
-                    Version 1.0.0
+                    Version 1.5.0
                 </span>
             </RadzenFooter>
         </RadzenLayout>
@@ -181,14 +181,14 @@
 
 
                 InvokeAsync(async () =>
-        {
-            await Task.Delay(2000);
-            DialogService.Close();
-        });
+    {
+        await Task.Delay(2000);
+        DialogService.Close();
+    });
                 await BusyDialog();
 
 
-                var user1 = await allseed_Db.Users.Where(u => u.username == username && u.loginkey == uid && u.record_status==true).FirstOrDefaultAsync();
+                var user1 = await allseed_Db.Users.Where(u => u.username == username && u.loginkey == uid && u.record_status == true).FirstOrDefaultAsync();
                 if (user1 != null)
                 {
 
@@ -229,8 +229,8 @@
             var b = await allseed_Db.sys_select_organization.Where(u => u.username == username).FirstOrDefaultAsync();
             if (b != null)
             {
-                select_branch = b.branch_code ;
-            }  
+                select_branch = b.branch_code;
+            }
         }
         else
         {
@@ -240,7 +240,7 @@
             {
                 App_name = branches.Take(1).FirstOrDefault().name;
             }
-         
+
 
         }
 
@@ -275,7 +275,7 @@
 
 
     private readonly Dictionary<string, string> PageTitles = new()
-            {
+                {
     { "/admincustomer", "ข้อมูลรายชื่อลูกค้า" },
     { "/adminactivity", "ข้อมูลกิจกรรม" },
     { "/home", "Overview Team" },
@@ -285,8 +285,8 @@
     { "/job", "งานของฉัน" },
     { "/job-calendar", "ปฏิทินของฉัน" },
     { "/kpi", "KPI" }
-     
-            };
+
+                };
 
     private void HandleLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
@@ -318,7 +318,7 @@
     {
         // Show confirmation dialog
         var result = await DialogService.Confirm("คุณต้องการออกจากระบบหรือไม่?", "ยืนยัน",
-        new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
+    new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
 
         // If user clicked "Yes", proceed with logout
         if (result.HasValue && result.Value)
@@ -356,14 +356,28 @@
     }
 
     // Busy dialog from markup
+    // async Task BusyDialog()
+    // {
+    //     await DialogService.OpenAsync("", ds =>
+    // @<RadzenStack AlignItems="AlignItems.Center" Gap="2rem" class="rz-p-12">
+    //     <RadzenImage Path="image/system/community.svg" Style="width: 200px;" AlternateText="community" />
+    //     <RadzenText TextStyle="TextStyle.H6">Loading, please wait...</RadzenText>
+    // </RadzenStack>, new DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;width:auto", CloseDialogOnEsc = false });
+    // }
+
     async Task BusyDialog()
     {
         await DialogService.OpenAsync("", ds =>
-    @<RadzenStack AlignItems="AlignItems.Center" Gap="2rem" class="rz-p-12">
-        <RadzenImage Path="image/system/community.svg" Style="width: 200px;" AlternateText="community" />
+    @<RadzenStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;width:100vw;">
+        <RadzenImage Path="image/system/Animation1.gif" AlternateText="Animation" />
         <RadzenText TextStyle="TextStyle.H6">Loading, please wait...</RadzenText>
-    </RadzenStack>, new DialogOptions() { ShowTitle = false, Style = "min-height:auto;min-width:auto;width:auto", CloseDialogOnEsc = false });
+    </RadzenStack>,
+    new DialogOptions()
+    {
+        ShowTitle = false,
+        Style = "min-height:100vh;min-width:100vw;display:flex;justify-content:center;align-items:center;",
+        CloseDialogOnEsc = false
+    });
     }
-
 
 }

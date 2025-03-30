@@ -44,8 +44,8 @@ body {
     color: white;
 }
 
-    /* ปรับแต่ง Notification สีเข้มขึ้น */
-    .rz-notification-warn > .rz-notification-item {
+/* ปรับแต่ง Notification สีเข้มขึ้น */
+.rz-notification-warn > .rz-notification-item {
     background-color: #FFCC00 !important; /* สีส้มเข้ม */
     color: #000000 !important;
     border: 1px solid #FFCC00; /* ขอบสีส้มเข้ม */
@@ -80,3 +80,13 @@ body {
     background-color: #13a334 !important;
     color: var(--rz-on-primary);
 }
+
+
+.rz-grid-table thead th {
+    background-color: #018B63;
+    height: 60px;
+}
+
+    .rz-grid-table thead th .rz-column-title {
+        color: white;
+    }
