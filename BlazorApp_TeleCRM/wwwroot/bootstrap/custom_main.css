@@ -1,0 +1,82 @@
+﻿:root {
+    --primary-color: #4CAF50; /* สีเขียวหลัก */
+    --secondary-color: #A5D6A7; /* สีเขียวอ่อน */
+    --text-color: #2E7D32; /* สีเขียวเข้ม */
+    --background-color: #018B63; /* สีพื้นหลังเขียวอ่อน */
+    --border-color: #C8E6C9; /* สีขอบ */
+}
+
+
+body {
+    background-image: url('/image/system/bg1.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+.rz-sidebar {
+    background-color: #007451 !important;
+}
+
+.rz-panel-menu {
+    background-color: #007451 !important;
+}
+
+    .rz-panel-menu .rz-navigation-menu .rz-navigation-item-wrapper {
+        background-color: #204137 !important;
+    }
+
+    .rz-panel-menu .rz-navigation-item-active, .rz-panel-menu .rz-navigation-item-wrapper-active {
+        background-color: #204137 !important;
+    }
+
+.rz-dialog-titlebar, .rz-dialog-side-titlebar {
+    background-color: #007451 !important;
+    color: white !important;
+}
+
+.rz-dialog-title, .rz-dialog-side-title {
+    color: white;
+}
+
+.rz-dialog-titlebar-close .rzi-times, .rz-dialog-side-titlebar-close .rzi-times {
+    color: white;
+}
+
+    /* ปรับแต่ง Notification สีเข้มขึ้น */
+    .rz-notification-warn > .rz-notification-item {
+    background-color: #FFCC00 !important; /* สีส้มเข้ม */
+    color: #000000 !important;
+    border: 1px solid #FFCC00; /* ขอบสีส้มเข้ม */
+    border-radius: 15px;
+}
+
+.rz-notification-icon.rzi-exclamation-triangle {
+    color: #000000 !important;
+}
+
+/* ปรับแต่ง Notification สีเข้มขึ้น */
+.rz-notification-error > .rz-notification-item {
+    background-color: #F76844 !important; /* สีส้มเข้ม */
+    color: white !important;
+    border: 1px solid #F76844; /* ขอบสีส้มเข้ม */
+    border-radius: 15px;
+}
+
+.rz-notification-success > .rz-notification-item {
+    background-color: #2ea54a !important; /* สีส้มเข้ม */
+    color: white !important;
+    border: 1px solid #2ea54a; /* ขอบสีส้มเข้ม */
+    border-radius: 15px;
+}
+
+.rz-badge-success.rz-shade-light {
+    background-color: #13a334 !important;
+    color: var(--rz-on-success-light);
+}
+
+.rz-button.rz-primary {
+    background-color: #13a334 !important;
+    color: var(--rz-on-primary);
+}
