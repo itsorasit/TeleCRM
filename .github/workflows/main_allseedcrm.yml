@@ -1,6 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy ASP.Net Core app to Azure Web App - allseedcrm
 
 on:
@@ -14,7 +11,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
@@ -24,23 +22,21 @@ jobs:
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+      - name: Publish with dotnet
+        run: dotnet publish -c Release -o ./myapp
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          path: ./myapp
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
+      id-token: write   # ✅ จำเป็นสำหรับใช้ OIDC Authentication
+      contents: read
 
     steps:
       - name: Download artifact from build job
@@ -54,12 +50,12 @@ jobs:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_ED2F2B3FB1F44B0B91BC5D770264A7C3 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9DA4CA3D187A41C998995523877DBF2D }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_7A6363B6705149CD9C2536CC1B03FAE4 }}
+          enable-oidc: true   # ✅ เปิดใช้งาน OIDC Authentication
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'allseedcrm'
-          slot-name: 'Production'
-          package: .
-          
+          app-name: 'allseedcrm'    # ✅ ชื่อ Web App ของคุณใน Azure
+          slot-name: 'Production'    # ✅ ถ้าใช้ Slot (เช่น Staging) ให้เปลี่ยนเป็นชื่อ Slot นั้น
+          package: ./myapp           # ✅ โฟลเดอร์ที่ Publish .NET ไว้ (ตรงกับขั้นตอน publish ด้านบน)
