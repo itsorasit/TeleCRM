@@ -99,6 +99,183 @@ namespace BlazorApp_TeleCRM.Controller
             return Ok(activitys);
         }
 
+
+        [HttpPost("GetUsersDataV2")]
+        public async Task<IActionResult> GetUsersDataV2([FromBody] SearchCriteria2 searchCriteria)
+        {
+            DateTime today = DateTime.Now;
+            var activitys = new List<User>();
+
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                var branch_code = searchCriteria.branch_code ?? "";
+                var digit_code = 0;
+
+                if (branch_code == "000000")
+                {
+                    branch_code = branch_code.Substring(0, 2);
+                    digit_code = 2;
+                }
+                else
+                {
+                    branch_code = branch_code.Substring(0, 4);
+                    digit_code = 4;
+                }
+
+                var pageSize = searchCriteria.PageSize > 0 ? searchCriteria.PageSize : 10; // จำนวนรายการต่อหน้า (ค่าเริ่มต้นคือ 10)
+                var pageNumber = searchCriteria.PageNumber > 0 ? searchCriteria.PageNumber : 1; // หน้าที่กำลังดึงข้อมูล (ค่าเริ่มต้นคือ 1)
+                var offset = (pageNumber - 1) * pageSize;
+
+                var query = @"SELECT mu.id, mu.username, mu.email, mu.firstname, mu.lastname, mu.`role`
+                       ,mu.organization, mu.lastlogin, mu.imageurl, mb.name, mu.record_status  
+                       FROM mas_users mu 
+                       LEFT JOIN mas_branches mb ON mb.code = mu.organization 
+                       WHERE LEFT(mu.organization, @digit_code) = @branch_code "; // LIMIT @pageSize OFFSET @offset
+
+                // เพิ่มการกรองตาม Filtering_Key และ Filtering_Value ถ้ามีการส่งค่ามา
+                if (!string.IsNullOrEmpty(searchCriteria.Filtering_Key) && !string.IsNullOrEmpty(searchCriteria.Filtering_Value))
+                {
+                    var filterColumn = searchCriteria.Filtering_Key switch
+                    {
+                        "บัญชีผู้ใช้งาน" => "mu.username",
+                        "ชื่อผู้ใช้งาน" => "mu.firstname",
+                        "สิทธิ์ผู้ใช้งาน" => "mu.role",
+                        "ร้านค้า" => "mb.name",
+                        _ => null
+                    };
+
+                    if (!string.IsNullOrEmpty(filterColumn))
+                    {
+                        query += $" AND {filterColumn} LIKE @filterValue";
+                    }
+                }
+
+                query += " LIMIT @pageSize OFFSET @offset";
+
+
+
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@branch_code", branch_code);
+                    cmd.Parameters.AddWithValue("@digit_code", digit_code);
+                    cmd.Parameters.AddWithValue("@pageSize", pageSize);
+                    cmd.Parameters.AddWithValue("@offset", offset);
+
+
+                    if (!string.IsNullOrEmpty(searchCriteria.Filtering_Key) && !string.IsNullOrEmpty(searchCriteria.Filtering_Value))
+                    {
+                        cmd.Parameters.AddWithValue("@filterValue", $"%{searchCriteria.Filtering_Value}%");
+                    }
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var u = new User
+                            {
+                                id = Convert.ToInt32(reader["id"]),
+                                username = reader["username"].ToString(),
+                                firstname = reader["firstname"].ToString(),
+                                email = reader["email"].ToString(),
+                                role = reader["role"].ToString(),
+                                organization = reader["name"].ToString(),
+                                imageurl = reader["imageurl"].ToString(),
+                                lastlogin = reader.IsDBNull(reader.GetOrdinal("lastlogin")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("lastlogin")),
+                                lastname = reader["name"].ToString(),
+                                record_status = reader.IsDBNull(reader.GetOrdinal("record_status")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("record_status"))
+                            };
+
+                            activitys.Add(u);
+                        }
+                    }
+                }
+            }
+
+            return Ok(activitys);
+        }
+
+
+        [HttpPost("GetUserCount")]
+        public async Task<IActionResult> GetUserCount([FromBody] SearchCriteria2 searchCriteria)
+        {
+            int count = 0;
+
+            var branch_code = searchCriteria.branch_code ?? "";
+            var digit_code = 0;
+
+            if (branch_code == "000000")
+            {
+                branch_code = branch_code.Substring(0, 2);
+                digit_code = 2;
+            }
+            else
+            {
+                branch_code = branch_code.Substring(0, 4);
+                digit_code = 4;
+            }
+
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                // ปรับปรุง Query ให้รองรับการกรองข้อมูลตามเงื่อนไขที่กำหนด
+                var query = @"
+            SELECT COUNT(*)
+            FROM mas_users mu 
+            LEFT JOIN mas_branches mb ON mb.code = mu.organization 
+            WHERE LEFT(mu.organization, @digit_code) = @branch_code";
+
+                if (!string.IsNullOrEmpty(searchCriteria.Filtering_Key) && !string.IsNullOrEmpty(searchCriteria.Filtering_Value))
+                {
+                    var filterColumn = searchCriteria.Filtering_Key switch
+                    {
+                        "บัญชีผู้ใช้งาน" => "mu.username",
+                        "ชื่อผู้ใช้งาน" => "mu.firstname",
+                        "สิทธิ์ผู้ใช้งาน" => "mu.role",
+                        "ร้านค้า" => "mb.name",
+                        _ => null
+                    };
+
+                    if (!string.IsNullOrEmpty(filterColumn))
+                    {
+                        query += $" AND {filterColumn} LIKE @filterValue";
+                    }
+                }
+
+
+
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@digit_code", digit_code);
+                    cmd.Parameters.AddWithValue("@branch_code", branch_code);
+
+                    if (!string.IsNullOrEmpty(searchCriteria.Filtering_Key) && !string.IsNullOrEmpty(searchCriteria.Filtering_Value))
+                    {
+                        cmd.Parameters.AddWithValue("@filterValue", $"%{searchCriteria.Filtering_Value}%");
+                    }
+
+
+                    count = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                }
+            }
+
+            return Ok(count);
+        }
+
+
+
+        public class SearchCriteria2
+        {
+            public string? branch_code { get; set; }
+            public int PageSize { get; set; } = 10;  // จำนวนรายการต่อหน้า
+            public int PageNumber { get; set; } = 1; // หน้าที่ต้องการดึงข้อมูล
+            public string? Filtering_Key { get; set; } // คีย์ที่ต้องการกรอง เช่น "บัญชีผู้ใช้งาน", "ชื่อผู้ใช้งาน", "สิทธิ์ผู้ใช้งาน", "ร้านค้า"
+            public string? Filtering_Value { get; set; } // ค่าที่ต้องการกรอง
+        }
+
+
         public class SearchCriteria
         {
             public string? branch_code { get; set; }

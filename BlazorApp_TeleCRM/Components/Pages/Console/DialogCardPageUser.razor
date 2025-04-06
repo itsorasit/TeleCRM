@@ -16,6 +16,14 @@
 @inject NotificationService NotificationService
 @inject MySqlConnection MySqlConnection
 
+
+
+<style>
+    .rz-dialog-side {
+        z-index: 10 !important;
+    }
+</style>
+
 <RadzenCard Variant="Variant.Outlined">
     <RadzenTemplateForm TItem="Model" Data="@model" Submit="@HandleValidSubmit">
 

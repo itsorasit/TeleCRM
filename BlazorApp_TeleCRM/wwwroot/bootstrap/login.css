@@ -1,0 +1,183 @@
+﻿:root {
+    --primary-color: #4CAF50; /* สีเขียวหลัก */
+    --secondary-color: #A5D6A7; /* สีเขียวอ่อน */
+    --text-color: #2E7D32; /* สีเขียวเข้ม */
+    --background-color: #018B63; /* สีพื้นหลังเขียวอ่อน */
+    --border-color: #C8E6C9; /* สีขอบ */
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+
+body {
+    background-image: url('/image/system/bg1.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.rz-sidebar {
+    background-color: #02c37e;
+}
+/* ปรับแต่ง Notification สีเข้มขึ้น */
+.rz-notification-warn > .rz-notification-item {
+    background-color: #FFCC00 !important; /* สีส้มเข้ม */
+    color: #000000 !important;
+    border: 1px solid #FFCC00; /* ขอบสีส้มเข้ม */
+    border-radius: 15px;
+}
+
+.rz-notification-icon.rzi-exclamation-triangle {
+    color: #000000 !important;
+}
+
+/* ปรับแต่ง Notification สีเข้มขึ้น */
+.rz-notification-error > .rz-notification-item {
+    background-color: #F76844 !important; /* สีส้มเข้ม */
+    color: white !important;
+    border: 1px solid #F76844; /* ขอบสีส้มเข้ม */
+    border-radius: 15px;
+}
+
+.rz-notification-success > .rz-notification-item {
+    background-color: #2ea54a !important; /* สีส้มเข้ม */
+    color: white !important;
+    border: 1px solid #2ea54a; /* ขอบสีส้มเข้ม */
+    border-radius: 15px;
+}
+
+
+.logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px; /* เพื่อเว้นระยะจากองค์ประกอบอื่น */
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    opacity: 0.95;
+}
+
+.login-box {
+    margin-top: -200px;
+    background-color: white;
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid var(--primary-color); /* ใช้สีเขียวหลัก */
+}
+
+    .login-box h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 24px;
+        color: var(--text-color);
+    }
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+    .input-group label {
+        display: block;
+        font-size: 14px;
+        color: var(--text-color);
+        margin-bottom: 5px;
+    }
+
+    .input-group input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+    }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+.login-button {
+    width: 100%;
+    padding: 10px;
+    background: var(--primary-color);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.3s;
+}
+
+    .login-button:hover {
+        background: #388E3C;
+    }
+
+.links {
+    text-align: center;
+    margin-top: 15px;
+}
+
+    .links a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-size: 14px;
+        transition: color 0.3s;
+    }
+
+        .links a:hover {
+            color: #2E7D32;
+            text-decoration: underline;
+        }
+
+    .links p {
+        font-size: 14px;
+        color: var(--text-color);
+    }
+
+
+
+@media (max-width: 768px) {
+
+    .rz-p-6 {
+        padding: 1rem;
+    }
+
+    .rz-text-align-md-end, .rz-text-align-sm-start {
+        text-align: left !important;
+    }
+}
+
+@media (max-width: 480px) {
+
+    body {
+        background-image: url('/image/system/bg1.png');
+        background-color: #02c37e;
+        background-size: contain;
+        background-position: top;
+    }
+
+    .rz-p-6 {
+        padding: 0.5rem;
+    }
+
+    .RadzenButton {
+        width: 100%;
+    }
+}
