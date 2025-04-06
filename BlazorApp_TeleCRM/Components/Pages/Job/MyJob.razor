@@ -1,0 +1,647 @@
+﻿@page "/myJob"
+@using BlazorApp_TeleCRM.Data
+@using System.Security.Claims
+@using BlazorApp_TeleCRM.Service
+@using Microsoft.AspNetCore.Components.Authorization
+@using MySql.Data.MySqlClient
+@inject IConfiguration Configuration
+@inject HttpClient Http
+@inject DialogService DialogService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject MySqlConnection MySqlConnection
+@inject NotificationService NotificationService
+@inject ITimeZoneService TimeZoneService
+
+<PageTitle>งานของฉัน</PageTitle>
+
+<div class="rz-6">
+    <RadzenBreadCrumb>
+        <RadzenBreadCrumbItem  Text="My Dashboard" />
+        <RadzenBreadCrumbItem Path="/myjob" Text="My Job" />
+    </RadzenBreadCrumb>
+    <RadzenText TextStyle="TextStyle.DisplayH5">งานของฉัน</RadzenText>
+</div>
+
+
+<RadzenPanel Style="background-color: rgba(255, 255, 255, 0.5); " AllowCollapse="true">
+    <HeaderTemplate>
+        <RadzenText TextStyle="TextStyle.Caption" class="rz-display-flex rz-align-items-center rz-m-0">
+            <b>Filter</b>
+            <RadzenIcon Icon="filter_alt" class="rz-me-1" />
+        </RadzenText>
+    </HeaderTemplate>
+    <ChildContent>
+        <div class="rz-col-12">
+            <RadzenCard Variant="Variant.Outlined" class="rz-info rz-shade-lighte" Style="padding: 1rem;">
+                <RadzenRow Gap="1rem" JustifyContent="JustifyContent.Start" Class="rz-mt-2">
+                    <RadzenColumn Size="3">
+                        <RadzenLabel Text="เลือกคำค้นหา" />
+                        <RadzenDropDown @bind-Value=@Filtering_Key_main style="display:block;width:100%"
+                                        Data=@dataFiltering_main Change="@(args => OnCallKeyChange2(Filtering_Key_main))" Name="ddlFiltering_main" class="w-100" />
+                    </RadzenColumn>
+
+
+                    @if (Filtering_Key_main == "ค้นจากเบอร์ลูกค้า" || Filtering_Key_main == "ค้นจากชื่อลูกค้า")
+                    {
+                        <RadzenColumn Size="3">
+                            <RadzenLabel Text="=" />
+                            <RadzenTextBox @bind-Value=@Filtering_Value Name="txtFiltering_Value" Placeholder="" class="w-100" />
+                        </RadzenColumn>
+                    } 
+                    else
+                    {
+                        <RadzenColumn>
+                            <RadzenLabel Text="วันที่ " Component="RadzenDatePickerBindValue" />
+                            <RadzenDatePicker @bind-Value="CreateDateFrom" Name="CreateDateFrom" Disabled="@usedate" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
+                        </RadzenColumn>
+                        <RadzenColumn>
+                            <RadzenLabel Text="ถึงวันที่ " Component="RadzenDatePickerBindValue" />
+                            <RadzenDatePicker @bind-Value="CreateDateTo" Name="CreateDateTo" Disabled="@usedate" DateFormat="dd/MM/yyyy" ShowCalendarWeek="true" Style="width: 100%;" />
+                        </RadzenColumn>
+                    }
+
+                   
+
+                    <RadzenColumn Size="3">
+                        <br />
+                        <RadzenButton Text="ค้นหา" Icon="search" Variant="Variant.Flat" Style="width: 100px; margin-right: 0.5rem;" Click="@(async () => await OnSearch())" />
+                        <RadzenButton Text="ล้าง" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Secondary" Style="width: 100px;" Click="@OnClear" />
+                    </RadzenColumn>
+                </RadzenRow>
+            </RadzenCard>
+        </div>
+    </ChildContent>
+</RadzenPanel>
+
+<RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" class="rz-p-1" Gap="2rem">
+    <RadzenButton ButtonStyle="ButtonStyle.Primary" Click=@(() => OnSearch_Touch_point("Up-Sale"))>
+        Up-Sale
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="@count_UpSale.ToString()" class="rz-ms-2" />
+    </RadzenButton>
+
+    <RadzenButton ButtonStyle="ButtonStyle.Success" Click=@(() => OnSearch_Touch_point("Cross-Sale"))>
+        Cross-Sale
+        <RadzenBadge Variant="Variant.Outlined" Text="@count_CrossSale.ToString()" class="rz-ms-2" />
+    </RadzenButton>
+
+    <RadzenButton ButtonStyle="ButtonStyle.Secondary" Click=@(() => OnSearch_Touch_point("Re-Sale"))>
+        Re-Sale
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="@count_ReSale.ToString()" class="rz-ms-2" />
+    </RadzenButton>
+
+    <RadzenButton ButtonStyle="ButtonStyle.Base" Click=@(() => OnSearch_Touch_point("ลูกค้าขุด"))>
+        ลูกค้าขุด
+        <RadzenBadge Variant="Variant.Outlined" Text="@count_x.ToString()" class="rz-ms-2" />
+    </RadzenButton>
+
+    <RadzenButton ButtonStyle="ButtonStyle.Info" Click=@(() => OnSearch_JobCompleted())>
+        จัดการแล้ว
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="@count_completed.ToString()" class="rz-ms-2" />
+    </RadzenButton>
+
+    <RadzenButton Variant="Variant.Outlined" ButtonStyle="ButtonStyle.Info" Click=@(() => OnSearch_Sale())>
+        ปิดการขาย
+        <RadzenBadge BadgeStyle="BadgeStyle.Info" Text="@count_sale.ToString()" class="rz-ms-2" />
+    </RadzenButton>
+
+    <RadzenButton ButtonStyle="ButtonStyle.Danger" Click=@(() => OnSearch_JobNotCompleted())>
+        งานค้าง
+        <RadzenBadge Variant="Variant.Outlined" BadgeStyle="BadgeStyle.Light" Text="@count_notcompleted.ToString()" class="rz-ms-2" />
+    </RadzenButton>
+
+</RadzenStack>
+
+
+
+<RadzenProgressBarCircular @bind-Visible="runProcess_wait" ShowValue="true" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Medium">
+    <Template>โหลด</Template>
+</RadzenProgressBarCircular>
+
+<RadzenDataGrid @ref="grid" TItem="JobDataList" Data="@act_data" PagerPosition="PagerPosition.Bottom"
+                FilterMode="FilterMode.SimpleWithMenu" PageSize="10"
+                AllowPaging="true" AllowSorting="true"
+                LoadData="OnGridLoad"
+                ShowPagingSummary="true"
+                Count="count"
+                PageSizeOptions="@pageSizeOptions">
+    <Columns>
+        <RadzenDataGridColumn Width="55px" TextAlign="TextAlign.Center" Filterable="false" Property="JobID" Title="">
+            <Template Context="data">
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" Click=@(() => OpenSideDialog(data.guid)) />
+            </Template>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn Width="140px" Property="act_status" Title="ความคืบหน้า">
+            <Template Context="data">
+
+                @if (data.act_status == "สำเร็จ")
+                {
+                    <RadzenButton Text="สำเร็จ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                }
+                else if (data.act_status == "")
+                {
+                    <RadzenButton Text="รอดำเนินการ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                }
+                else if (data.act_status == "ปิดการขาย")
+                {
+                    <RadzenButton Text="ปิดการขาย" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Success" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                }
+                else if (data.act_status == "ไม่สำเร็จ")
+                {
+                    <RadzenButton Text="ไม่สำเร็จ" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                }
+                else
+                {
+                    <RadzenButton Text="@data.act_status" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Dark" Shade="Shade.Lighter" Variant="Variant.Flat" class="rz-ripple" />
+                }
+
+            </Template>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.touch_point)" Width="120px" Title="Touch Point" />
+
+        <RadzenDataGridColumn Width="100px" Filterable="false" Property="product_code" Title="สินค้า">
+            <Template Context="data">
+                @if (!string.IsNullOrEmpty(data.product_code))
+                {
+                    <RadzenImage Path="/products/product001.png" Style="width: 60px; height: 60px;" class="rz-border-radius-2" AlternateText="" />
+                }
+            </Template>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.call_status)" Width="130px" Title="สถานะการโทร" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.call_action)" Width="130px" Title="สถานะการสนทนา" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.customer_name)" Width="180px" Title="ชื่อลูกค้า" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.customer_phone)" Width="120px" Title="เบอร์ลูกค้า" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.customer_province)" Width="120px" Title="จังหวัด" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.assign_work)" Visible="false" Width="150px" Title="พนักงานติดต่อ" />
+        <RadzenDataGridColumn TItem="JobDataList" Property="@nameof(JobDataList.startdate)" Width="160px" FormatString="{0:dd/MM/yyyy HH:mm:ss}" Title="วันที่ติดต่อลูกค้า" />
+       
+    </Columns>
+</RadzenDataGrid>
+
+
+@code {
+    private int count_UpSale = 0;
+    private int count_ReSale = 0;
+    private int count_CrossSale = 0;
+    private int count_x = 0;
+    private int count_completed = 0;
+    private int count_sale = 0;
+    private int count_notcompleted = 0;
+
+    bool usedate = true;
+
+    bool runProcess_wait = false;
+    bool isDialogOpen = false;
+    private DateTime? CreateDateFrom { get; set; }
+    private DateTime? CreateDateTo { get; set; }
+
+    IEnumerable<int> pageSizeOptions = new int[] { 10, 20, 30, 50, 100 };
+
+    int count;
+    int pageSize = 10;
+
+
+
+    private string username;
+    private IEnumerable<string> roles;
+
+    private string BranchCode { get; set; }
+    private IEnumerable<string> _BranchCode;
+
+
+    private IEnumerable<JobDataList> act_data;
+    IList<JobDataList> selectedAct;
+    RadzenDataGrid<JobDataList> grid;
+
+
+   private string Filtering_Value = "";
+  
+
+
+    private string Filtering_Key_main = "งานวันนี้";
+    private string Filtering_Value_main = "";
+    IEnumerable<string> dataFiltering_main;
+    private static readonly string[] Filterings_main = new[]
+      {
+           "งานวันนี้","งานประจำเดือนนี้","งานประจำเดือนเดือนที่แล้ว","งานทั้งหมด","ค้นเอง","ค้นจากเบอร์ลูกค้า","ค้นจากชื่อลูกค้า"
+      };
+
+
+    private List<Assignwork> Assignworks = new();
+    private string SearchText { get; set; }
+    private RadzenDropDown<string> radzenDropDown;
+
+
+    private string filteringKey="";
+    private string filteringValue = "";
+
+
+
+    private async Task OnCallKeyChange2(string value)
+    {
+        usedate = false;
+        var today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+        var pageNumber = 1;
+        var pageSize = 10;
+
+        if (value == "งานวันนี้")
+        {
+            usedate = true;
+            CreateDateFrom = today.Date;
+            CreateDateTo = today.Date;
+            await OnSearch(pageNumber, pageSize);
+        }
+        else if (value == "งานประจำเดือนนี้")
+        {
+            usedate = true;
+            var startOfMonth = new DateTime(today.Year, today.Month, 1);
+            var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+            CreateDateFrom = startOfMonth;
+            CreateDateTo = endOfMonth;
+            await OnSearch(pageNumber, pageSize);
+        }
+        else if (value == "งานประจำเดือนเดือนที่แล้ว")
+        {
+            usedate = true;
+            var lastMonth = today.AddMonths(-1);
+            var startOfLastMonth = new DateTime(lastMonth.Year, lastMonth.Month, 1);
+            var endOfLastMonth = startOfLastMonth.AddMonths(1).AddDays(-1);
+            CreateDateFrom = startOfLastMonth;
+            CreateDateTo = endOfLastMonth;
+            await OnSearch(pageNumber, pageSize);
+        }
+        else if (value == "งานตกค้างทั้งหมด")
+        {
+            usedate = true;
+            CreateDateFrom = today.AddDays(-365).Date;
+            CreateDateTo = today.Date;
+            await OnSearch(pageNumber, pageSize);
+        }
+        else if (value == "งานทั้งหมด")
+        {
+            usedate = true;
+            CreateDateFrom = today.AddDays(-365).Date;
+            CreateDateTo = today.AddDays(365).Date;
+            await OnSearch(pageNumber, pageSize);
+        }
+        else if (value == "ค้นเอง")
+        {
+            usedate = false;
+        }
+        else if (value == "ค้นจากเบอร์ลูกค้า")
+        {
+            usedate = false;
+        }
+        else if (value == "ค้นจากชื่อลูกค้า")
+        {
+            usedate = false;
+        }
+
+    }
+
+    private async Task OnSearch(int pageNumber = 1, int pageSize = 10)
+    {
+        var searchCriteria = new SearchCriteria
+            {
+                fdate = CreateDateFrom,
+                ldate = CreateDateTo,
+                branch_code = BranchCode,
+                assign_work = username,
+                filtering_type = Filtering_Key_main,
+                filteringValue2 = Filtering_Value,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                filteringKey = filteringKey,
+                filteringValue = filteringValue
+            };
+
+        // ดึงจำนวนข้อมูลทั้งหมด
+        count = await FetchJobDataCountAsync(searchCriteria);
+
+        // ดึงข้อมูล
+        act_data = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo, Filtering_Key_main, pageNumber, pageSize);
+
+        if (act_data != null && act_data.Any())
+        {
+            selectedAct = new List<JobDataList>() { act_data.FirstOrDefault() };
+        }
+
+        await FetchTouchPointCounts(); // <-- เรียกใช้ตรงนี้
+
+        StateHasChanged(); // อัปเดต UI โดยไม่ต้อง reload grid ซ้ำ
+    }
+
+
+    private async Task OnClear()
+    {
+        var today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+
+        // รีเซ็ตวันที่ให้เป็นวันนี้
+        CreateDateFrom = today.Date;
+        CreateDateTo = today.Date;
+
+        // กำหนดค่าเริ่มต้นของตัวกรองให้เป็นค่าเริ่มต้นที่ต้องการ
+        Filtering_Key_main = "งานวันนี้";
+        Filtering_Value = "";
+        pageSize = 10; // กำหนดค่า PageSize เริ่มต้น
+        int pageNumber = 1;
+
+
+        filteringKey = "";
+        filteringValue = "";
+        Filtering_Value = "";
+
+
+        // ดึงจำนวนข้อมูลทั้งหมดก่อน
+        var searchCriteria = new SearchCriteria
+            {
+                fdate = CreateDateFrom,
+                ldate = CreateDateTo,
+                branch_code = BranchCode,
+                assign_work = username,
+                filtering_type = Filtering_Key_main,
+                filteringValue2 = Filtering_Value,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                filteringKey = filteringKey,
+                filteringValue = filteringValue,
+            };
+
+        count = await FetchJobDataCountAsync(searchCriteria); // นับจำนวนข้อมูลทั้งหมด
+
+        // ดึงข้อมูลตาม Pagination
+        act_data = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo, Filtering_Key_main, pageNumber, pageSize);
+
+        if (act_data != null && act_data.Any())
+        {
+            selectedAct = new List<JobDataList>() { act_data.FirstOrDefault() };
+        }
+
+        // รีโหลดข้อมูลใน Grid
+        await grid.Reload();
+
+        // บังคับให้ UI อัปเดตใหม่
+
+        await FetchTouchPointCounts(); // <-- เรียกใช้ตรงนี้
+
+        StateHasChanged();
+    }
+
+
+    async Task OpenSideDialog(string orderId)
+    {
+
+        if (isDialogOpen)
+        {
+            DialogService.Close();
+            // await Task.Delay(200);
+        }
+        StateHasChanged();
+        await DialogService.OpenSideAsync<DialogCardPage>(
+            "งานกิจกรรมการโทร",
+            new Dictionary<string, object>() { { "OrderID", orderId } },
+            new SideDialogOptions
+                {
+                    CloseDialogOnOverlayClick = true,
+                    Position = DialogPosition.Right,
+                    ShowMask = false,
+                    Width = "50%"
+                });
+
+        isDialogOpen = true;
+
+    }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        dataFiltering_main = Filterings_main;
+
+        var today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+
+        CreateDateFrom = today.Date;
+        CreateDateTo = today.Date;
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            username = user.Identity.Name;
+            roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
+            _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
+            BranchCode = _BranchCode.FirstOrDefault();
+
+            await FetchTouchPointCounts();
+        }
+        else
+        {
+            username = "Not authenticated";
+            roles = Enumerable.Empty<string>();
+            BranchCode = "";
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (grid != null) // ตรวจสอบว่า grid ถูกสร้างขึ้นแล้ว
+            {
+                await grid.Reload(); // ให้ DataGrid โหลดข้อมูลครั้งแรกหลังจาก Render เสร็จแล้ว
+            }
+        }
+    }
+
+
+    public async Task<IEnumerable<JobDataList>> FetchJobDataAsync(DateTime? fdate, DateTime? ldate, string filtering_type, int? pageNumber = 1, int? pageSize = 10)
+    {
+        try
+        {
+
+            // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
+            runProcess_wait = true;
+            StateHasChanged(); // บังคับ UI อัปเดต
+
+            var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+
+            // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+            var searchCriteria = new
+            {
+                fdate = fdate,
+                ldate = ldate,
+                branch_code = BranchCode,
+                assign_work = username,
+                filtering_type = filtering_type,
+                filteringValue2 = Filtering_Value,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                filteringKey = filteringKey,
+                filteringValue = filteringValue
+            };
+
+            // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+            var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/Job/GetJobDataV2", searchCriteria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                count_UpSale = 0;
+                count_ReSale = 0;
+                count_x = 0;
+                count_completed = 0;
+                count_CrossSale = 0;
+                count_sale = 0;
+                count_notcompleted = 0;
+
+                var jobDataList = await response.Content.ReadFromJsonAsync<IEnumerable<JobDataList>>();
+
+
+
+                return jobDataList;
+            }
+            else
+            {
+                Console.WriteLine("Error fetching Job Data.");
+                return Enumerable.Empty<JobDataList>();
+            }
+        }
+        finally
+        {
+            // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+            runProcess_wait = false;
+            StateHasChanged(); // บังคับ UI อัปเดต
+        }
+    }
+
+    private async Task OnGridLoad(LoadDataArgs args)
+    {
+        var pageNumber = (args.Skip / args.Top) + 1; // คำนวณเลขหน้า
+        var pageSize = args.Top; // จำนวนข้อมูลต่อหน้า
+
+        var searchCriteria = new SearchCriteria
+            {
+                fdate = CreateDateFrom,
+                ldate = CreateDateTo,
+                branch_code = BranchCode,
+                assign_work = username,
+                filtering_type = Filtering_Key_main,
+                filteringValue2 = Filtering_Value,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                filteringKey = filteringKey,
+                filteringValue = filteringValue,
+            };
+
+        // ดึงจำนวนข้อมูลทั้งหมด
+        count = await FetchJobDataCountAsync(searchCriteria);
+
+        // ดึงข้อมูลตามหน้าและขนาดที่กำหนด
+        act_data = await FetchJobDataAsync(this.CreateDateFrom, this.CreateDateTo, Filtering_Key_main, pageNumber, pageSize);
+
+        await FetchTouchPointCounts(); // <-- เรียกใช้ตรงนี้
+
+        StateHasChanged();
+    }
+
+    public async Task<int> FetchJobDataCountAsync(SearchCriteria searchCriteria)
+    {
+        var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+        var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/Job/GetJobDataCountV2", searchCriteria);
+
+        if (response.IsSuccessStatusCode)
+        {
+            return await response.Content.ReadFromJsonAsync<int>();
+        }
+
+        return 0;
+    }
+
+    private async Task FetchTouchPointCounts()
+    {
+        var searchCriteria = new SearchCriteria
+            {
+                branch_code = BranchCode,
+                assign_work = username,
+                fdate = CreateDateFrom,
+                ldate = CreateDateTo,
+                filtering_type = Filtering_Key_main,
+                filteringValue2 = Filtering_Value,
+            };
+
+        var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+        var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/Job/GetTouchPointCounts", searchCriteria);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadFromJsonAsync<Dictionary<string, int>>();
+
+            if (result != null)
+            {
+                result.TryGetValue("upSaleCount", out count_UpSale);
+                result.TryGetValue("crossSaleCount", out count_CrossSale);
+                result.TryGetValue("reSaleCount", out count_ReSale);
+                result.TryGetValue("ลูกค้าขุดCount", out count_x);
+                result.TryGetValue("completedCount", out count_completed);
+                result.TryGetValue("saleCount", out count_sale);
+                result.TryGetValue("งานค้าง", out count_notcompleted);
+               
+                StateHasChanged();
+            }
+        }
+    }
+
+
+    private async Task OnSearch_Touch_point(string touchPoint)
+    {
+        filteringKey = "touch_point";
+        filteringValue = touchPoint;
+
+        await OnSearch(); // Call the search function with the updated filters
+    }
+
+    private async Task OnSearch_JobCompleted()
+    {
+        filteringKey = "act_status";
+        filteringValue = "จัดการแล้ว";
+
+        await OnSearch();
+    }
+
+    private async Task OnSearch_JobNotCompleted()
+    {
+        filteringKey = "act_status";
+        filteringValue = "งานค้าง";
+
+        await OnSearch();
+    }
+
+    private async Task OnSearch_Sale()
+    {
+        filteringKey = "act_status";
+        filteringValue = "ปิดการขาย";
+
+        await OnSearch();
+    }
+
+
+
+    public class SearchCriteria
+    {
+        public DateTime? fdate { get; set; }
+        public DateTime? ldate { get; set; }
+        public string? branch_code { get; set; }
+        public string? assign_work { get; set; }
+        public string? filtering_type { get; set; }
+        public string? filteringValue2 { get; set; }
+        public string? filteringKey { get; set; }
+        public string? filteringValue { get; set; }
+        // เพิ่มการรองรับ Pagination
+        public int? PageNumber { get; set; } = 1; // ค่าเริ่มต้นคือ หน้าแรก
+        public int? PageSize { get; set; } = 10;  // ค่าเริ่มต้นคือ 10 รายการต่อหน้า
+    }
+
+}

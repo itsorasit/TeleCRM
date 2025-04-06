@@ -132,8 +132,29 @@ namespace BlazorApp_TeleCRM.Controller
                        ,mu.organization, mu.lastlogin, mu.imageurl, mb.name, mu.record_status  
                        FROM mas_users mu 
                        LEFT JOIN mas_branches mb ON mb.code = mu.organization 
-                       WHERE LEFT(mu.organization, @digit_code) = @branch_code
-                       LIMIT @pageSize OFFSET @offset";
+                       WHERE LEFT(mu.organization, @digit_code) = @branch_code "; // LIMIT @pageSize OFFSET @offset
+
+                // เพิ่มการกรองตาม Filtering_Key และ Filtering_Value ถ้ามีการส่งค่ามา
+                if (!string.IsNullOrEmpty(searchCriteria.Filtering_Key) && !string.IsNullOrEmpty(searchCriteria.Filtering_Value))
+                {
+                    var filterColumn = searchCriteria.Filtering_Key switch
+                    {
+                        "บัญชีผู้ใช้งาน" => "mu.username",
+                        "ชื่อผู้ใช้งาน" => "mu.firstname",
+                        "สิทธิ์ผู้ใช้งาน" => "mu.role",
+                        "ร้านค้า" => "mb.name",
+                        _ => null
+                    };
+
+                    if (!string.IsNullOrEmpty(filterColumn))
+                    {
+                        query += $" AND {filterColumn} LIKE @filterValue";
+                    }
+                }
+
+                query += " LIMIT @pageSize OFFSET @offset";
+
+
 
                 using (var cmd = new MySqlCommand(query, connection))
                 {
@@ -141,6 +162,12 @@ namespace BlazorApp_TeleCRM.Controller
                     cmd.Parameters.AddWithValue("@digit_code", digit_code);
                     cmd.Parameters.AddWithValue("@pageSize", pageSize);
                     cmd.Parameters.AddWithValue("@offset", offset);
+
+
+                    if (!string.IsNullOrEmpty(searchCriteria.Filtering_Key) && !string.IsNullOrEmpty(searchCriteria.Filtering_Value))
+                    {
+                        cmd.Parameters.AddWithValue("@filterValue", $"%{searchCriteria.Filtering_Value}%");
+                    }
 
                     using (var reader = await cmd.ExecuteReaderAsync())
                     {
@@ -200,10 +227,35 @@ namespace BlazorApp_TeleCRM.Controller
             LEFT JOIN mas_branches mb ON mb.code = mu.organization 
             WHERE LEFT(mu.organization, @digit_code) = @branch_code";
 
+                if (!string.IsNullOrEmpty(searchCriteria.Filtering_Key) && !string.IsNullOrEmpty(searchCriteria.Filtering_Value))
+                {
+                    var filterColumn = searchCriteria.Filtering_Key switch
+                    {
+                        "บัญชีผู้ใช้งาน" => "mu.username",
+                        "ชื่อผู้ใช้งาน" => "mu.firstname",
+                        "สิทธิ์ผู้ใช้งาน" => "mu.role",
+                        "ร้านค้า" => "mb.name",
+                        _ => null
+                    };
+
+                    if (!string.IsNullOrEmpty(filterColumn))
+                    {
+                        query += $" AND {filterColumn} LIKE @filterValue";
+                    }
+                }
+
+
+
                 using (var cmd = new MySqlCommand(query, connection))
                 {
                     cmd.Parameters.AddWithValue("@digit_code", digit_code);
                     cmd.Parameters.AddWithValue("@branch_code", branch_code);
+
+                    if (!string.IsNullOrEmpty(searchCriteria.Filtering_Key) && !string.IsNullOrEmpty(searchCriteria.Filtering_Value))
+                    {
+                        cmd.Parameters.AddWithValue("@filterValue", $"%{searchCriteria.Filtering_Value}%");
+                    }
+
 
                     count = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                 }
@@ -219,6 +271,8 @@ namespace BlazorApp_TeleCRM.Controller
             public string? branch_code { get; set; }
             public int PageSize { get; set; } = 10;  // จำนวนรายการต่อหน้า
             public int PageNumber { get; set; } = 1; // หน้าที่ต้องการดึงข้อมูล
+            public string? Filtering_Key { get; set; } // คีย์ที่ต้องการกรอง เช่น "บัญชีผู้ใช้งาน", "ชื่อผู้ใช้งาน", "สิทธิ์ผู้ใช้งาน", "ร้านค้า"
+            public string? Filtering_Value { get; set; } // ค่าที่ต้องการกรอง
         }
 
 

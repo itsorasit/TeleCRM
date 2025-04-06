@@ -1,4 +1,4 @@
-﻿@page "/console"
+@page "/console"
 @using BlazorApp_TeleCRM.Components.Pages.AdminProduction
 @using BlazorApp_TeleCRM.Data
 @using BlazorApp_TeleCRM.Models
@@ -188,8 +188,8 @@
                            
                                 <div class="custom-column">
                                     <br />
-                                    <RadzenButton Text="ค้นหา" Icon="search" Variant="Variant.Flat" Style="width: 100px; margin-right: 0.5rem;" Click="@OnSearch2" />
-                                    <RadzenButton Text="ล้าง" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Secondary" Style="width: 100px;" Click="@OnClear2" />
+                                    <RadzenButton Text="ค้นหา" Icon="search" Variant="Variant.Flat" Style="width: 100px; margin-right: 0.5rem;" />
+                                    <RadzenButton Text="ล้าง" Icon="autorenew" Variant="Variant.Flat" ButtonStyle="ButtonStyle.Secondary" Style="width: 100px;" />
                                 </div>
                             </div>
                         </RadzenCard>
@@ -202,6 +202,47 @@
                         <Template>โหลด</Template>
                     </RadzenProgressBarCircular>
 
+
+                   @*  <RadzenDataGrid @ref="grid" TItem="User" Data="@cus_datas" PagerPosition="PagerPosition.Bottom"
+                                    PageSize="10"
+                                    FilterMode="FilterMode.SimpleWithMenu" AllowFiltering="true" AllowPaging="true"
+                                    @bind-Value=@selectedCustomer
+                                    AllowSorting="true" ColumnWidth="300px"
+                                    ShowPagingSummary="true"
+                                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                    PageSizeOptions="@pageSizeOptions">
+                        <Columns>
+
+                            <RadzenDataGridColumn Width="60px" Filterable="false" Property="@nameof(MasProductions.production_code)" Title="">
+                                <Template Context="data">
+                                    <RadzenButton ButtonStyle="ButtonStyle.Light" Click="@(args => OpenSideDialog(data.id))" Variant="Variant.Flat" Shade="Shade.Lighter" Icon="manage_search" class="rz-m-1" />
+                                </Template>
+                            </RadzenDataGridColumn>
+
+                            <RadzenDataGridColumn Width="100px" Filterable="false" TItem="User" Property="@nameof(User.imageurl)" Title="">
+                                <Template Context="data">
+                                    @if (string.IsNullOrEmpty(data.imageurl))
+                                    {
+                                        <RadzenImage Path="user/profile.png" class="rz-gravatar" AlternateText="" />
+                                    }
+                                    else
+                                    {
+                                        <RadzenImage Path="@data.imageurl" class="rz-gravatar" AlternateText="" />
+                                    }
+                                </Template>
+                            </RadzenDataGridColumn>
+
+                            <RadzenDataGridColumn TItem="User" Property="@nameof(User.username)" Width="150px" Title="บัญชีผู้ใช้งาน" />
+                            <RadzenDataGridColumn TItem="User" Property="@nameof(User.firstname)" Width="220px" Title="ชื่อผู้ใช้งาน" />
+
+                            <RadzenDataGridColumn TItem="User" Property="@nameof(User.role)" Width="120px" Title="สิทธิ์ผู้ใช้งาน" />
+
+
+                            <RadzenDataGridColumn TItem="User" Property="@nameof(User.lastname)" Width="250px" Title="ร้านค้า" />
+                            <RadzenDataGridColumn TItem="User" Property="@nameof(User.lastlogin)" Width="200px" Title="lastlogin" />
+                            <RadzenDataGridColumn TItem="User" Property="@nameof(User.record_status)" Width="1จ0px" Title="สถานะใช้งาน" />
+                        </Columns>
+                    </RadzenDataGrid> *@
 
                     <RadzenDataGrid @ref="grid" TItem="User" Data="@cus_datas" PagerPosition="PagerPosition.Bottom"
                                     PageSize="10"
@@ -255,7 +296,7 @@
 
 @code {
 
-
+   
 
 
     bool isDialogOpen = false;
@@ -263,15 +304,24 @@
     private List<MasBranches> Branches = new();
 
 
+
     private string BranchCode { get; set; }
     private IEnumerable<string> _BranchCode;
 
+
+    // private IEnumerable<User> cus_datas;
+    // IList<User> selectedCustomer;
+    // RadzenDataGrid<User> grid;
     IEnumerable<int> pageSizeOptions = new int[] { 10, 20, 30, 50, 100,200,500,1000 };
+
 
     int count;
     IEnumerable<User> cus_datas;
     RadzenDataGrid<User> grid;
     int pageSize = 10;
+
+
+
 
 
     private string Filtering_Key = "บัญชีผู้ใช้งาน";
@@ -286,8 +336,77 @@
 
     private async void OnCallKeyChange2(string value)
     {
+
         Filtering_Value = "";
+      
+
+        // usedate = false;
+        // var today = TimeZoneService.ToLocalTime(DateTime.UtcNow);
+
+        // if (value == "งานวันนี้")
+        // {
+        //     usedate = true;
+        //     CreateDateFrom = today.Date;
+        //     CreateDateTo = today.Date;
+        //     await OnSearch();
+        // }
+        // if (value == "งานประจำเดือนนี้")
+        // {
+        //     usedate = true;
+        //     // วันแรกของเดือน
+        //     var startOfMonth = new DateTime(today.Year, today.Month, 1);
+        //     // วันสุดท้ายของเดือน = วันแรกของเดือนถัดไป - 1 วัน
+        //     var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+        //     CreateDateFrom = startOfMonth;
+        //     CreateDateTo = endOfMonth;
+        //     await OnSearch();
+        // }
+
+        // if (value == "งานประจำเดือนเดือนที่แล้ว")
+        // {
+        //     usedate = true;
+        //     // เลือกข้อมูลตามเดือนที่แล้ว
+        //     var lastMonth = today.AddMonths(-1);
+
+        //     // วันแรกของเดือนที่แล้ว
+        //     var startOfLastMonth = new DateTime(lastMonth.Year, lastMonth.Month, 1);
+
+        //     // วันสุดท้ายของเดือนที่แล้ว
+        //     var endOfLastMonth = startOfLastMonth.AddMonths(1).AddDays(-1);
+
+        //     CreateDateFrom = startOfLastMonth;
+        //     CreateDateTo = endOfLastMonth;
+        //     await OnSearch();
+        // }
+
+        // if (value == "งานตกค้างทั้งหมด")
+        // {
+        //     usedate = true;
+        //     // ย้อนกลับไป 365 วัน
+        //     CreateDateFrom = today.AddDays(-365).Date;
+        //     // สิ้นสุดคือวันนี้
+        //     CreateDateTo = today.Date;
+        //     await OnSearch();
+        // }
+
+        // if (value == "งานทั้งหมด")
+        // {
+        //     usedate = true;
+        //     // ย้อนกลับไป 365 วัน
+        //     CreateDateFrom = today.AddDays(-365).Date;
+        //     // สิ้นสุดคือวันนี้
+        //     CreateDateTo = today.AddDays(365).Date;
+        //     await OnSearch();
+        // }
+
+        // if (value == "ค้นเอง")
+        // {
+        //     usedate = false;
+        // }
     }
+
+
+
 
 
     public enum WorkStatus
@@ -298,30 +417,44 @@
     }
 
 
+
     private async Task OnRefresh()
     {
         // เรียกข้อมูลจากฐานข้อมูล
         Branches = await GetBranchesAsync();
+
+
+        // เรียกใช้เมธอด FetchCustomerDataAsync เพื่อดึงข้อมูล
         cus_datas = await FetchCustomerDataAsync();
+
+        // if (cus_datas != null && cus_datas.Any())
+        // {
+        //     selectedCustomer = new List<User>() { cus_datas.FirstOrDefault() };
+        // }
+
         StateHasChanged();
     }
 
 
     protected override async Task OnInitializedAsync()
     {
-
+     
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
         if (user.Identity.IsAuthenticated)
         {
+            //  username = user.Identity.Name;
+            //  roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
             _BranchCode = user.Claims.Where(c => c.Type == ClaimTypes.Locality).Select(c => c.Value);
             BranchCode = _BranchCode.FirstOrDefault();
 
         }
         else
         {
+            // username = "Not authenticated";
+            // roles = Enumerable.Empty<string>();
             BranchCode = "";
         }
 
@@ -330,7 +463,14 @@
 
         // เรียกใช้เมธอด FetchCustomerDataAsync เพื่อดึงข้อมูล
         cus_datas = await FetchCustomerDataAsync();
+
+        if (cus_datas != null && cus_datas.Any())
+        {
+          //  selectedCustomer = new List<User>() { cus_datas.FirstOrDefault() };
+        }
+
         dataFiltering = Filterings;
+
 
     }
 
@@ -363,7 +503,7 @@
             WHERE code = @branch_code1 AND level IN (1) ";
             }
 
-
+      
 
             using var command = new MySqlCommand(query, MySqlConnection);
             command.Parameters.AddWithValue("@branch_code1", BranchCode);
@@ -395,76 +535,46 @@
         return branches;
     }
 
-    private async Task OnSearch2()
-    {
-        if (string.IsNullOrEmpty(Filtering_Value))
-        {
-            NotificationService.Notify(NotificationSeverity.Warning,
-                @"แจ้งเตือน Filter", "กรุณาใส่ข้อมูล : " + Filtering_Key);
-        }
-        else
-        {
-            try
-            {
-                runProcess_wait = true;
-                StateHasChanged();
 
-                // กำหนดค่าเริ่มต้นสำหรับหน้าแรกเมื่อค้นหา
-                var pageNumber = 1;
-                var pageSize = this.pageSize; // ใช้ pageSize ที่พี่กำหนดไว้
+    // public async Task<IEnumerable<User>> FetchCustomerDataAsync()
+    // {
+    //     try
+    //     {
 
-                var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
+    //         // เปิด DialogService เพื่อแจ้งว่ากำลังโหลด
+    //         runProcess_wait = true;
+    //         StateHasChanged(); // บังคับ UI อัปเดต
 
-                var searchCriteria = new
-                {
-                    branch_code = BranchCode,
-                    PageNumber = pageNumber,
-                    PageSize = pageSize,
-                    Filtering_Key = Filtering_Key,
-                    Filtering_Value = Filtering_Value
-                };
+    //         var baseApiUrl = Configuration["ApiSettings:BaseApiUrl"];
 
-                var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/MSUser/GetUsersDataV2", searchCriteria);
+    //         // สร้างข้อมูลที่ต้องการส่งไปกับ POST request
+    //         var searchCriteria = new
+    //         {
+    //             branch_code = BranchCode
+    //         };
 
-                if (response.IsSuccessStatusCode)
-                {
-                    cus_datas = await response.Content.ReadFromJsonAsync<IEnumerable<User>>();
-                    count = await GetUserCountAsync();
-                    await grid.FirstPage(); // รีเฟรชหน้า DataGrid ให้กลับไปหน้าแรกเมื่อค้นหาใหม่
-                }
-                else
-                {
-                    NotificationService.Notify(NotificationSeverity.Error,
-                        "Error", "ไม่สามารถค้นหาได้ กรุณาลองใหม่");
-                }
-            }
-            catch (Exception ex)
-            {
-                NotificationService.Notify(NotificationSeverity.Error, "Error", $"เกิดข้อผิดพลาด: {ex.Message}");
-            }
-            finally
-            {
-                runProcess_wait = false;
-                StateHasChanged();
-            }
-        }
-    }
+    //         // ส่งข้อมูลแบบ POST พร้อมกับ search criteria
+    //         var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/MSUser/GetUsersData", searchCriteria);
 
-    private async Task OnClear2()
-    {
-        // ล้างค่า Filtering_Key และ Filtering_Value ให้กลับไปค่าเริ่มต้น
-        Filtering_Key = "บัญชีผู้ใช้งาน"; // ค่าเริ่มต้นที่ต้องการให้โชว์ใน DropDown
-        Filtering_Value = "";
-
-        // โหลดข้อมูลใหม่ให้กลับมาเป็นค่าเริ่มต้น
-        await OnRefresh();
-
-        // รีเฟรช DataGrid ไปที่หน้าแรก
-        await grid.FirstPage();
-
-       // NotificationService.Notify(NotificationSeverity.Info, "แจ้งเตือน", "ล้างข้อมูลการค้นหาเรียบร้อยแล้ว");
-    }
-
+    //         if (response.IsSuccessStatusCode)
+    //         {
+    //             // แปลงข้อมูลที่ได้รับเป็น IEnumerable<CustomerDataList>
+    //             var customerDataList = await response.Content.ReadFromJsonAsync<IEnumerable<User>>();
+    //             return customerDataList;
+    //         }
+    //         else
+    //         {
+    //             // Console.WriteLine("Error fetching customer data.");
+    //             return Enumerable.Empty<User>();
+    //         }
+    //     }
+    //     finally
+    //     {
+    //         // ปิด DialogService หลังจากการโหลดเสร็จสิ้น
+    //         runProcess_wait = false;
+    //         StateHasChanged(); // บังคับ UI อัปเดต
+    //     }
+    // }
 
     async Task OpenNewStore()
     {
@@ -547,9 +657,7 @@
             {
                 branch_code = BranchCode,
                 PageNumber = pageNumber ?? 1, // ใช้ ?? เพื่อกำหนดค่าเป็น 1 ถ้า pageNumber เป็น null
-                PageSize = pageSize ?? 10,     // ใช้ ?? เพื่อกำหนดค่าเป็น 10 ถ้า pageSize เป็น null
-                Filtering_Key = Filtering_Key,
-                Filtering_Value = Filtering_Value
+                PageSize = pageSize ?? 10     // ใช้ ?? เพื่อกำหนดค่าเป็น 10 ถ้า pageSize เป็น null
             };
 
             var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/MSUser/GetUsersDataV2", searchCriteria);
@@ -578,9 +686,7 @@
         // ส่งข้อมูลไปเป็น JSON ผ่าน POST แทนที่จะใช้ GET
         var searchCriteria = new
         {
-            branch_code = BranchCode,
-            Filtering_Key = Filtering_Key,
-            Filtering_Value = Filtering_Value
+            branch_code = BranchCode
         };
 
         var response = await Http.PostAsJsonAsync($"{baseApiUrl}/api/MSUser/GetUserCount", searchCriteria);
@@ -592,5 +698,7 @@
 
         return 0;
     }
+
+
 
 }

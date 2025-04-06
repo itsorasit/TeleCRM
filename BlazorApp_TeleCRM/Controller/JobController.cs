@@ -1,12 +1,15 @@
 ﻿using BlazorApp_TeleCRM.Data;
 using BlazorApp_TeleCRM.Models;
 using DocumentFormat.OpenXml.Drawing;
+using DocumentFormat.OpenXml.Drawing.Charts;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic;
 using MySql.Data.MySqlClient;
 using Radzen.Blazor;
+using System;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Data.Common;
 using static BlazorApp_TeleCRM.Controller.CustomerAdminController;
@@ -93,15 +96,7 @@ LEFT JOIN
 
                 #endregion
 
-                //  AND DATE(@ToDate) between DATE(ca.startdate) and DATE(ca.duedate)
-                //   AND DATE(ca.startdate) <= DATE(@ToDate)
-                //   ORDER BY ca.startdate";
 
-
-                /*
-                    AND  ca.startdate >= @FromDate 
-                    AND  ca.startdate <= @ToDate
-                 */
 
                 using (var cmd = new MySqlCommand(query, connection))
                 {
@@ -172,6 +167,342 @@ LEFT JOIN
             }
             return Ok(activitys);
         }
+
+
+        [HttpPost("GetJobDataV2")]
+        public async Task<IActionResult> GetJobDataV2([FromBody] SearchCriteriaV2 searchCriteria)
+        {
+            DateTime today = DateTime.Now;
+
+            var activitys = new List<JobDataList>();
+
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                var pageSize = searchCriteria.PageSize > 0 ? searchCriteria.PageSize : 10;
+                var pageNumber = searchCriteria.PageNumber > 0 ? searchCriteria.PageNumber : 1;
+                var offset = (pageNumber - 1) * pageSize;
+
+                var query = @"
+            SELECT 
+                ca.guid, 
+                ca.customer_code, 
+                ca.branch_code, 
+                ca.touch_point, 
+                ca.name, 
+                ca.description, 
+                ca.startdate, 
+                ca.duedate, 
+                ca.reminder_duedate,            
+                ca.assign_work, 
+                ca.assign_work_type, 
+                ca.allowagent, 
+                ca.record_status, 
+                ca.created_by , 
+                ca.created_date , 
+                ca.modified_by, 
+                ca.modified_date,     
+                '' AS activitys_code, 
+                '' AS progress, 
+                0 AS succeed, 
+                0 AS progress_total,
+                ca.status,
+                mc.name AS customer_name,
+                '' AS product_code,
+                ca.call_status, 
+                ca.call_action, 
+                mc.phone AS customer_phone, 
+                mc.province AS customer_province, 
+                ca.remark
+            FROM 
+                crm_activitys ca
+            INNER JOIN 
+                mas_customers mc ON mc.guid = ca.customer_code
+            WHERE  
+                ca.branch_code = @branch_code 
+                AND ca.assign_work = @assign_work 
+        ";
+
+                if (!string.IsNullOrEmpty(searchCriteria.filteringKey))
+                {
+                    if (searchCriteria.filteringKey == "touch_point")
+                    {
+                        query += " AND ca.touch_point = @filteringValue ";
+                    }
+                    else if (searchCriteria.filteringKey == "act_status")
+                    {
+                        if (searchCriteria.filteringValue == "ปิดการขาย")
+                        {
+                            query += " AND ca.status = 'ปิดการขาย' ";
+                        }
+                        else if (searchCriteria.filteringValue == "จัดการแล้ว")
+                        {
+                            query += " AND ca.status IS NOT NULL AND ca.status <> '' ";
+                        }
+                        else if (searchCriteria.filteringValue == "งานค้าง")
+                        {
+                            query += " AND (ca.status IS NULL OR ca.status = '') ";
+                        }
+                    }
+                }
+
+                // เงื่อนไขสำหรับการค้นหาด้วยเบอร์โทรศัพท์หรือชื่อลูกค้า โดยไม่ใช้ช่วงวันที่
+                if (!string.IsNullOrEmpty(searchCriteria.filtering_type) &&
+                    (searchCriteria.filtering_type == "ค้นจากเบอร์ลูกค้า" || searchCriteria.filtering_type == "ค้นจากชื่อลูกค้า") &&
+                    !string.IsNullOrEmpty(searchCriteria.filteringValue2))
+                {
+                    if (searchCriteria.filtering_type == "ค้นจากเบอร์ลูกค้า")
+                    {
+                        query += " AND mc.phone LIKE CONCAT('%', @filteringValue2, '%') ";
+                    }
+                    else if (searchCriteria.filtering_type == "ค้นจากชื่อลูกค้า")
+                    {
+                        query += " AND mc.name LIKE CONCAT('%', @filteringValue2, '%') ";
+                    }
+                }
+                else
+                {
+                    // ใช้ช่วงวันที่ถ้าไม่ใช่การค้นหาจากเบอร์ลูกค้าหรือชื่อลูกค้า
+                    query += " AND ca.startdate <= @ToDate AND ca.duedate >= @FromDate ";
+                }
+
+                query += " ORDER BY ca.startdate LIMIT @pageSize OFFSET @offset; ";
+
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    var fromDate = searchCriteria.fdate?.Date ?? DateTime.MinValue.Date;
+                    cmd.Parameters.AddWithValue("@FromDate", fromDate);
+
+                    var toDate = (searchCriteria.ldate?.Date ?? DateTime.MaxValue.Date).AddDays(1).AddTicks(-1);
+                    cmd.Parameters.AddWithValue("@ToDate", toDate);
+
+                    cmd.Parameters.AddWithValue("@branch_code", searchCriteria.branch_code ?? "");
+                    cmd.Parameters.AddWithValue("@assign_work", searchCriteria.assign_work ?? "");
+
+                    if (!string.IsNullOrEmpty(searchCriteria.filteringKey))
+                    {
+                        cmd.Parameters.AddWithValue("@filteringValue", searchCriteria.filteringValue ?? "");
+                    }
+
+                    if (!string.IsNullOrEmpty(searchCriteria.filteringValue2))
+                    {
+                        cmd.Parameters.AddWithValue("@filteringValue2", searchCriteria.filteringValue2);
+                    }
+
+                    cmd.Parameters.AddWithValue("@pageSize", pageSize);
+                    cmd.Parameters.AddWithValue("@offset", offset);
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            JobDataList d = new JobDataList
+                            {
+                                guid = reader["guid"].ToString(),
+                                customer_code = reader["customer_code"].ToString(),
+                                branch_code = reader["branch_code"].ToString(),
+                                touch_point = reader["touch_point"].ToString(),
+                                customer_name = reader["customer_name"].ToString(),
+                                customer_phone = reader["customer_phone"].ToString(),
+                                customer_province = reader["customer_province"].ToString(),
+                                product_code = reader["product_code"].ToString(),
+                                description = reader["description"].ToString(),
+                                startdate = reader.IsDBNull(reader.GetOrdinal("startdate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("startdate")),
+                                duedate = reader.IsDBNull(reader.GetOrdinal("duedate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("duedate")),
+                                reminder_duedate = reader.IsDBNull(reader.GetOrdinal("reminder_duedate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("reminder_duedate")),
+                                assign_work = reader["assign_work"].ToString(),
+                                assign_work_type = reader["assign_work_type"].ToString(),
+                                allowagent = reader.IsDBNull(reader.GetOrdinal("allowagent")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("allowagent")),
+                                created_by = reader["created_by"].ToString(),
+                                created_date = reader.GetDateTime(reader.GetOrdinal("created_date")),
+                                modified_by = reader.IsDBNull(reader.GetOrdinal("modified_by")) ? null : reader["modified_by"].ToString(),
+                                modified_date = reader.IsDBNull(reader.GetOrdinal("modified_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("modified_date")),
+                                act_status = reader["status"].ToString(),
+                                call_status = reader["call_status"].ToString(),
+                                call_action = reader["call_action"].ToString(),
+                                remark = reader["remark"].ToString()
+                            };
+
+                            activitys.Add(d);
+                        }
+                    }
+                }
+            }
+
+            return Ok(activitys);
+        }
+
+
+
+        [HttpPost("GetJobDataCountV2")]
+        public async Task<IActionResult> GetJobDataCountV2([FromBody] SearchCriteriaV2 searchCriteria)
+        {
+            int count = 0;
+
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                string query = @"
+            SELECT COUNT(*) 
+            FROM crm_activitys ca
+            INNER JOIN mas_customers mc ON mc.guid = ca.customer_code
+            WHERE ca.branch_code = @branch_code
+            AND ca.assign_work = @assign_work
+        ";
+
+                // กรณีค้นหาจากเบอร์ลูกค้าหรือชื่อลูกค้า ไม่ใช้ช่วงวันที่
+                if (searchCriteria.filtering_type == "ค้นจากเบอร์ลูกค้า" || searchCriteria.filtering_type == "ค้นจากชื่อลูกค้า")
+                {
+                    if (!string.IsNullOrEmpty(searchCriteria.filteringValue2))
+                    {
+                        query += searchCriteria.filtering_type == "ค้นจากเบอร์ลูกค้า"
+                            ? " AND mc.phone LIKE CONCAT('%', @filteringValue2, '%') "
+                            : " AND mc.name LIKE CONCAT('%', @filteringValue2, '%') ";
+                    }
+                }
+                else
+                {
+                    query += @"
+            AND ca.startdate <= @ToDate
+            AND ca.duedate >= @FromDate
+            ";
+                }
+
+                if (searchCriteria.filteringKey == "touch_point")
+                {
+                    query += " AND ca.touch_point = @filteringValue ";
+                }
+                else if (searchCriteria.filteringKey == "act_status")
+                {
+                    if (searchCriteria.filteringValue == "จัดการแล้ว")
+                    {
+                        query += " AND (ca.status IS NOT NULL AND ca.status <> '') ";
+                    }
+                    else if (searchCriteria.filteringValue == "งานค้าง")
+                    {
+                        query += " AND (ca.status IS NULL OR ca.status = '') ";
+                    }
+                    else if (searchCriteria.filteringValue == "ปิดการขาย")
+                    {
+                        query += " AND ca.status = 'ปิดการขาย' ";
+                    }
+                }
+
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    var fromDate = searchCriteria.fdate?.Date ?? DateTime.MinValue.Date;
+                    var toDate = (searchCriteria.ldate?.Date ?? DateTime.MaxValue.Date).AddDays(1).AddTicks(-1);
+
+                    cmd.Parameters.AddWithValue("@FromDate", fromDate);
+                    cmd.Parameters.AddWithValue("@ToDate", toDate);
+
+                    cmd.Parameters.AddWithValue("@branch_code", searchCriteria.branch_code ?? "");
+                    cmd.Parameters.AddWithValue("@assign_work", searchCriteria.assign_work ?? "");
+
+                    if (!string.IsNullOrEmpty(searchCriteria.filteringValue))
+                    {
+                        cmd.Parameters.AddWithValue("@filteringValue", searchCriteria.filteringValue);
+                    }
+
+                    if (!string.IsNullOrEmpty(searchCriteria.filteringValue2))
+                    {
+                        cmd.Parameters.AddWithValue("@filteringValue2", searchCriteria.filteringValue2);
+                    }
+
+                    count = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                }
+            }
+
+            return Ok(count);
+        }
+
+
+
+        [HttpPost("GetTouchPointCounts")]
+        public async Task<IActionResult> GetTouchPointCounts([FromBody] SearchCriteriaV2 searchCriteria)
+        {
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                var query = @"
+            SELECT 
+                SUM(CASE WHEN ca.touch_point = 'Up-Sale' THEN 1 ELSE 0 END) AS UpSaleCount,
+                SUM(CASE WHEN ca.touch_point = 'Cross-Sale' THEN 1 ELSE 0 END) AS CrossSaleCount,
+                SUM(CASE WHEN ca.touch_point = 'Re-Sale' THEN 1 ELSE 0 END) AS ReSaleCount,
+                SUM(CASE WHEN ca.touch_point = 'ลูกค้าขุด' THEN 1 ELSE 0 END) AS ลูกค้าขุดCount,
+                SUM(CASE WHEN ca.status IS NOT NULL AND ca.status <> '' THEN 1 ELSE 0 END) AS CompletedCount,
+                SUM(CASE WHEN ca.status = 'ปิดการขาย' THEN 1 ELSE 0 END) AS SaleCount,
+                SUM(CASE WHEN ca.status IS NULL OR ca.status = '' THEN 1 ELSE 0 END) AS `งานค้าง`
+            FROM 
+                crm_activitys ca 
+            INNER JOIN mas_customers mc ON mc.guid = ca.customer_code
+            WHERE 
+                ca.branch_code = @branch_code 
+                AND ca.assign_work = @assign_work  
+        ";
+
+                // เงื่อนไขเพิ่มสำหรับการค้นหา
+                if (searchCriteria.filtering_type != "ค้นจากเบอร์ลูกค้า" && searchCriteria.filtering_type != "ค้นจากชื่อลูกค้า")
+                {
+                    query += @" 
+                AND ca.startdate <= @ToDate 
+                AND ca.duedate >= @FromDate
+            ";
+                }
+
+                if (searchCriteria.filtering_type == "ค้นจากเบอร์ลูกค้า" && !string.IsNullOrEmpty(searchCriteria.filteringValue2))
+                {
+                    query += " AND mc.phone LIKE CONCAT('%', @filteringValue2, '%') ";
+                }
+                else if (searchCriteria.filtering_type == "ค้นจากชื่อลูกค้า" && !string.IsNullOrEmpty(searchCriteria.filteringValue2))
+                {
+                    query += " AND mc.name LIKE CONCAT('%', @filteringValue2, '%') ";
+                }
+
+                using (var cmd = new MySqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@branch_code", searchCriteria.branch_code ?? "");
+                    cmd.Parameters.AddWithValue("@assign_work", searchCriteria.assign_work ?? "");
+
+                    // เงื่อนไขเพิ่มสำหรับการค้นหา
+                    if (searchCriteria.filtering_type != "ค้นจากเบอร์ลูกค้า" && searchCriteria.filtering_type != "ค้นจากชื่อลูกค้า")
+                    {
+                        cmd.Parameters.AddWithValue("@FromDate", searchCriteria.fdate ?? DateTime.MinValue);
+                        cmd.Parameters.AddWithValue("@ToDate", searchCriteria.ldate ?? DateTime.MaxValue);
+                    }
+
+                    if (!string.IsNullOrEmpty(searchCriteria.filteringValue2))
+                    {
+                        cmd.Parameters.AddWithValue("@filteringValue2", searchCriteria.filteringValue2);
+                    }
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            var result = new
+                            {
+                                UpSaleCount = reader.IsDBNull(0) ? 0 : reader.GetInt32(0),
+                                CrossSaleCount = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
+                                ReSaleCount = reader.IsDBNull(2) ? 0 : reader.GetInt32(2),
+                                ลูกค้าขุดCount = reader.IsDBNull(3) ? 0 : reader.GetInt32(3),
+                                CompletedCount = reader.IsDBNull(4) ? 0 : reader.GetInt32(4),
+                                SaleCount = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
+                                งานค้าง = reader.IsDBNull(6) ? 0 : reader.GetInt32(6)
+                            };
+
+                            return Ok(result);
+                        }
+                    }
+                }
+            }
+            return BadRequest("Failed to retrieve counts.");
+        }
+
+
 
         [HttpPost("GetJobDataByID")]
         public async Task<IActionResult> GetJobDataByID([FromBody] SearchCriteriaByID searchCriteria)
@@ -548,7 +879,7 @@ LEFT JOIN
             {
                 await connection.OpenAsync();
 
-               var query = @"SELECT 
+                var query = @"SELECT 
     ca.touch_point,
     DATE(ca.startdate) AS startdate, 
     IFNULL(ca.status, 'รอดำเนินการ') AS status,
@@ -566,7 +897,7 @@ GROUP BY
 
                 using (var cmd = new MySqlCommand(query, connection))
                 {
-                   
+
                     var branch_code = searchCriteria.branch_code ?? "";
                     cmd.Parameters.AddWithValue("@branch_code", branch_code);
 
@@ -783,7 +1114,30 @@ LEFT JOIN
             public string? branch_code { get; set; }
             public string? assign_work { get; set; }
             public string? filtering_type { get; set; }
+
+            public string? filteringKey { get; set; }
+            public string? filteringValue { get; set; }
+
+
         }
+
+
+        public class SearchCriteriaV2
+        {
+            public DateTime? fdate { get; set; }
+            public DateTime? ldate { get; set; }
+            public string? branch_code { get; set; }
+            public string? assign_work { get; set; }
+            public string? filtering_type { get; set; }
+            public string? filteringValue2 { get; set; }
+
+            public string? filteringKey { get; set; }
+            public string? filteringValue { get; set; }
+
+            public int PageNumber { get; set; } = 1; // ค่าเริ่มต้นคือ หน้าแรก
+            public int PageSize { get; set; } = 10;  // ค่าเริ่มต้นคือ 10 รายการต่อหน้า
+        }
+
 
 
         public class SearchCriteriaByKey

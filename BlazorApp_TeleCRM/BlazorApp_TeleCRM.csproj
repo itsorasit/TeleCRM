@@ -29,6 +29,9 @@
     <Content Update="Components\Pages\AdminCustomer\AdminCustomer.razor">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
+    <Content Update="Components\Pages\Job\MyJob.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
     <Content Update="Components\Pages\Report\AdminCalendar.razor">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>

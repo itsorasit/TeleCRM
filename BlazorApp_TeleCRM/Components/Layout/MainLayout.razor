@@ -70,7 +70,7 @@
             <RadzenSidebar Responsive="false" Style="width: 220px" Expanded="@sidebarExpanded">
                 <RadzenPanelMenu DisplayStyle="@(sidebarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="true">
                     <RadzenPanelMenuItem Text="Overview Team" Icon="home" Click="@(() => GoToPage("/home"))" Selected="@IsMenuItemSelected("/home")" />
-                    <RadzenPanelMenuItem Text="งานของฉัน" Icon="assignment" Click="@(() => GoToPage("/job"))" Selected="@IsMenuItemSelected("/job")" />
+                    <RadzenPanelMenuItem Text="งานของฉัน" Icon="assignment" Click="@(() => GoToPage("/myjob"))" Selected="@IsMenuItemSelected("/myjob")" />
                     <RadzenPanelMenuItem Text="ปฏิทินของฉัน" Icon="calendar_month" Click="@(() => GoToPage("/job-calendar"))" Selected="@IsMenuItemSelected("/job-calendar")" />
                     <RadzenPanelMenuItem Text="KPI" Icon="finance" Click="@(() => GoToPage("/kpi"))" Selected="@IsMenuItemSelected("/kpi")" />
 
@@ -283,6 +283,7 @@
     { "/console", "คอนโซล" },
     { "/adminproduct-cat", "ประเภทสินค้า" },
     { "/job", "งานของฉัน" },
+    { "/myjob", "งานของฉัน" },
     { "/job-calendar", "ปฏิทินของฉัน" },
     { "/kpi", "KPI" }
 
