@@ -29,13 +29,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ./myapp
+          path: ./myapp  # ✅ Path นี้ต้องตรงกับที่ตั้งค่าใน dotnet publish
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write   # ✅ จำเป็นสำหรับใช้ OIDC Authentication
+      id-token: write
       contents: read
 
     steps:
@@ -50,8 +50,8 @@ jobs:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_ED2F2B3FB1F44B0B91BC5D770264A7C3 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9DA4CA3D187A41C998995523877DBF2D }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_7A6363B6705149CD9C2536CC1B03FAE4 }}
-          audience: api://AzureADTokenExchange   # ✅ เพิ่มพารามิเตอร์นี้เพื่อรองรับ OIDC Authentication
-          allow-no-subscriptions: true 
+          audience: api://AzureADTokenExchange
+          allow-no-subscriptions: true  
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -59,4 +59,4 @@ jobs:
         with:
           app-name: 'allseedcrm'
           slot-name: 'Production'
-          package: ./myapp
+          package: ./myapp  # ✅ เปลี่ยนจาก '.' เป็น './myapp'
