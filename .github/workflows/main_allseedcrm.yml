@@ -51,6 +51,7 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9DA4CA3D187A41C998995523877DBF2D }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_7A6363B6705149CD9C2536CC1B03FAE4 }}
           audience: api://AzureADTokenExchange   # ✅ เพิ่มพารามิเตอร์นี้เพื่อรองรับ OIDC Authentication
+          allow-no-subscriptions: true 
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
