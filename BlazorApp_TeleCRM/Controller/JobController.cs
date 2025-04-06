@@ -414,7 +414,6 @@ LEFT JOIN
                     count = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                 }
             }
-
             return Ok(count);
         }
 
