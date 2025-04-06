@@ -29,7 +29,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ./myapp  # ✅ Path นี้ต้องตรงกับที่ตั้งค่าใน dotnet publish
+          path: ./myapp/**  # ✅ เก็บทุกไฟล์ในโฟลเดอร์ myapp
 
   deploy:
     runs-on: ubuntu-latest
@@ -43,7 +43,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
+          path: ./myapp  # ✅ จะดาวน์โหลดมาเก็บที่โฟลเดอร์ ./myapp
+
+      - name: List files to confirm download
+        run: ls -R ./myapp  # ✅ แสดงโครงสร้างไฟล์ในโฟลเดอร์ ./myapp เพื่อตรวจสอบว่าถูกดาวน์โหลดสำเร็จหรือไม่
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -59,4 +63,4 @@ jobs:
         with:
           app-name: 'allseedcrm'
           slot-name: 'Production'
-          package: ./myapp  # ✅ เปลี่ยนจาก '.' เป็น './myapp'
+          package: ./myapp  # ✅ ต้องระบุโฟลเดอร์ที่เก็บไฟล์อย่างถูกต้อง
