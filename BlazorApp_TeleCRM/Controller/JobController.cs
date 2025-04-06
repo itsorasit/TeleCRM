@@ -420,6 +420,7 @@ LEFT JOIN
         [HttpPost("GetTouchPointCounts")]
         public async Task<IActionResult> GetTouchPointCounts([FromBody] SearchCriteriaV2 searchCriteria)
         {
+
             using (var connection = new MySqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
