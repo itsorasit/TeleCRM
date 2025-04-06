@@ -417,7 +417,6 @@ LEFT JOIN
             return Ok(count);
         }
 
-
         [HttpPost("GetTouchPointCounts")]
         public async Task<IActionResult> GetTouchPointCounts([FromBody] SearchCriteriaV2 searchCriteria)
         {
